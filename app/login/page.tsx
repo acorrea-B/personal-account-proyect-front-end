@@ -43,7 +43,7 @@ export default function LoginPage() {
     try {
       const tokenPair = await login(parsed.data);
       saveSession(tokenPair);
-      router.push('/');
+      router.push('/app/');
     } catch (error) {
       if (error instanceof ProblemError) {
         if (error.problem.status === 401) {
