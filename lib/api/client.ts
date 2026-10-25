@@ -9,6 +9,7 @@ import {
 } from '../schemas/auth';
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
+const requestTimeoutMs = 15_000;
 
 export interface Problem {
   type?: string;
@@ -47,10 +48,20 @@ async function readProblem(response: Response): Promise<ProblemError> {
   });
 }
 
+async function fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), requestTimeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export async function register(input: z.infer<typeof registerRequestSchema>): Promise<User> {
   const payload = registerRequestSchema.parse(input);
 
-  const response = await fetch(`${apiBaseUrl}/v1/auth/register`, {
+  const response = await fetchWithTimeout(`${apiBaseUrl}/v1/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -69,7 +80,7 @@ export async function resendVerification(
 ): Promise<z.infer<typeof resendVerificationResponseSchema>> {
   const payload = resendVerificationRequestSchema.parse(input);
 
-  const response = await fetch(`${apiBaseUrl}/v1/auth/resend-verification`, {
+  const response = await fetchWithTimeout(`${apiBaseUrl}/v1/auth/resend-verification`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

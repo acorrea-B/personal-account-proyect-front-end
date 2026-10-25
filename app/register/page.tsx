@@ -51,6 +51,8 @@ export default function RegisterPage() {
         } else {
           setFormError('Registration could not be completed. Please try again.');
         }
+      } else if (error instanceof DOMException && error.name === 'AbortError') {
+        setFormError('Request timed out. Please try again.');
       } else {
         setFormError('Unexpected error. Please try again.');
       }
