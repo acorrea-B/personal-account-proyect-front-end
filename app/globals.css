@@ -683,9 +683,9 @@ body {
 .landing-panel .auth-card .field::after {
   content: '';
   position: absolute;
-  left: 15%;
+  left: 10%;
   bottom: 0;
-  width: 70%;
+  width: 80%;
   height: 1px;
   background: linear-gradient(
     90deg,
@@ -710,6 +710,7 @@ body {
   border-radius: 0;
   padding: var(--space-8) 2px;
   color: var(--color-pure-white);
+  caret-color: var(--color-cyan-signal);
 }
 
 .landing-panel .auth-card input::placeholder {
