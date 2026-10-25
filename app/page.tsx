@@ -1,7 +1,11 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from '@/lib/auth/useSession';
+
+const HERO_IMAGE =
+  'https://images.pexels.com/photos/37894130/pexels-photo-37894130.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
 
 export default function LandingPage() {
   const { session, isHydrated } = useSession();
@@ -16,37 +20,46 @@ export default function LandingPage() {
           <p>
             Keep your professional identity focused and secure: register once, verify your email,
             and return to the same calm workspace with active sessions, clear feedback, and a quiet
-            stone-and-cyan visual language that does not get in the way of your story.
+            stone-and-cyan visual language that never gets in the way of your story.
           </p>
-          <div className="landing-panel">
-            <div className="auth-card">
-              <h2 className="auth-heading">
-                {isSignedIn ? 'Continue where you left off' : 'Enter your workspace'}
-              </h2>
-              <p className="auth-subtitle">
-                {isSignedIn
-                  ? 'Your session is active. Open the app or sign out to switch accounts.'
-                  : 'Sign in with your verified account or create a new one in a few guided steps.'}
-              </p>
-              <div className="landing-actions">
-                {isSignedIn ? (
-                  <Link className="button button-primary" href="/app/">
-                    Open profile
+        </section>
+
+        <aside className="landing-panel">
+          <Image
+            className="hero-image"
+            src={HERO_IMAGE}
+            alt="Professional portrait of a businessman in a modern office setting"
+            width={1260}
+            height={750}
+            priority
+          />
+          <div className="auth-card">
+            <h2 className="auth-heading">
+              {isSignedIn ? 'Continue where you left off' : 'Enter your workspace'}
+            </h2>
+            <p className="auth-subtitle">
+              {isSignedIn
+                ? 'Your session is active. Open the app or sign out to switch accounts.'
+                : 'Sign in with your verified account or create a new one in a few guided steps.'}
+            </p>
+            <div className="landing-actions">
+              {isSignedIn ? (
+                <Link className="button button-primary" href="/app/">
+                  Open profile
+                </Link>
+              ) : (
+                <>
+                  <Link className="button button-primary" href="/login/">
+                    Sign in
                   </Link>
-                ) : (
-                  <>
-                    <Link className="button button-primary" href="/login/">
-                      Sign in
-                    </Link>
-                    <Link className="button button-ghost" href="/register/">
-                      Create an account
-                    </Link>
-                  </>
-                )}
-              </div>
+                  <Link className="button button-ghost" href="/register/">
+                    Create an account
+                  </Link>
+                </>
+              )}
             </div>
           </div>
-        </section>
+        </aside>
       </div>
 
       <section className="feature-grid">
