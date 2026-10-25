@@ -6,15 +6,15 @@ Development and the conventions in `AI-agents-settings`.
 
 ## Stack
 
-| Layer | Choice |
-|---|---|
-| Framework | Next.js (App Router) |
-| Language | TypeScript (strict) |
+| Layer      | Choice                                                                                                               |
+| ---------- | -------------------------------------------------------------------------------------------------------------------- |
+| Framework  | Next.js (App Router)                                                                                                 |
+| Language   | TypeScript (strict)                                                                                                  |
 | Styling/UI | Seline Analytics (Refero) via `docs/design-brief.md` and `design/references/selected-style.md` (Tailwind v4 planned) |
-| API | `personal-account-proyect` REST API |
-| Delivery | Static export (`output: 'export'`, trailingSlash) for Scaleway Object Storage |
-| Locale | English/Spanish client-side i18n (static-export compatible) |
-| Data layer | React Query + Zod, client-side API access |
+| API        | `personal-account-proyect` REST API                                                                                  |
+| Delivery   | Static export (`output: 'export'`, trailingSlash) for Scaleway Object Storage                                        |
+| Locale     | English/Spanish client-side i18n (static-export compatible)                                                          |
+| Data layer | React Query + Zod, client-side API access                                                                            |
 
 ## Design reference
 
