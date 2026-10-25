@@ -1,6 +1,12 @@
 import { z } from 'zod';
 
-import { registerRequestSchema, registerResponseSchema, type User } from '../schemas/auth';
+import {
+  registerRequestSchema,
+  registerResponseSchema,
+  resendVerificationRequestSchema,
+  resendVerificationResponseSchema,
+  type User,
+} from '../schemas/auth';
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
 
@@ -56,4 +62,23 @@ export async function register(input: z.infer<typeof registerRequestSchema>): Pr
 
   const data: unknown = await response.json();
   return registerResponseSchema.parse(data).user;
+}
+
+export async function resendVerification(
+  input: z.infer<typeof resendVerificationRequestSchema>,
+): Promise<z.infer<typeof resendVerificationResponseSchema>> {
+  const payload = resendVerificationRequestSchema.parse(input);
+
+  const response = await fetch(`${apiBaseUrl}/v1/auth/resend-verification`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw await readProblem(response);
+  }
+
+  const data: unknown = await response.json();
+  return resendVerificationResponseSchema.parse(data);
 }

@@ -23,3 +23,15 @@ export const registerResponseSchema = z.object({
 });
 
 export type User = z.infer<typeof userSchema>;
+
+export const resendVerificationRequestSchema = z.object({
+  email: z.email(),
+});
+
+export type ResendVerificationRequest = z.infer<typeof resendVerificationRequestSchema>;
+
+export const resendVerificationResponseSchema = z.object({
+  message: z.string(),
+});
+
+export type ResendVerificationResponse = z.infer<typeof resendVerificationResponseSchema>;
