@@ -355,6 +355,23 @@ body {
   overflow: hidden;
 }
 
+.landing-page--background .landing-copy > * {
+  opacity: 0;
+  animation: element-in 900ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.landing-page--background .landing-copy > *:nth-child(1) {
+  animation-delay: 260ms;
+}
+
+.landing-page--background .landing-copy > *:nth-child(2) {
+  animation-delay: 520ms;
+}
+
+.landing-page--background .landing-copy > *:nth-child(3) {
+  animation-delay: 780ms;
+}
+
 .landing-page--background .landing-copy {
   padding: var(--space-32);
   border-radius: var(--radius-2xl);
@@ -380,7 +397,45 @@ body {
 }
 
 .landing-panel--float {
-  animation: landing-panel-fade 1200ms cubic-bezier(0.25, 0.8, 0.25, 1) both;
+  animation: landing-panel-fade 1200ms cubic-bezier(0.16, 1, 0.3, 1) 520ms both;
+
+  .landing-panel--float .auth-card > * {
+    opacity: 0;
+    animation: element-in 800ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .landing-panel--float .auth-card > *:nth-child(1) {
+    animation-delay: 900ms;
+  }
+
+  .landing-panel--float .auth-card > *:nth-child(2) {
+    animation-delay: 1100ms;
+  }
+
+  .landing-panel--float .auth-card > *:nth-child(3) {
+    animation-delay: 1320ms;
+  }
+
+  .landing-panel--float .auth-card > *:nth-child(4) {
+    animation-delay: 1540ms;
+  }
+
+  .feature-grid .feature-card {
+    opacity: 0;
+    animation: element-in 950ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .feature-grid .feature-card:nth-child(1) {
+    animation-delay: 1500ms;
+  }
+
+  .feature-grid .feature-card:nth-child(2) {
+    animation-delay: 1720ms;
+  }
+
+  .feature-grid .feature-card:nth-child(3) {
+    animation-delay: 1940ms;
+  }
 }
 
 @keyframes landing-panel-fade {
@@ -407,7 +462,18 @@ body {
 
 .page-transition {
   opacity: 0;
-  animation: page-transition-in 1200ms cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+  animation: page-transition-in 1600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes element-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes page-transition-in {
