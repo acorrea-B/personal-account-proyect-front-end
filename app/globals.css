@@ -531,7 +531,7 @@ body {
   backdrop-filter: blur(18px);
   border: 1px solid rgba(255, 255, 255, 0.14);
   opacity: 0;
-  animation: element-in 2000ms cubic-bezier(0.22, 1, 0.36, 1) 3600ms forwards;
+  animation: element-in 1600ms cubic-bezier(0.22, 1, 0.36, 1) 2200ms forwards;
 }
 
 .workspace-proof h2,
@@ -595,7 +595,7 @@ body {
   gap: var(--space-24);
   grid-template-columns: minmax(0, 1fr) minmax(280px, 0.62fr);
   opacity: 0;
-  animation: element-in 2000ms cubic-bezier(0.22, 1, 0.36, 1) 4200ms forwards;
+  animation: element-in 1600ms cubic-bezier(0.22, 1, 0.36, 1) 2600ms forwards;
 }
 
 .access-rails > article,
@@ -628,7 +628,7 @@ body {
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.12);
   opacity: 0;
-  animation: element-in 1800ms cubic-bezier(0.22, 1, 0.36, 1) 4800ms forwards;
+  animation: element-in 1600ms cubic-bezier(0.22, 1, 0.36, 1) 3000ms forwards;
 }
 
 .final-action .landing-actions {
