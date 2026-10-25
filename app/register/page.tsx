@@ -70,7 +70,7 @@ export default function RegisterPage() {
 
   return (
     <main className="auth-page">
-      <section className="auth-shell auth-card auth-card--dark">
+      <section className="auth-shell auth-card">
         <h1 className="auth-heading">Create account</h1>
         <p className="auth-subtitle">Register and verify your email to continue.</p>
 
