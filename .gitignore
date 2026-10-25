@@ -34,3 +34,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Agent guidance (kept local, not versioned)
+AGENTS.md
+CLAUDE.md
