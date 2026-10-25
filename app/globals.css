@@ -722,3 +722,16 @@ body {
   border-bottom-color: var(--color-cyan-signal);
   box-shadow: 0 2px 0 0 rgba(59, 166, 241, 0.75);
 }
+
+.landing-panel .auth-card .form-error {
+  background: rgba(59, 166, 241, 0.14);
+  border: 1px solid rgba(59, 166, 241, 0.45);
+  border-radius: var(--radius-lg);
+  color: var(--color-pure-white);
+  padding: var(--space-8) var(--space-12);
+  text-align: center;
+}
+
+.landing-panel .auth-card .field-error {
+  color: rgba(255, 200, 180, 0.9);
+}

@@ -52,7 +52,7 @@ export default function LandingPage() {
     } catch (error) {
       if (error instanceof ProblemError) {
         if (error.problem.status === 401) {
-          setFormError('Email or password is invalid.');
+          setFormError('The email or password did not match. Please try again.');
         } else if (error.problem.status === 403) {
           setFormError('Your email is not verified yet. Verify it before signing in.');
         } else if (error.problem.status === 429) {
