@@ -110,17 +110,17 @@ export default function RegisterConfirmPage() {
   const countdownLabel = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
   return (
-    <main>
-      <section>
-        <h1>Confirm your email</h1>
+    <main className="auth-page">
+      <section className="auth-shell auth-card">
+        <h1 className="auth-heading">Confirm your email</h1>
         <p>
           We created your account. Check your inbox and follow the verification link to continue
           with registration.
         </p>
-        <p>After verifying your email, return here and sign in.</p>
+        <p className="auth-subtitle">After verifying your email, return here and sign in.</p>
 
         <form method="post" onSubmit={handleSubmit} noValidate>
-          <label htmlFor="email">
+          <label className="field" htmlFor="email">
             Email
             <input
               id="email"
@@ -134,24 +134,28 @@ export default function RegisterConfirmPage() {
             />
           </label>
           {fieldErrors.email ? (
-            <p id="email-error" role="alert">
+            <p id="email-error" role="alert" className="field-error">
               {fieldErrors.email}
             </p>
           ) : null}
 
           {formError ? (
-            <div role="alert">
+            <div role="alert" className="form-error">
               <p>{formError}</p>
             </div>
           ) : null}
 
           {successMessage ? (
-            <div role="status">
+            <div role="status" className="form-error">
               <p>{successMessage}</p>
             </div>
           ) : null}
 
-          <button type="submit" disabled={isSubmitting || (secondsLeft ?? 0) > 0}>
+          <button
+            type="submit"
+            className="button button-primary"
+            disabled={isSubmitting || (secondsLeft ?? 0) > 0}
+          >
             {(secondsLeft ?? 0) > 0
               ? `Resend in ${countdownLabel}`
               : isSubmitting

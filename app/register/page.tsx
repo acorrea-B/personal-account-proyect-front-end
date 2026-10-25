@@ -69,19 +69,19 @@ export default function RegisterPage() {
   }
 
   return (
-    <main>
-      <section>
-        <h1>Create account</h1>
-        <p>Register and verify your email to continue.</p>
+    <main className="auth-page">
+      <section className="auth-shell auth-card">
+        <h1 className="auth-heading">Create account</h1>
+        <p className="auth-subtitle">Register and verify your email to continue.</p>
 
         {formError ? (
-          <div role="alert">
+          <div role="alert" className="form-error">
             <p>{formError}</p>
           </div>
         ) : null}
 
         <form method="post" onSubmit={handleSubmit} noValidate>
-          <label htmlFor="email">
+          <label className="field" htmlFor="email">
             Email
             <input
               id="email"
@@ -95,12 +95,12 @@ export default function RegisterPage() {
             />
           </label>
           {fieldErrors.email ? (
-            <p id="email-error" role="alert">
+            <p id="email-error" role="alert" className="field-error">
               {fieldErrors.email}
             </p>
           ) : null}
 
-          <label htmlFor="password">
+          <label className="field" htmlFor="password">
             Password
             <input
               id="password"
@@ -114,12 +114,12 @@ export default function RegisterPage() {
             />
           </label>
           {fieldErrors.password ? (
-            <p id="password-error" role="alert">
+            <p id="password-error" role="alert" className="field-error">
               {fieldErrors.password}
             </p>
           ) : null}
 
-          <button type="submit" disabled={isSubmitting}>
+          <button type="submit" className="button button-primary" disabled={isSubmitting}>
             {isSubmitting ? 'Creating account...' : 'Create account'}
           </button>
         </form>

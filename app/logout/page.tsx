@@ -15,10 +15,10 @@ export default function LogoutPage() {
   }, [router]);
 
   return (
-    <main>
-      <section>
-        <h1>Signing out</h1>
-        <p>Ending your session on this device.</p>
+    <main className="auth-page">
+      <section className="auth-shell auth-card">
+        <h1 className="auth-heading">Signing out</h1>
+        <p className="auth-subtitle">Ending your session on this device.</p>
       </section>
     </main>
   );

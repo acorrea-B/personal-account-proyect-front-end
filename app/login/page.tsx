@@ -73,24 +73,26 @@ export default function LoginPage() {
   }
 
   return (
-    <main>
-      <section>
-        <h1>Sign in</h1>
-        <p>Use your verified account credentials.</p>
+    <main className="auth-page">
+      <section className="auth-shell auth-card">
+        <h1 className="auth-heading">Sign in</h1>
+        <p className="auth-subtitle">Use your verified account credentials.</p>
 
         {formError ? (
-          <div role="alert">
+          <div role="alert" className="form-error">
             <p>{formError}</p>
             {formError.includes('not verified') ? (
               <p>
-                <a href="/register/confirm/">Resend verification email</a>
+                <a className="link" href="/register/confirm/">
+                  Resend verification email
+                </a>
               </p>
             ) : null}
           </div>
         ) : null}
 
         <form method="post" onSubmit={handleSubmit} noValidate>
-          <label htmlFor="email">
+          <label className="field" htmlFor="email">
             Email
             <input
               id="email"
@@ -104,12 +106,12 @@ export default function LoginPage() {
             />
           </label>
           {fieldErrors.email ? (
-            <p id="email-error" role="alert">
+            <p id="email-error" role="alert" className="field-error">
               {fieldErrors.email}
             </p>
           ) : null}
 
-          <label htmlFor="password">
+          <label className="field" htmlFor="password">
             Password
             <input
               id="password"
@@ -123,18 +125,20 @@ export default function LoginPage() {
             />
           </label>
           {fieldErrors.password ? (
-            <p id="password-error" role="alert">
+            <p id="password-error" role="alert" className="field-error">
               {fieldErrors.password}
             </p>
           ) : null}
 
-          <button type="submit" disabled={isSubmitting}>
+          <button type="submit" className="button button-primary" disabled={isSubmitting}>
             {isSubmitting ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
 
         <p>
-          <a href="/register/">Create an account instead</a>
+          <a className="link" href="/register/">
+            Create an account instead
+          </a>
         </p>
       </section>
     </main>

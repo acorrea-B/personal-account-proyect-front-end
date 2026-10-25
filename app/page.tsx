@@ -7,18 +7,22 @@ export default function HomePage() {
 
   if (!isHydrated || !isAuthorized) {
     return (
-      <main>
-        <p>Checking session…</p>
+      <main className="auth-page">
+        <p className="auth-subtitle">Checking session…</p>
       </main>
     );
   }
 
   return (
-    <main>
-      <h1>Professional Profile</h1>
-      <p>Private profile and CV management.</p>
-      <p>Signed in as {session?.user.email}</p>
-      <a href="/logout/">Sign out</a>
+    <main className="auth-page">
+      <section className="auth-shell auth-card">
+        <h1 className="auth-heading">Professional Profile</h1>
+        <p>Private profile and CV management.</p>
+        <p className="auth-subtitle">Signed in as {session?.user.email}</p>
+        <a className="link" href="/logout/">
+          Sign out
+        </a>
+      </section>
     </main>
   );
 }
