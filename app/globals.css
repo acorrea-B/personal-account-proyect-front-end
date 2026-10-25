@@ -350,7 +350,7 @@ body {
   background-position: 100% 50%;
   background-repeat: no-repeat;
   will-change: background-position;
-  animation: landing-background-pan 24s ease-in-out infinite alternate;
+  animation: landing-background-pan 40s ease-in-out infinite alternate;
   color: var(--color-pure-white);
   overflow: hidden;
 }
@@ -397,11 +397,11 @@ body {
 }
 
 .landing-panel--float {
-  animation: landing-panel-fade 1200ms cubic-bezier(0.16, 1, 0.3, 1) 520ms both;
+  animation: landing-panel-fade 2600ms cubic-bezier(0.22, 1, 0.36, 1) 900ms both;
 
   .landing-panel--float .auth-card > * {
     opacity: 0;
-    animation: element-in 800ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: element-in 2000ms cubic-bezier(0.22, 1, 0.36, 1) 1800ms forwards;
   }
 
   .landing-panel--float .auth-card > *:nth-child(1) {
@@ -419,33 +419,14 @@ body {
   .landing-panel--float .auth-card > *:nth-child(4) {
     animation-delay: 1540ms;
   }
-
-  .feature-grid .feature-card {
-    opacity: 0;
-    animation: element-in 950ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
-  .feature-grid .feature-card:nth-child(1) {
-    animation-delay: 1500ms;
-  }
-
-  .feature-grid .feature-card:nth-child(2) {
-    animation-delay: 1720ms;
-  }
-
-  .feature-grid .feature-card:nth-child(3) {
-    animation-delay: 1940ms;
-  }
 }
 
 @keyframes landing-panel-fade {
   from {
     opacity: 0;
-    transform: translateY(var(--space-16));
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -467,12 +448,12 @@ body {
 
 @keyframes element-in {
   from {
-    opacity: 0;
-    transform: translateY(20px);
+    opacity: 0.18;
+    filter: blur(1px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    filter: blur(0);
   }
 }
 
@@ -518,4 +499,21 @@ body {
     opacity: 1;
     transform: none;
   }
+}
+
+.feature-grid .feature-card {
+  opacity: 0;
+  animation: element-in 2300ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.feature-grid .feature-card:nth-child(1) {
+  animation-delay: 2600ms;
+}
+
+.feature-grid .feature-card:nth-child(2) {
+  animation-delay: 3000ms;
+}
+
+.feature-grid .feature-card:nth-child(3) {
+  animation-delay: 3400ms;
 }
