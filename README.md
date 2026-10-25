@@ -10,8 +10,21 @@ Development and the conventions in `AI-agents-settings`.
 |---|---|
 | Framework | Next.js (App Router) |
 | Language | TypeScript (strict) |
-| Styling/UI | TBD |
+| Styling/UI | Seline Analytics (Refero) via `docs/design-brief.md` and `design/references/selected-style.md` (Tailwind v4 planned) |
 | API | `personal-account-proyect` REST API |
+| Delivery | Static export (`output: 'export'`, trailingSlash) for Scaleway Object Storage |
+| Locale | English/Spanish client-side i18n (static-export compatible) |
+| Data layer | React Query + Zod, client-side API access |
+
+## Design reference
+
+Selected visual reference: Seline Analytics.
+See `design/references/selected-style.md` and `docs/design-brief.md`.
+
+## Delivery target
+
+The application is shipped as a static Next.js export to Scaleway Object Storage
+website hosting. See `docs/design-brief.md` sections 8, 13 and 14.
 
 ## Model traceability
 
