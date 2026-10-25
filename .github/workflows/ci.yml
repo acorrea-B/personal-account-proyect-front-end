@@ -40,6 +40,8 @@ jobs:
         run: npm run format:check
 
       - name: Tests (coverage)
+        env:
+          CASSETTE_ENCRYPTION_KEY: ${{ secrets.CASSETTE_ENCRYPTION_KEY }}
         run: npm run test:coverage
 
   build:
