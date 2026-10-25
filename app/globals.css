@@ -280,6 +280,7 @@ body {
 
 .feature-card {
   background: var(--color-pure-white);
+  color: var(--color-ink-black);
   border: 1px solid var(--color-stone-border);
   border-radius: var(--radius-lg);
   padding: var(--space-24);
@@ -290,6 +291,10 @@ body {
 .feature-card svg {
   color: var(--color-cyan-signal);
   margin-bottom: var(--space-4);
+}
+
+.feature-card .auth-subtitle {
+  color: var(--color-warm-gray);
 }
 
 .feature-card h2 {
