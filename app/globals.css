@@ -681,7 +681,7 @@ body {
 .landing-panel .auth-card input {
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+
   border-radius: 0;
   padding: var(--space-8) 2px;
   color: var(--color-pure-white);
