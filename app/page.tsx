@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ShieldIcon, SignalIcon, UserIcon } from '../components/icons';
 import { useSession } from '@/lib/auth/useSession';
 
 export default function LandingPage() {
@@ -61,15 +62,24 @@ export default function LandingPage() {
         <aside className="proof-metrics">
           <dl>
             <div>
-              <dt>Session</dt>
+              <dt>
+                <UserIcon className="metric-icon" />
+                Session
+              </dt>
               <dd>Automatic renewal</dd>
             </div>
             <div>
-              <dt>Security</dt>
+              <dt>
+                <ShieldIcon className="metric-icon" />
+                Security
+              </dt>
               <dd>sessionStorage only</dd>
             </div>
             <div>
-              <dt>Feedback</dt>
+              <dt>
+                <SignalIcon className="metric-icon" />
+                Feedback
+              </dt>
               <dd>RFC 7807 errors</dd>
             </div>
           </dl>

@@ -82,3 +82,24 @@ export function ArrowRightIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function SignalIcon({ className }: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      height="24"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.6"
+      viewBox="0 0 24 24"
+      width="24"
+    >
+      <path d="M12 3a9 9 0 0 0-9 9c0 4.9 3.5 7.5 9 9 5.5-1.5 9-4.1 9-9a9 9 0 0 0-9-9Z" />
+      <circle cx="12" cy="9" r="1.3" />
+      <path d="M12 12v4" />
+    </svg>
+  );
+}

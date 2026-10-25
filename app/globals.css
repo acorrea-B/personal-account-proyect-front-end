@@ -661,3 +661,15 @@ body {
   border-color: var(--color-cyan-signal);
   box-shadow: 0 16px 38px rgba(59, 166, 241, 0.32);
 }
+
+.metric-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--color-cyan-signal);
+}
+
+.proof-metrics dt {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+}
