@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { ArrowRightIcon, LockIcon, ShieldIcon, UserIcon } from '../components/icons';
 import { useSession } from '@/lib/auth/useSession';
 
 const HERO_IMAGE =
@@ -46,14 +47,17 @@ export default function LandingPage() {
               {isSignedIn ? (
                 <Link className="button button-primary" href="/app/">
                   Open profile
+                  <ArrowRightIcon className="cta-arrow" />
                 </Link>
               ) : (
                 <>
                   <Link className="button button-primary" href="/login/">
                     Sign in
+                    <ArrowRightIcon className="cta-arrow" />
                   </Link>
                   <Link className="button button-ghost" href="/register/">
                     Create an account
+                    <ArrowRightIcon className="cta-arrow" />
                   </Link>
                 </>
               )}
@@ -64,6 +68,7 @@ export default function LandingPage() {
 
       <section className="feature-grid">
         <article className="feature-card">
+          <UserIcon />
           <h2>Account that stays clean</h2>
           <p className="auth-subtitle">
             Validation, email verification, rate-limit guidance, and a 3-minute resend cooldown keep
@@ -71,6 +76,7 @@ export default function LandingPage() {
           </p>
         </article>
         <article className="feature-card">
+          <ShieldIcon />
           <h2>Security without clutter</h2>
           <p className="auth-subtitle">
             Tokens stay in sessionStorage, renewal happens automatically, and logout clears your
@@ -78,6 +84,7 @@ export default function LandingPage() {
           </p>
         </article>
         <article className="feature-card">
+          <LockIcon />
           <h2>Private by default</h2>
           <p className="auth-subtitle">
             Public pages stay open, while profile and CV areas remain available only after the
