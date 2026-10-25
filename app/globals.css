@@ -676,6 +676,31 @@ body {
 
 .landing-panel .auth-card .field {
   gap: var(--space-0);
+  position: relative;
+  padding-bottom: var(--space-2);
+}
+
+.landing-panel .auth-card .field::after {
+  content: '';
+  position: absolute;
+  left: 15%;
+  bottom: 0;
+  width: 70%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(59, 166, 241, 0),
+    rgba(59, 166, 241, 0.78),
+    rgba(59, 166, 241, 0)
+  );
+  transition:
+    width 240ms ease-out,
+    left 240ms ease-out;
+}
+
+.landing-panel .auth-card .field:focus-within::after {
+  left: 0;
+  width: 100%;
 }
 
 .landing-panel .auth-card input {
