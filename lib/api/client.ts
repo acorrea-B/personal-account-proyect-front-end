@@ -19,6 +19,7 @@ export interface Problem {
   instance?: string;
   fields?: Record<string, string>;
   can_resend?: boolean;
+  retry_after_seconds?: number;
   current_updated_at?: string;
   max_bytes?: number;
 }
@@ -43,6 +44,7 @@ async function readProblem(response: Response): Promise<ProblemError> {
     instance: body.instance,
     fields: body.fields,
     can_resend: body.can_resend,
+    retry_after_seconds: body.retry_after_seconds,
     current_updated_at: body.current_updated_at,
     max_bytes: body.max_bytes,
   });

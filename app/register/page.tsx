@@ -46,6 +46,13 @@ export default function RegisterPage() {
       if (error instanceof ProblemError) {
         if (error.problem.status === 409) {
           setFormError('An account with this email already exists.');
+        } else if (error.problem.status === 429) {
+          const seconds = error.problem.retry_after_seconds;
+          setFormError(
+            seconds
+              ? 'Too many attempts; try again in ' + String(seconds) + ' seconds.'
+              : 'Too many attempts; please try again later.',
+          );
         } else if (error.problem.fields) {
           setFieldErrors(error.problem.fields);
         } else {
