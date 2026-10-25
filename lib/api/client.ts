@@ -133,7 +133,6 @@ export async function revoke(accessToken: string): Promise<void> {
   }
 }
 
-
 export async function resendVerification(
   input: z.infer<typeof resendVerificationRequestSchema>,
 ): Promise<z.infer<typeof resendVerificationResponseSchema>> {

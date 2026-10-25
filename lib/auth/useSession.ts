@@ -9,8 +9,35 @@ export function useSession() {
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    setSession(loadSession());
-    setIsHydrated(true);
+    let cancelled = false;
+
+    (async () => {
+      const stored = loadSession();
+      if (!stored) {
+        if (!cancelled) {
+          setSession(null);
+          setIsHydrated(true);
+        }
+        return;
+      }
+
+      try {
+        const refreshed = await refreshSession(stored);
+        if (!cancelled) {
+          setSession(refreshed);
+          setIsHydrated(true);
+        }
+      } catch {
+        if (!cancelled) {
+          setSession(stored);
+          setIsHydrated(true);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {

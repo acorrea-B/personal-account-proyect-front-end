@@ -21,19 +21,17 @@ describe('auth logout', () => {
   });
 
   it('maps an invalid/expired access token (401) to a ProblemError', async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            type: 'Unauthorized',
-            title: 'Unauthorized',
-            status: 401,
-            detail: 'Invalid access token.',
-          }),
-          { status: 401, headers: { 'Content-Type': 'application/json' } },
-        ),
-      );
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          type: 'Unauthorized',
+          title: 'Unauthorized',
+          status: 401,
+          detail: 'Invalid access token.',
+        }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
     vi.stubGlobal('fetch', fetchMock);
 
     try {
@@ -49,20 +47,18 @@ describe('auth logout', () => {
   });
 
   it('maps a rate-limited (429) Problem to a rate-limit error', async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            type: 'rate-limited',
-            title: 'Too many requests',
-            status: 429,
-            detail: 'Try again later.',
-            retry_after_seconds: 60,
-          }),
-          { status: 429, headers: { 'Content-Type': 'application/json' } },
-        ),
-      );
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          type: 'rate-limited',
+          title: 'Too many requests',
+          status: 429,
+          detail: 'Try again later.',
+          retry_after_seconds: 60,
+        }),
+        { status: 429, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
     vi.stubGlobal('fetch', fetchMock);
 
     try {
@@ -79,19 +75,17 @@ describe('auth logout', () => {
   });
 
   it('maps a dependency-unavailable (503) Problem to a retryable dependency error', async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            type: 'dependency-unavailable',
-            title: 'Service unavailable',
-            status: 503,
-            detail: 'Try again later.',
-          }),
-          { status: 503, headers: { 'Content-Type': 'application/json' } },
-        ),
-      );
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          type: 'dependency-unavailable',
+          title: 'Service unavailable',
+          status: 503,
+          detail: 'Try again later.',
+        }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
     vi.stubGlobal('fetch', fetchMock);
 
     try {
