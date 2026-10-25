@@ -10,3 +10,16 @@ export const registerRequestSchema = z.object({
 });
 
 export type RegisterRequest = z.infer<typeof registerRequestSchema>;
+
+export const userSchema = z.object({
+  id: z.uuid(),
+  email: z.string(),
+  verified: z.boolean(),
+  created_at: z.string(),
+});
+
+export const registerResponseSchema = z.object({
+  user: userSchema,
+});
+
+export type User = z.infer<typeof userSchema>;
