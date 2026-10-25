@@ -6,9 +6,9 @@ As a visitor, I want to register with email and password and be redirected to a 
 
 ## Acceptance criteria
 
-- [ ] Given a visitor on the registration form, when they submit a valid email and password, then the app creates the account and redirects to a dedicated "confirm your email" view with non-sensitive instructions; no credentials are stored.
-- [ ] Given a visitor submits an email that already exists, when the API responds 409 email-exists, then they see a clear, non-leaking conflict message and stay on the form (no redirect).
-- [ ] Given a visitor submits a malformed email or a weak password, when client or API validation fails (422), then field-level errors are shown and no redirect or session state occurs.
+- [x] Given a visitor on the registration form, when they submit a valid email and password, then the app creates the account and redirects to a dedicated "confirm your email" view with non-sensitive instructions; no credentials are stored.
+- [x] Given a visitor submits an email that already exists, when the API responds 409 email-exists, then they see a clear, non-leaking conflict message and stay on the form (no redirect).
+- [x] Given a visitor submits a malformed email or a weak password, when client or API validation fails (422), then field-level errors are shown and no redirect or session state occurs.
 
 ## Plan
 

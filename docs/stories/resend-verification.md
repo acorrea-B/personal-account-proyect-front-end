@@ -6,11 +6,11 @@ As a pending user, I want to request another verification email through a generi
 
 ## Acceptance criteria
 
-- [ ] Given a visitor with a valid email on the resend form, when they submit it, then the app shows the same generic confirmation regardless of whether the account exists or is pending, and leaks no account state.
-- [ ] Given a visitor submits a malformed email, when client or API validation fails (422), then field-level feedback is shown and no network success state is implied.
-- [ ] Given the resend endpoint responds 429 or 503, when the failure occurs, then the user sees a clear, non-leaking message and can retry according to the provided reason.
-- [ ] Given a visitor successfully requests a resend, when the request completes, then the resend action is disabled for 3 minutes and displays a countdown; after expiry, the action can be invoked again.
-- [ ] Given the resend endpoint responds 429, then the UI warns the user and redirects them to `/register/`.
+- [x] Given a visitor with a valid email on the resend form, when they submit it, then the app shows the same generic confirmation regardless of whether the account exists or is pending, and leaks no account state.
+- [x] Given a visitor submits a malformed email, when client or API validation fails (422), then field-level feedback is shown and no network success state is implied.
+- [x] Given the resend endpoint responds 429 or 503, when the failure occurs, then the user sees a clear, non-leaking message and can retry according to the provided reason.
+- [x] Given a visitor successfully requests a resend, when the request completes, then the resend action is disabled for 3 minutes and displays a countdown; after expiry, the action can be invoked again.
+- [x] Given the resend endpoint responds 429, then the UI warns the user and redirects them to `/register/`.
 
 ## Plan
 
