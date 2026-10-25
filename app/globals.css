@@ -379,7 +379,7 @@ body {
 }
 
 .landing-panel--float {
-  animation: landing-panel-fade 620ms ease-out both;
+  animation: landing-panel-fade 1200ms cubic-bezier(0.25, 0.8, 0.25, 1) both;
 }
 
 @keyframes landing-panel-fade {
@@ -406,7 +406,7 @@ body {
 
 .page-transition {
   opacity: 0;
-  animation: page-transition-in 420ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: page-transition-in 1200ms cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
 }
 
 @keyframes page-transition-in {
@@ -422,7 +422,7 @@ body {
 
 .loading-state {
   opacity: 0.78;
-  animation: loading-pulse 1.4s ease-in-out infinite alternate;
+  animation: loading-pulse 2.2s ease-in-out infinite alternate;
 }
 
 @keyframes loading-pulse {
