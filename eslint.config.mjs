@@ -16,4 +16,20 @@ const eslintConfig = [
   },
 ];
 
-export default eslintConfig;
+const configuredConfig = [
+  ...eslintConfig,
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir: __dirname,
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-deprecated': 'error',
+    },
+  },
+];
+
+export default configuredConfig;
