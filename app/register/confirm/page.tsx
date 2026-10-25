@@ -115,7 +115,7 @@ export default function RegisterConfirmPage() {
         </p>
         <p>After verifying your email, return here and sign in.</p>
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form method="post" onSubmit={handleSubmit} noValidate>
           <label htmlFor="email">
             Email
             <input

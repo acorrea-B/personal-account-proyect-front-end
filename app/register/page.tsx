@@ -73,7 +73,7 @@ export default function RegisterPage() {
           </div>
         ) : null}
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form method="post" onSubmit={handleSubmit} noValidate>
           <label htmlFor="email">
             Email
             <input
