@@ -25,19 +25,19 @@ Calm editorial utility: warm paper surfaces, near-black type, a single chromatic
 
 ## 4. Semantic color system
 
-| Token | Value | Role |
-|---|---|---|
-| `--color-stone-canvas` | `#fafaf9` | Page background |
-| `--color-pure-white` | `#ffffff` | Cards, inputs, elevated surfaces |
-| `--color-stone-border` | `#e8e6e5` | Hairline borders |
-| `--color-stone-muted` | `#d6d3d1` | Secondary borders/dividers |
-| `--color-ash-gray` | `#a8a29e` | Muted helper text |
-| `--color-warm-gray` | `#78716c` | Secondary body/nav text |
-| `--color-ink-black` | `#0c0a09` | Primary headings/text |
-| `--color-soot` | `#1c1917` | Inverted surfaces |
-| `--color-cyan-signal` | `#3ba6f1` | Primary CTA, active links/focus |
-| `--color-cyan-edge` | `#3398e1` | Emphasis/highlight treatment |
-| `--color-sky-wash` | `#c1e1f7` | Highlight background |
+| Token                  | Value     | Role                             |
+| ---------------------- | --------- | -------------------------------- |
+| `--color-stone-canvas` | `#fafaf9` | Page background                  |
+| `--color-pure-white`   | `#ffffff` | Cards, inputs, elevated surfaces |
+| `--color-stone-border` | `#e8e6e5` | Hairline borders                 |
+| `--color-stone-muted`  | `#d6d3d1` | Secondary borders/dividers       |
+| `--color-ash-gray`     | `#a8a29e` | Muted helper text                |
+| `--color-warm-gray`    | `#78716c` | Secondary body/nav text          |
+| `--color-ink-black`    | `#0c0a09` | Primary headings/text            |
+| `--color-soot`         | `#1c1917` | Inverted surfaces                |
+| `--color-cyan-signal`  | `#3ba6f1` | Primary CTA, active links/focus  |
+| `--color-cyan-edge`    | `#3398e1` | Emphasis/highlight treatment     |
+| `--color-sky-wash`     | `#c1e1f7` | Highlight background             |
 
 - Do not introduce green/red/purple accents for chrome.
 - Use cyan only for conversion, active, and focus states.
@@ -150,6 +150,7 @@ Calm editorial utility: warm paper surfaces, near-black type, a single chromatic
 ## 15. Proposed file batches
 
 Batch A — scaffolding:
+
 - `package.json`
 - `next.config.ts`
 - `tsconfig.json`
@@ -158,6 +159,7 @@ Batch A — scaffolding:
 - `vitest.config.ts`
 
 Batch B — design and i18n:
+
 - `app/globals.css`
 - `design/tokens.ts`
 - `i18n/en.ts`
@@ -166,6 +168,7 @@ Batch B — design and i18n:
 - `components/LocaleSwitcher.tsx`
 
 Batch C — auth:
+
 - `lib/api/client.ts`
 - `lib/auth/session.ts`
 - `lib/schemas/auth.ts`
@@ -174,6 +177,7 @@ Batch C — auth:
 - `features/auth/forms.tsx`
 
 Batch D — profile:
+
 - `lib/schemas/profile.ts`
 - `features/profile/api.ts`
 - `features/profile/form.tsx`
@@ -182,6 +186,7 @@ Batch D — profile:
 - `components/ProblemAlert.tsx`
 
 Batch E — CV:
+
 - `lib/schemas/cv.ts`
 - `features/cv/api.ts`
 - `features/cv/editor.tsx`

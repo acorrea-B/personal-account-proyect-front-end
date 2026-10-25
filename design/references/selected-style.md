@@ -27,7 +27,9 @@ The mascot sticker from the source reference is explicitly excluded for this pro
   --color-cyan-signal: #3ba6f1;
   --color-cyan-edge: #3398e1;
 
-  --font-roobert: 'Roobert', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-roobert:
+    'Roobert', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif;
   --font-inter: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   --text-caption: 10px;
