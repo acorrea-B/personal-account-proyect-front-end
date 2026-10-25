@@ -651,9 +651,13 @@ body {
 .landing-actions .button-ghost {
   background: rgba(255, 255, 255, 0.04);
   color: var(--color-pure-white);
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(59, 166, 241, 0.72);
+  box-shadow: 0 0 0 1px rgba(59, 166, 241, 0.25);
 }
 
 .landing-actions .button-ghost:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-cyan-signal);
+  color: var(--color-soot);
+  border-color: var(--color-cyan-signal);
+  box-shadow: 0 16px 38px rgba(59, 166, 241, 0.32);
 }
