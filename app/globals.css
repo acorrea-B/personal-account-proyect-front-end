@@ -403,3 +403,43 @@ body {
 .landing-panel--float .auth-card .auth-subtitle {
   color: var(--color-warm-gray);
 }
+
+.page-transition {
+  opacity: 0;
+  animation: page-transition-in 420ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes page-transition-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.loading-state {
+  opacity: 0.78;
+  animation: loading-pulse 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes loading-pulse {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 0.95;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition,
+  .loading-state,
+  .landing-panel--float {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

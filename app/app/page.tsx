@@ -8,7 +8,7 @@ export default function AppHomePage() {
   if (!isHydrated || !isAuthorized) {
     return (
       <main className="auth-page">
-        <p className="auth-subtitle">Checking session…</p>
+        <p className="auth-subtitle loading-state">Checking session…</p>
       </main>
     );
   }
