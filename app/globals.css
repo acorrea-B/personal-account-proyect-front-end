@@ -738,3 +738,38 @@ body {
   color: rgba(255, 255, 255, 0.88);
   font-weight: 600;
 }
+
+.auth-page {
+  background: var(--color-stone-canvas);
+}
+
+.auth-card--dark {
+  background: var(--color-soot);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--color-pure-white);
+}
+
+.auth-card--dark .auth-heading {
+  color: var(--color-pure-white);
+}
+
+.auth-card--dark .field {
+  color: var(--color-pure-white);
+}
+
+.auth-card--dark .field input {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-pure-white);
+  border-color: rgba(255, 255, 255, 0.24);
+  border-radius: var(--radius-md);
+}
+
+.auth-card--dark .field input:focus-visible {
+  border-color: var(--color-cyan-signal);
+  box-shadow: 0 0 0 3px var(--color-sky-wash);
+}
+
+.auth-card--dark .auth-subtitle,
+.auth-card--dark .field-error {
+  color: var(--color-ash-gray);
+}
