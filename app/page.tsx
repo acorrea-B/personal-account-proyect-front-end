@@ -1,19 +1,15 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRightIcon, LockIcon, ShieldIcon, UserIcon } from '../components/icons';
 import { useSession } from '@/lib/auth/useSession';
-
-const HERO_IMAGE =
-  'https://images.pexels.com/photos/37894130/pexels-photo-37894130.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
 
 export default function LandingPage() {
   const { session, isHydrated } = useSession();
   const isSignedIn = isHydrated && Boolean(session);
 
   return (
-    <main className="landing-page">
+    <main className="landing-page landing-page--background">
       <div className="landing-hero">
         <section className="landing-copy">
           <p className="auth-subtitle">Private profile workspace</p>
@@ -25,15 +21,7 @@ export default function LandingPage() {
           </p>
         </section>
 
-        <aside className="landing-panel">
-          <Image
-            className="hero-image"
-            src={HERO_IMAGE}
-            alt="Professional portrait of a businessman in a modern office setting"
-            width={1260}
-            height={750}
-            priority
-          />
+        <aside className="landing-panel landing-panel--float">
           <div className="auth-card">
             <h2 className="auth-heading">
               {isSignedIn ? 'Continue where you left off' : 'Enter your workspace'}

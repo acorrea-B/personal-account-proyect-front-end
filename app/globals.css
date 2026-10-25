@@ -336,3 +336,52 @@ body {
   width: 16px;
   height: 16px;
 }
+
+.landing-page--background {
+  background-image:
+    linear-gradient(180deg, rgba(12, 10, 9, 0.7), rgba(12, 10, 0, 0.4)),
+    url('https://images.pexels.com/photos/4682139/pexels-photo-4682139.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&dpr=1');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  color: var(--color-pure-white);
+  overflow: hidden;
+}
+
+.landing-page--background .landing-copy {
+  padding: var(--space-32);
+  border-radius: var(--radius-2xl);
+  background: linear-gradient(180deg, rgba(12, 10, 9, 0.42), rgba(12, 10, 9, 0.18));
+  backdrop-filter: blur(8px);
+}
+
+.landing-page--background .auth-subtitle {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.landing-page--background .landing-copy h1 {
+  color: var(--color-pure-white);
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
+}
+
+.landing-panel--float {
+  animation: landing-panel-fade 620ms ease-out both;
+}
+
+@keyframes landing-panel-fade {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-16));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-panel--float .auth-card {
+  box-shadow: var(--shadow-xl);
+  backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.93);
+}
