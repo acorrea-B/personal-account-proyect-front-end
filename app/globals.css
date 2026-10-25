@@ -346,10 +346,11 @@ body {
   background-image:
     linear-gradient(180deg, rgba(12, 10, 9, 0.7), rgba(12, 10, 0, 0.4)),
     url('https://images.pexels.com/photos/4682139/pexels-photo-4682139.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&dpr=1');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
+  background-size: 125% auto;
+  background-position: 100% 50%;
   background-repeat: no-repeat;
+  will-change: background-position;
+  animation: landing-background-pan 24s ease-in-out infinite alternate;
   color: var(--color-pure-white);
   overflow: hidden;
 }
@@ -431,6 +432,15 @@ body {
   }
   to {
     opacity: 0.95;
+  }
+}
+
+@keyframes landing-background-pan {
+  from {
+    background-position: 100% 50%;
+  }
+  to {
+    background-position: 0% 50%;
   }
 }
 
