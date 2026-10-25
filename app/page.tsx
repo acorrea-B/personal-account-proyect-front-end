@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRightIcon, LockIcon, ShieldIcon, UserIcon } from '../components/icons';
 import { useSession } from '@/lib/auth/useSession';
 
 export default function LandingPage() {
@@ -15,9 +14,8 @@ export default function LandingPage() {
           <p className="auth-subtitle">Private profile workspace</p>
           <h1>Welcome to your professional home.</h1>
           <p>
-            Keep your professional identity focused and secure: register once, verify your email,
-            and return to the same calm workspace with active sessions, clear feedback, and a quiet
-            stone-and-cyan visual language that never gets in the way of your story.
+            One calibrated surface for your account, email verification, and secure access. The
+            interface stays quiet while the work, not the chrome, takes the room.
           </p>
         </section>
 
@@ -35,17 +33,14 @@ export default function LandingPage() {
               {isSignedIn ? (
                 <Link className="button button-primary" href="/app/">
                   Open profile
-                  <ArrowRightIcon className="cta-arrow" />
                 </Link>
               ) : (
                 <>
                   <Link className="button button-primary" href="/login/">
                     Sign in
-                    <ArrowRightIcon className="cta-arrow" />
                   </Link>
                   <Link className="button button-ghost" href="/register/">
                     Create an account
-                    <ArrowRightIcon className="cta-arrow" />
                   </Link>
                 </>
               )}
@@ -54,31 +49,68 @@ export default function LandingPage() {
         </aside>
       </div>
 
-      <section className="feature-grid">
-        <article className="feature-card">
-          <UserIcon />
-          <h2>Account that stays clean</h2>
-          <p className="auth-subtitle">
-            Validation, email verification, rate-limit guidance, and a 3-minute resend cooldown keep
-            account setup predictable.
+      <section className="workspace-proof">
+        <article>
+          <p className="eyebrow">Account clarity</p>
+          <h2>Setup that stays readable.</h2>
+          <p>
+            Registration, verification, resend cooldown, rate-limit guidance and timeout feedback
+            make account entry predictable on desktop and mobile.
           </p>
         </article>
-        <article className="feature-card">
-          <ShieldIcon />
-          <h2>Security without clutter</h2>
-          <p className="auth-subtitle">
-            Tokens stay in sessionStorage, renewal happens automatically, and logout clears your
-            local session immediately.
-          </p>
-        </article>
-        <article className="feature-card">
-          <LockIcon />
+        <aside className="proof-metrics">
+          <dl>
+            <div>
+              <dt>Session</dt>
+              <dd>Automatic renewal</dd>
+            </div>
+            <div>
+              <dt>Security</dt>
+              <dd>sessionStorage only</dd>
+            </div>
+            <div>
+              <dt>Feedback</dt>
+              <dd>RFC 7807 errors</dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section className="access-rails">
+        <article>
           <h2>Private by default</h2>
-          <p className="auth-subtitle">
-            Public pages stay open, while profile and CV areas remain available only after the
-            client confirms your session.
+          <p>
+            Public routes stay open. Protected areas appear only after hydration confirms a stored,
+            renewable session.
           </p>
         </article>
+        <article className="rail-note">
+          <h3>Reduced motion supported</h3>
+          <p>
+            Long fades and image pacing are disabled when the user prefers reduced movement, while
+            content stays fully visible.
+          </p>
+        </article>
+      </section>
+
+      <section className="final-action">
+        <h2>Start with a calm account.</h2>
+        <p>
+          {isSignedIn
+            ? 'Return to the app and keep your profile in motion.'
+            : 'Create an account, verify your email, and reach your private workspace.'}
+        </p>
+        <div className="landing-actions">
+          {isSignedIn ? (
+            <Link className="button button-primary" href="/app/">
+              Open profile
+            </Link>
+          ) : (
+            <Link className="button button-primary" href="/register/">
+              Create an account
+            </Link>
+          )}
+        </div>
       </section>
     </main>
   );
