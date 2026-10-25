@@ -11,23 +11,23 @@ export default function LandingPage() {
     <main className="landing-page landing-page--background">
       <div className="landing-hero">
         <section className="landing-copy">
-          <p className="auth-subtitle">Private profile workspace</p>
-          <h1>Welcome to your professional home.</h1>
+          <p className="eyebrow">Private professional profile workspace</p>
+          <h1>Your career deserves a distinguished entrance.</h1>
           <p>
-            One calibrated surface for your account, email verification, and secure access. The
-            interface stays quiet while the work, not the chrome, takes the room.
+            Create your account, verify your email, and enter a calm private workspace built for
+            profile and CV work, with secure sessions, clear feedback, and no visual noise.
           </p>
         </section>
 
         <aside className="landing-panel landing-panel--float">
           <div className="auth-card">
             <h2 className="auth-heading">
-              {isSignedIn ? 'Continue where you left off' : 'Enter your workspace'}
+              {isSignedIn ? 'Pick up your work instantly' : 'Start your private profile now'}
             </h2>
             <p className="auth-subtitle">
               {isSignedIn
-                ? 'Your session is active. Open the app or sign out to switch accounts.'
-                : 'Sign in with your verified account or create a new one in a few guided steps.'}
+                ? 'Your session is active. Return to your workspace or change accounts.'
+                : 'Sign in with your verified account, or create one in three quick steps.'}
             </p>
             <div className="landing-actions">
               {isSignedIn ? (
@@ -94,11 +94,11 @@ export default function LandingPage() {
       </section>
 
       <section className="final-action">
-        <h2>Start with a calm account.</h2>
+        <h2>Put your profile in motion.</h2>
         <p>
           {isSignedIn
-            ? 'Return to the app and keep your profile in motion.'
-            : 'Create an account, verify your email, and reach your private workspace.'}
+            ? 'Return to the app and continue where your work left off.'
+            : 'Open your account in minutes and keep every credential secured.'}
         </p>
         <div className="landing-actions">
           {isSignedIn ? (
