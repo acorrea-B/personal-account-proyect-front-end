@@ -724,15 +724,17 @@ body {
 }
 
 .landing-panel .auth-card .form-error {
-  background: #b91c1c;
+  background: var(--color-soot);
   border: none;
   border-radius: var(--radius-lg);
-  color: #ffffff;
+  color: var(--color-pure-white);
   padding: var(--space-8) var(--space-12);
   text-align: center;
   font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .landing-panel .auth-card .field-error {
-  color: rgba(255, 200, 180, 0.9);
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 600;
 }
