@@ -673,3 +673,26 @@ body {
   align-items: center;
   gap: var(--space-4);
 }
+
+.landing-panel .auth-card .field {
+  gap: var(--space-0);
+}
+
+.landing-panel .auth-card input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 0;
+  padding: var(--space-8) 2px;
+  color: var(--color-pure-white);
+}
+
+.landing-panel .auth-card input::placeholder {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.landing-panel .auth-card input:focus {
+  outline: none;
+  border-bottom-color: var(--color-cyan-signal);
+  box-shadow: 0 2px 0 0 rgba(59, 166, 241, 0.75);
+}
