@@ -356,7 +356,7 @@ body {
   backdrop-filter: blur(8px);
 }
 
-.landing-page--background .auth-subtitle {
+.landing-page--background .landing-copy .auth-subtitle {
   color: rgba(255, 255, 255, 0.88);
 }
 
@@ -384,4 +384,9 @@ body {
   box-shadow: var(--shadow-xl);
   backdrop-filter: blur(14px);
   background: rgba(255, 255, 255, 0.93);
+  color: var(--color-ink-black);
+}
+
+.landing-panel--float .auth-card .auth-subtitle {
+  color: var(--color-warm-gray);
 }
