@@ -51,7 +51,12 @@ export default function LoginPage() {
         } else if (error.problem.status === 403) {
           setFormError('Your email is not verified yet. Verify it before signing in.');
         } else if (error.problem.status === 429) {
-          setFormError('Too many attempts. Please try again later.');
+          const seconds = error.problem.retry_after_seconds;
+          setFormError(
+            seconds
+              ? 'Too many attempts; try again in ' + String(seconds) + ' seconds.'
+              : 'Too many attempts; please try again later.',
+          );
         } else if (error.problem.fields) {
           setFieldErrors(error.problem.fields);
         } else {
