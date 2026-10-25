@@ -118,6 +118,22 @@ export async function refresh(
   return tokenPairSchema.parse(data);
 }
 
+export async function revoke(accessToken: string): Promise<void> {
+  const response = await fetchWithTimeout(`${apiBaseUrl}/v1/auth/revoke`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({}),
+  });
+
+  if (!response.ok) {
+    throw await readProblem(response);
+  }
+}
+
+
 export async function resendVerification(
   input: z.infer<typeof resendVerificationRequestSchema>,
 ): Promise<z.infer<typeof resendVerificationResponseSchema>> {

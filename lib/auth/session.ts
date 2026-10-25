@@ -1,4 +1,4 @@
-import { ProblemError, refresh } from '../api/client';
+import { ProblemError, refresh, revoke } from '../api/client';
 import { userSchema, type TokenPair, tokenPairSchema } from '../schemas/auth';
 
 export const ACCESS_TOKEN_KEY = 'auth.accessToken';
@@ -63,4 +63,16 @@ export async function refreshSession(
     }
     throw error;
   }
+}
+
+export async function signOut(): Promise<void> {
+  const session = loadSession();
+  if (session?.accessToken) {
+    try {
+      await revoke(session.accessToken);
+    } catch {
+      // Always clear locally, even when revoke fails.
+    }
+  }
+  clearSession();
 }
