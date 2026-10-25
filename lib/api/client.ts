@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import {
   loginRequestSchema,
+  refreshRequestSchema,
   registerRequestSchema,
   registerResponseSchema,
   tokenPairSchema,
@@ -96,6 +97,40 @@ export async function login(
 
   const data: unknown = await response.json();
   return tokenPairSchema.parse(data);
+}
+
+export async function refresh(
+  input: z.infer<typeof refreshRequestSchema>,
+): Promise<z.infer<typeof tokenPairSchema>> {
+  const payload = refreshRequestSchema.parse(input);
+
+  const response = await fetchWithTimeout(`${apiBaseUrl}/v1/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw await readProblem(response);
+  }
+
+  const data: unknown = await response.json();
+  return tokenPairSchema.parse(data);
+}
+
+export async function revoke(accessToken: string): Promise<void> {
+  const response = await fetchWithTimeout(`${apiBaseUrl}/v1/auth/revoke`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({}),
+  });
+
+  if (!response.ok) {
+    throw await readProblem(response);
+  }
 }
 
 export async function resendVerification(

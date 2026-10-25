@@ -1,4 +1,5 @@
-import { userSchema, type TokenPair } from '../schemas/auth';
+import { ProblemError, refresh, revoke } from '../api/client';
+import { userSchema, type TokenPair, tokenPairSchema } from '../schemas/auth';
 
 export const ACCESS_TOKEN_KEY = 'auth.accessToken';
 export const REFRESH_TOKEN_KEY = 'auth.refreshToken';
@@ -11,10 +12,11 @@ export interface AuthSession {
 }
 
 export function saveSession(tokenPair: TokenPair): AuthSession {
+  const parsedPair = tokenPairSchema.parse(tokenPair);
   const session: AuthSession = {
-    accessToken: tokenPair.access_token,
-    refreshToken: tokenPair.refresh_token,
-    user: userSchema.parse(tokenPair.user),
+    accessToken: parsedPair.access_token,
+    refreshToken: parsedPair.refresh_token,
+    user: userSchema.parse(parsedPair.user),
   };
   window.sessionStorage.setItem(ACCESS_TOKEN_KEY, session.accessToken);
   window.sessionStorage.setItem(REFRESH_TOKEN_KEY, session.refreshToken);
@@ -42,4 +44,35 @@ export function clearSession(): void {
   window.sessionStorage.removeItem(ACCESS_TOKEN_KEY);
   window.sessionStorage.removeItem(REFRESH_TOKEN_KEY);
   window.sessionStorage.removeItem(USER_KEY);
+}
+
+export async function refreshSession(
+  session: AuthSession | null = loadSession(),
+): Promise<AuthSession | null> {
+  if (!session) {
+    return null;
+  }
+
+  try {
+    const tokenPair = await refresh({ refresh_token: session.refreshToken });
+    return saveSession(tokenPair);
+  } catch (error) {
+    if (error instanceof ProblemError && error.problem.status === 401) {
+      clearSession();
+      return null;
+    }
+    throw error;
+  }
+}
+
+export async function signOut(): Promise<void> {
+  const session = loadSession();
+  if (session?.accessToken) {
+    try {
+      await revoke(session.accessToken);
+    } catch {
+      // Always clear locally, even when revoke fails.
+    }
+  }
+  clearSession();
 }
