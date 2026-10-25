@@ -51,3 +51,9 @@ export const tokenPairSchema = z.object({
 });
 
 export type TokenPair = z.infer<typeof tokenPairSchema>;
+
+export const refreshRequestSchema = z.object({
+  refresh_token: z.string().min(1),
+});
+
+export type RefreshRequest = z.infer<typeof refreshRequestSchema>;
