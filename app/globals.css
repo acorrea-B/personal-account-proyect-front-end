@@ -365,6 +365,14 @@ body {
   color: rgba(255, 255, 255, 0.88);
 }
 
+.landing-page--background .landing-copy p {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.landing-page--background .landing-copy p {
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
+}
+
 .landing-page--background .landing-copy h1 {
   color: var(--color-pure-white);
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
