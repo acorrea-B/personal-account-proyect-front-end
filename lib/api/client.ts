@@ -1,8 +1,10 @@
 import { z } from 'zod';
 
 import {
+  loginRequestSchema,
   registerRequestSchema,
   registerResponseSchema,
+  tokenPairSchema,
   resendVerificationRequestSchema,
   resendVerificationResponseSchema,
   type User,
@@ -19,6 +21,7 @@ export interface Problem {
   instance?: string;
   fields?: Record<string, string>;
   can_resend?: boolean;
+  retry_after_seconds?: number;
   current_updated_at?: string;
   max_bytes?: number;
 }
@@ -43,6 +46,7 @@ async function readProblem(response: Response): Promise<ProblemError> {
     instance: body.instance,
     fields: body.fields,
     can_resend: body.can_resend,
+    retry_after_seconds: body.retry_after_seconds,
     current_updated_at: body.current_updated_at,
     max_bytes: body.max_bytes,
   });
@@ -73,6 +77,25 @@ export async function register(input: z.infer<typeof registerRequestSchema>): Pr
 
   const data: unknown = await response.json();
   return registerResponseSchema.parse(data).user;
+}
+
+export async function login(
+  input: z.infer<typeof loginRequestSchema>,
+): Promise<z.infer<typeof tokenPairSchema>> {
+  const payload = loginRequestSchema.parse(input);
+
+  const response = await fetchWithTimeout(`${apiBaseUrl}/v1/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw await readProblem(response);
+  }
+
+  const data: unknown = await response.json();
+  return tokenPairSchema.parse(data);
 }
 
 export async function resendVerification(

@@ -20,7 +20,7 @@ export default function RegisterConfirmPage() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [secondsLeft, setSecondsLeft] = useState(0);
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -40,6 +40,9 @@ export default function RegisterConfirmPage() {
 
     const timer = window.setInterval(() => {
       setSecondsLeft((previous) => {
+        if (previous === null) {
+          return previous;
+        }
         if (previous <= 1) {
           window.sessionStorage.removeItem(RESEND_AVAILABLE_AT_KEY);
           window.clearInterval(timer);
@@ -54,7 +57,7 @@ export default function RegisterConfirmPage() {
 
   async function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (secondsLeft > 0 || isSubmitting) {
+    if ((secondsLeft ?? 0) > 0 || isSubmitting) {
       return;
     }
 
@@ -101,8 +104,9 @@ export default function RegisterConfirmPage() {
     }
   }
 
-  const minutes = Math.floor(secondsLeft / 60);
-  const seconds = secondsLeft % 60;
+  const currentSeconds = secondsLeft ?? 0;
+  const minutes = Math.floor(currentSeconds / 60);
+  const seconds = currentSeconds % 60;
   const countdownLabel = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
   return (
@@ -147,8 +151,8 @@ export default function RegisterConfirmPage() {
             </div>
           ) : null}
 
-          <button type="submit" disabled={isSubmitting || secondsLeft > 0}>
-            {secondsLeft > 0
+          <button type="submit" disabled={isSubmitting || (secondsLeft ?? 0) > 0}>
+            {(secondsLeft ?? 0) > 0
               ? `Resend in ${countdownLabel}`
               : isSubmitting
                 ? 'Sending...'
