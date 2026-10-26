@@ -18,16 +18,19 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     env:
-      NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+      NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
     steps:
       - name: Check API base URL
-        run: test -n "${{ secrets.NEXT_PUBLIC_API_BASE_URL }}"
+        run: test -n "${{ vars.NEXT_PUBLIC_API_BASE_URL }}"
+
       - name: Build debug
-        run: echo "NEXT_PUBLIC_API_BASE_URL length=${#NEXT_PUBLIC_API_BASE_URL}"
+        run: |
+          echo "NEXT_PUBLIC_API_BASE_URL length=${#NEXT_PUBLIC_API_BASE_URL}"
+          echo "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}"
       - uses: actions/checkout@v4
       - name: Write environment file
         run: |
-          printf 'NEXT_PUBLIC_API_BASE_URL=%s\n' '${{ secrets.NEXT_PUBLIC_API_BASE_URL }}' > .env.production
+          printf 'NEXT_PUBLIC_API_BASE_URL=%s\n' '${{ vars.NEXT_PUBLIC_API_BASE_URL }}' > .env.production
           printf 'NODE_ENV=production\n' >> .env.production
       - uses: actions/setup-node@v4
         with:
@@ -77,6 +80,7 @@ jobs:
           terraform_version: '1.9.0'
 
       - name: Apply Scaleway storage infrastructure
+        continue-on-error: true
         working-directory: infra/scaleway-static-site
         env:
           SCW_ACCESS_KEY: ${{ secrets.SCALEWAY_ACCESS_KEY }}
