@@ -43,6 +43,7 @@ resource "scaleway_object_bucket_policy" "static_site_public_read" {
         }
 
         Action = [
+          "s3:GetBucketCORS",
           "s3:ListBucket",
           "s3:GetObject",
           "s3:GetObjectAcl",
