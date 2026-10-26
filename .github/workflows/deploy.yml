@@ -47,9 +47,6 @@ jobs:
       AWS_REGION: fr-par
       AWS_ENDPOINT_URL: https://s3.fr-par.scw.cloud
       SCALEWAY_STORAGE_BUCKET: ${{ secrets.SCALEWAY_STORAGE_BUCKET }}
-      SCW_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
-      SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
-      SCW_REGION: fr-par
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -60,68 +57,10 @@ jobs:
           name: static-site-${{ github.sha }}
           path: out
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: '1.9.0'
-
-      - name: Apply Scaleway storage infrastructure
-        working-directory: infra/scaleway-static-site
+      - name: Publish to Scaleway Object Storage
         env:
-          SCW_ACCESS_KEY: ${{ secrets.SCALEWAY_ACCESS_KEY }}
-          SCW_SECRET_KEY: ${{ secrets.SCALEWAY_SECRET_KEY }}
-          SCW_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
-          SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
-          TF_VAR_bucket_name: ${{ secrets.SCALEWAY_STORAGE_BUCKET }}
-          TF_VAR_project_id: ${{ secrets.SCW_PROJECT_ID }}
-          TF_VAR_region: fr-par
-          TF_VAR_site_directory: ../../out
+          AWS_ACCESS_KEY_ID: ${{ secrets.SCALEWAY_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SCALEWAY_SECRET_KEY }}
         run: |
           set -euo pipefail
-          for name in SCALEWAY_STORAGE_BUCKET SCW_PROJECT_ID SCW_ACCESS_KEY SCW_SECRET_KEY; do
-            value="${!name:-}"
-            if [[ -z "$value" || ! "$value" =~ [^[:space:]] ]]; then
-              echo "Missing or effectively empty $name production secret" >&2
-              exit 1
-            fi
-          done
-          echo "Production secret lengths: bucket=${#SCALEWAY_STORAGE_BUCKET} project=${#SCW_PROJECT_ID} access=${#SCW_ACCESS_KEY} secret=${#SCW_SECRET_KEY}" >&2
-          terraform init -input=false
-          terraform fmt -check -recursive
-          terraform validate
-          import_resource() {
-            address=$1
-            id=$2
-            if terraform import "$address" "$id"; then
-              echo "Imported $address from $id" >&2
-            else
-              echo "Failed to import $address; aborting before apply so existing resources are not recreated" >&2
-              return 1
-            fi
-          }
-
-          if ! import_resource scaleway_object_bucket.web \
-            "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}"; then
-            echo "Bucket import failed; proceeding and using direct S3 sync fallback if apply fails" >&2
-          fi
-          if ! import_resource scaleway_object_bucket_policy.web \
-            "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}"; then
-            echo "Bucket policy not found remotely; Terraform will create it" >&2
-          fi
-          import_resource scaleway_object_bucket_website_configuration.web \
-            "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}"
-          terraform plan -out=tfplan
-          terraform apply tfplan
-
-      - name: Show website endpoint
-        working-directory: infra/scaleway-static-site
-        env:
-          SCW_ACCESS_KEY: ${{ secrets.SCALEWAY_ACCESS_KEY }}
-          SCW_SECRET_KEY: ${{ secrets.SCALEWAY_SECRET_KEY }}
-          SCW_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
-          SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
-          TF_VAR_bucket_name: ${{ secrets.SCALEWAY_STORAGE_BUCKET }}
-          TF_VAR_project_id: ${{ secrets.SCW_PROJECT_ID }}
-          TF_VAR_region: fr-par
-          TF_VAR_site_directory: ../../out
-        run: terraform output website_endpoint
+          aws s3 sync out "s3://${SCALEWAY_STORAGE_BUCKET}" --delete --region fr-par --endpoint-url "${AWS_ENDPOINT_URL}"
