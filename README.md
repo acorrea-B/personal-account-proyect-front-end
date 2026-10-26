@@ -40,6 +40,8 @@ Per-task token count, execution time, and successful iterations are recorded in
 
 Copy `.env.example` to `.env.local` and fill in values. Never commit `.env.local`.
 
+Next.js env file precedence: `.env.local` overrides `.env.production`. For a production build use `NEXT_PUBLIC_API_BASE_URL=https://... npm run build`, or remove `.env.local` first. The deploy workflow embeds the backend URL at build time and verifies it before publishing.
+
 ## Operations
 
 - `infra/scaleway-static-site` owns the Scaleway bucket and static website configuration.

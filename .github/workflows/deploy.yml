@@ -30,6 +30,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Write environment file
         run: |
+          rm -f .env .env.local .env.*.local
           printf 'NEXT_PUBLIC_API_BASE_URL=%s\n' '${{ vars.NEXT_PUBLIC_API_BASE_URL }}' > .env.production
           printf 'NODE_ENV=production\n' >> .env.production
       - uses: actions/setup-node@v4
@@ -44,6 +45,12 @@ jobs:
       - run: npm run build
         env:
           NODE_ENV: production
+          NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+
+      - name: Verify backend URL is embedded in the static export
+        run: |
+          test -n "${{ vars.NEXT_PUBLIC_API_BASE_URL }}"
+          grep -R -F "${{ vars.NEXT_PUBLIC_API_BASE_URL }}" out/_next/static/chunks >/dev/null
       - uses: actions/upload-artifact@v4
         with:
           name: static-site-${{ github.sha }}
