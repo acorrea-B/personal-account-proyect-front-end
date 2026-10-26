@@ -22,6 +22,7 @@ resource "scaleway_object_bucket_policy" "web" {
         Principal = "*"
 
         Action = [
+          "s3:GetBucketCORS",
           "s3:GetObject"
         ]
 
