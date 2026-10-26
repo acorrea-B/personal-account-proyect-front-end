@@ -44,12 +44,38 @@ jobs:
       AWS_REGION: fr-par
       AWS_ENDPOINT_URL: https://s3.fr-par.scw.cloud
       SCALEWAY_STORAGE_BUCKET: ${{ secrets.SCALEWAY_STORAGE_BUCKET }}
+      SCW_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
+      SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
     steps:
       - name: Download static site
         uses: actions/download-artifact@v4
         with:
           name: static-site-${{ github.sha }}
           path: out
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.9.0'
+
+      - name: Apply Scaleway storage infrastructure
+        working-directory: infra/scaleway-static-site
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+          SCW_PROJECT_ID: ${{ env.SCW_PROJECT_ID }}
+          SCW_DEFAULT_PROJECT_ID: ${{ env.SCW_DEFAULT_PROJECT_ID }}
+          SCW_ACCESS_KEY: ${{ secrets.SCALEWAY_ACCESS_KEY }}
+          SCW_SECRET_KEY: ${{ secrets.SCALEWAY_SECRET_KEY }}
+          SCALEWAY_STORAGE_BUCKET: ${{ secrets.SCALEWAY_STORAGE_BUCKET }}
+        run: |
+          set -euo pipefail
+          terraform init -backend=false -input=false
+          terraform import scaleway_object_bucket.static_site "${AWS_REGION}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}" || true
+          terraform import scaleway_object_bucket_website_configuration.static_site "${AWS_REGION}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}" || true
+          terraform apply -input=false -auto-approve \
+            -var "bucket_name=${SCALEWAY_STORAGE_BUCKET}" \
+            -var "project_id=${SCW_PROJECT_ID}" \
+            -var "region=${AWS_REGION}"
 
       - name: Configure Scaleway credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -72,6 +98,3 @@ jobs:
           aws s3 cp out/404.html "s3://${SCALEWAY_STORAGE_BUCKET}/404.html" \
             --cache-control "public,max-age=300" \
             --content-type "text/html; charset=utf-8"
-
-      # Website config, public access and bucket policy are owned by Terraform.
-      # The GitHub Actions credentials only publish static artifacts here.

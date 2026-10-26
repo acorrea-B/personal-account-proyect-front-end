@@ -1,0 +1,5 @@
+project_id    = "11111111-1111-1111-1111-111111111111"
+region        = "fr-par"
+bucket_name   = "personal-account-proyect-static"
+error_document = "404.html"
+public_read   = true

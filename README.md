@@ -39,3 +39,9 @@ Per-task token count, execution time, and successful iterations are recorded in
 ## Environment
 
 Copy `.env.example` to `.env.local` and fill in values. Never commit `.env.local`.
+
+## Operations
+
+- `infra/scaleway-static-site` owns the Scaleway bucket and static website configuration.
+- Pushing a tag `v*` reconciles that infrastructure and then publishes the static site.
+- `SCALEWAY_STORAGE_BUCKET` must contain the bucket created by Terraform.
