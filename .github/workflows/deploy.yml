@@ -73,9 +73,5 @@ jobs:
             --cache-control "public,max-age=300" \
             --content-type "text/html; charset=utf-8"
 
-      - name: Configure website index and error document
-        run: |
-          set -euo pipefail
-          aws s3 website "s3://${SCALEWAY_STORAGE_BUCKET}/" \
-            --index-document index.html \
-            --error-document 404.html
+      # Website config, public access and bucket policy are owned by Terraform.
+      # The GitHub Actions credentials only publish static artifacts here.
