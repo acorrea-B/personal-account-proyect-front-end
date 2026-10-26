@@ -26,8 +26,8 @@ resource "scaleway_object_bucket_policy" "web" {
         ]
       },
       {
-        Sid       = "TerraformUserAccess"
-        Effect    = "Allow"
+        Sid    = "TerraformUserAccess"
+        Effect = "Allow"
         Principal = {
           SCW = "user_id:2f4164cc-8eea-46cd-b6b4-47214a57783c"
         }
