@@ -16,6 +16,8 @@ jobs:
   validate:
     name: Validate production build
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -95,21 +97,24 @@ jobs:
 
       - name: Publish to Object Storage
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.SCALEWAY_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.SCALEWAY_SECRET_KEY }}
-          AWS_DEFAULT_REGION: fr-par
-          AWS_ENDPOINT_URL: https://s3.fr-par.scw.cloud
+          SCALEWAY_ACCESS_KEY: ${{ secrets.SCALEWAY_ACCESS_KEY }}
+          SCALEWAY_SECRET_KEY: ${{ secrets.SCALEWAY_SECRET_KEY }}
           SCALEWAY_STORAGE_BUCKET: ${{ secrets.SCALEWAY_STORAGE_BUCKET }}
         run: |
           set -euo pipefail
-          aws s3 sync out/ "s3://${SCALEWAY_STORAGE_BUCKET}/" \
-            --delete \
+          sudo apt-get update
+          sudo apt-get install -y s3cmd
+          printf '[default]\naccess_key=%s\nsecret_key=%s\nhost_base=s3.fr-par.scw.cloud\nhost_bucket=%%(bucket)s.s3.fr-par.scw.cloud\nuse_https=True\n'             "${SCALEWAY_ACCESS_KEY}" "${SCALEWAY_SECRET_KEY}" > "${HOME}/.s3cfg"
+          s3cmd --no-mime-magic --guess-mime-type --delete-removed \
             --exclude "*.html" \
-            --cache-control "public,max-age=31536000,immutable"
-          aws s3 sync out/ "s3://${SCALEWAY_STORAGE_BUCKET}/" \
+            --add-header="Cache-Control:public,max-age=31536000,immutable" \
+            sync out/ "s3://${SCALEWAY_STORAGE_BUCKET}/"
+          s3cmd --no-mime-magic --guess-mime-type --delete-removed \
             --exclude "*" --include "*.html" \
-            --cache-control "public,max-age=300" \
-            --content-type "text/html; charset=utf-8"
-          aws s3 cp out/404.html "s3://${SCALEWAY_STORAGE_BUCKET}/404.html" \
-            --cache-control "public,max-age=300" \
-            --content-type "text/html; charset=utf-8"
+            --add-header="Cache-Control:public,max-age=300" \
+            --add-header="Content-Type:text/html; charset=utf-8" \
+            sync out/ "s3://${SCALEWAY_STORAGE_BUCKET}/"
+          s3cmd put \
+            --add-header="Cache-Control:public,max-age=300" \
+            --add-header="Content-Type:text/html; charset=utf-8" \
+            out/404.html "s3://${SCALEWAY_STORAGE_BUCKET}/404.html"
