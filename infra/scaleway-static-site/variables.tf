@@ -1,38 +1,21 @@
 variable "project_id" {
-  description = "Scaleway project ID that owns the storage bucket. Leave null to use SCW_DEFAULT_PROJECT_ID."
+  description = "ID del proyecto de Scaleway"
   type        = string
-  default     = null
 }
 
 variable "region" {
-  description = "Scaleway region used for the static website bucket."
+  description = "Región de Object Storage"
   type        = string
   default     = "fr-par"
 }
 
 variable "bucket_name" {
-  description = "Globally unique Scaleway storage bucket name."
+  description = "Nombre único del bucket"
   type        = string
-
-  validation {
-    condition     = can(regex("^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$", var.bucket_name))
-    error_message = "Scaleway bucket names use lowercase alphanumeric DNS-compatible names."
-  }
 }
 
-variable "error_document" {
-  description = "Object key served for 4XX website errors."
+variable "site_directory" {
+  description = "Directorio que contiene los archivos estáticos"
   type        = string
-  default     = "404.html"
-}
-
-variable "public_read" {
-  description = "Allow anonymous static website access."
-  type        = bool
-  default     = true
-}
-variable "scw_user_id" {
-  description = "Scaleway user principal that applies Terraform and deploys static objects."
-  type        = string
-  default     = "2f4164cc-8eea-46cd-b6b4-47214a57783c"
+  default     = "site"
 }

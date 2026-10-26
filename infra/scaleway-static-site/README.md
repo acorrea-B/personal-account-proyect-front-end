@@ -3,36 +3,44 @@
 This module owns the Scaleway Object Storage bucket used by the production
 deployment workflow in `.github/workflows/deploy.yml`.
 
-The application repository only publishes static artifacts with `aws s3 sync`.
-Terraform owns the bucket, website routing, ACL and public read policy.
+Terraform owns the bucket, public read policy, static website configuration and
+the objects published from the prepared static artifact directory.
 
 ## Required environment variables
 
-Use the Terraform CLI or a backend with these variables exported:
+Export these variables (never commit them):
 
 - `SCW_ACCESS_KEY`
 - `SCW_SECRET_KEY`
-- `SCW_DEFAULT_PROJECT_ID` (included in the GitHub `production` environment)
+- `SCW_DEFAULT_PROJECT_ID` or `SCW_PROJECT_ID`
+- `TF_VAR_bucket_name`
+- `TF_VAR_project_id`
+- `TF_VAR_region`
 
 ## Usage
 
 ```bash
 cd infra/scaleway-static-site
 terraform init
-terraform plan
-terraform apply
+terraform fmt -check -recursive
+terraform validate
+terraform plan -out=tfplan
+terraform apply tfplan
 ```
 
-Copy `terraform.tfvars.example` to `terraform.tfvars` and set the real project ID
-and bucket name. Do not commit `terraform.tfvars` if it contains project
-details that should not be shared; it is gitignored by the root ignored patterns.
+Copy `terraform.tfvars.example` to `terraform.tfvars` and set real values.
+Do not commit `terraform.tfvars`.
 
-## Integration with deployment
+## Existing bucket
 
-After apply, store:
+If the bucket already exists in Scaleway but is not in Terraform state, import it
+before applying:
 
-- `terraform output -raw bucket_name` as `SCALEWAY_STORAGE_BUCKET`
-- `terraform output -raw website_endpoint` as the public site endpoint
+```bash
+terraform import scaleway_object_bucket.web fr-par/<bucket-name>
+```
 
-in the GitHub `production` environment. The deploy workflow will only publish
-the built `out/` directory.
+## State
+
+Use a persistent shared backend between CI runs. Do not use the public site
+bucket to store Terraform state.

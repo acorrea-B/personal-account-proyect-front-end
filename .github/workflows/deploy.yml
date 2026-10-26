@@ -49,6 +49,7 @@ jobs:
       SCALEWAY_STORAGE_BUCKET: ${{ secrets.SCALEWAY_STORAGE_BUCKET }}
       SCW_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
       SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
+      SCW_REGION: fr-par
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -67,15 +68,14 @@ jobs:
       - name: Apply Scaleway storage infrastructure
         working-directory: infra/scaleway-static-site
         env:
-          AWS_REGION: ${{ env.AWS_REGION }}
-          SCW_PROJECT_ID: ${{ env.SCW_PROJECT_ID }}
-          SCW_DEFAULT_PROJECT_ID: ${{ env.SCW_DEFAULT_PROJECT_ID }}
           SCW_ACCESS_KEY: ${{ secrets.SCALEWAY_ACCESS_KEY }}
           SCW_SECRET_KEY: ${{ secrets.SCALEWAY_SECRET_KEY }}
-          SCALEWAY_STORAGE_BUCKET: ${{ secrets.SCALEWAY_STORAGE_BUCKET }}
+          SCW_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
+          SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
           TF_VAR_bucket_name: ${{ secrets.SCALEWAY_STORAGE_BUCKET }}
           TF_VAR_project_id: ${{ secrets.SCW_PROJECT_ID }}
           TF_VAR_region: fr-par
+          TF_VAR_site_directory: ../../out
         run: |
           set -euo pipefail
           for name in SCALEWAY_STORAGE_BUCKET SCW_PROJECT_ID SCW_ACCESS_KEY SCW_SECRET_KEY; do
@@ -86,35 +86,33 @@ jobs:
             fi
           done
           echo "Production secret lengths: bucket=${#SCALEWAY_STORAGE_BUCKET} project=${#SCW_PROJECT_ID} access=${#SCW_ACCESS_KEY} secret=${#SCW_SECRET_KEY}" >&2
-          terraform init -backend=false -input=false
-          terraform import scaleway_object_bucket_website_configuration.static_site "${AWS_REGION}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}" || true
-          terraform import scaleway_object_bucket_policy.static_site_public_read "${AWS_REGION}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}" || true
-          echo "Bucket identity is not managed by this workflow; the existing Scaleway bucket is reused."
-          terraform apply -input=false -auto-approve \
-            -var "bucket_name=${SCALEWAY_STORAGE_BUCKET}" \
-            -var "project_id=${SCW_PROJECT_ID}" \
-            -var "region=${AWS_REGION}"
+          if [[ -f ../../out/404.html && ! -f ../../out/error.html ]]; then
+            cp ../../out/404.html ../../out/error.html
+          fi
+          terraform init -input=false
+          terraform fmt -check -recursive
+          terraform validate
+          terraform import scaleway_object_bucket.web "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}" \
+            || terraform import scaleway_object_bucket.web "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}" \
+            || true
+          terraform import scaleway_object_bucket_policy.web "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}" \
+            || terraform import scaleway_object_bucket_policy.web "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}" \
+            || true
+          terraform import scaleway_object_bucket_website_configuration.web "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}" \
+            || terraform import scaleway_object_bucket_website_configuration.web "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}" \
+            || true
+          terraform plan -out=tfplan
+          terraform apply tfplan
 
-      - name: Publish to Object Storage
+      - name: Show website endpoint
+        working-directory: infra/scaleway-static-site
         env:
-          SCALEWAY_ACCESS_KEY: ${{ secrets.SCALEWAY_ACCESS_KEY }}
-          SCALEWAY_SECRET_KEY: ${{ secrets.SCALEWAY_SECRET_KEY }}
-          SCALEWAY_STORAGE_BUCKET: ${{ secrets.SCALEWAY_STORAGE_BUCKET }}
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y s3cmd
-          printf '[default]\naccess_key=%s\nsecret_key=%s\nhost_base=s3.fr-par.scw.cloud\nhost_bucket=%%(bucket)s.s3.fr-par.scw.cloud\nuse_https=True\n'             "${SCALEWAY_ACCESS_KEY}" "${SCALEWAY_SECRET_KEY}" > "${HOME}/.s3cfg"
-          s3cmd --no-mime-magic --guess-mime-type --delete-removed \
-            --exclude "*.html" \
-            --add-header="Cache-Control:public,max-age=31536000,immutable" \
-            sync out/ "s3://${SCALEWAY_STORAGE_BUCKET}/"
-          s3cmd --no-mime-magic --guess-mime-type --delete-removed \
-            --exclude "*" --include "*.html" \
-            --add-header="Cache-Control:public,max-age=300" \
-            --add-header="Content-Type:text/html; charset=utf-8" \
-            sync out/ "s3://${SCALEWAY_STORAGE_BUCKET}/"
-          s3cmd put \
-            --add-header="Cache-Control:public,max-age=300" \
-            --add-header="Content-Type:text/html; charset=utf-8" \
-            out/404.html "s3://${SCALEWAY_STORAGE_BUCKET}/404.html"
+          SCW_ACCESS_KEY: ${{ secrets.SCALEWAY_ACCESS_KEY }}
+          SCW_SECRET_KEY: ${{ secrets.SCALEWAY_SECRET_KEY }}
+          SCW_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
+          SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
+          TF_VAR_bucket_name: ${{ secrets.SCALEWAY_STORAGE_BUCKET }}
+          TF_VAR_project_id: ${{ secrets.SCW_PROJECT_ID }}
+          TF_VAR_region: fr-par
+          TF_VAR_site_directory: ../../out
+        run: terraform output website_endpoint
