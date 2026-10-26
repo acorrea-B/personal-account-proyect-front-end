@@ -2,6 +2,10 @@ resource "scaleway_object_bucket" "web" {
   name       = var.bucket_name
   project_id = var.project_id
   region     = var.region
+
+  lifecycle {
+    ignore_changes = [acl, tags]
+  }
 }
 
 resource "scaleway_object_bucket_policy" "web" {
