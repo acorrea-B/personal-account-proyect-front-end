@@ -86,21 +86,26 @@ jobs:
             fi
           done
           echo "Production secret lengths: bucket=${#SCALEWAY_STORAGE_BUCKET} project=${#SCW_PROJECT_ID} access=${#SCW_ACCESS_KEY} secret=${#SCW_SECRET_KEY}" >&2
-          if [[ -f ../../out/404.html && ! -f ../../out/error.html ]]; then
-            cp ../../out/404.html ../../out/error.html
-          fi
           terraform init -input=false
           terraform fmt -check -recursive
           terraform validate
-          terraform import scaleway_object_bucket.web "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}" \
-            || terraform import scaleway_object_bucket.web "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}" \
-            || true
-          terraform import scaleway_object_bucket_policy.web "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}" \
-            || terraform import scaleway_object_bucket_policy.web "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}" \
-            || true
-          terraform import scaleway_object_bucket_website_configuration.web "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}" \
-            || terraform import scaleway_object_bucket_website_configuration.web "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}" \
-            || true
+          import_resource() {
+            address=$1
+            id=$2
+            if terraform import "$address" "$id"; then
+              echo "Imported $address from $id" >&2
+            else
+              echo "Failed to import $address; aborting before apply so existing resources are not recreated" >&2
+              return 1
+            fi
+          }
+
+          import_resource scaleway_object_bucket.web \
+            "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}"
+          import_resource scaleway_object_bucket_policy.web \
+            "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}"
+          import_resource scaleway_object_bucket_website_configuration.web \
+            "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}"
           terraform plan -out=tfplan
           terraform apply tfplan
 
