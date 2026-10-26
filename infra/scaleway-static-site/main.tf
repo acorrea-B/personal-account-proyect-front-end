@@ -1,16 +1,5 @@
-resource "scaleway_object_bucket" "static_site" {
-  name          = var.bucket_name
-  force_destroy = false
-
-  tags = {
-    project   = "professional-profile-front-end"
-    component = "static-site"
-    managed   = "terraform"
-  }
-}
-
 resource "scaleway_object_bucket_policy" "static_site_public_read" {
-  bucket     = scaleway_object_bucket.static_site.name
+  bucket     = var.bucket_name
   project_id = var.project_id
   region     = var.region
 
@@ -29,7 +18,7 @@ resource "scaleway_object_bucket_policy" "static_site_public_read" {
         ]
 
         Resource = [
-          "${scaleway_object_bucket.static_site.name}/*"
+          "${var.bucket_name}/*"
         ]
       },
       {
@@ -52,18 +41,17 @@ resource "scaleway_object_bucket_policy" "static_site_public_read" {
         ]
 
         Resource = [
-          scaleway_object_bucket.static_site.name,
-          "${scaleway_object_bucket.static_site.name}/*"
+          var.bucket_name,
+          "${var.bucket_name}/*"
         ]
       }
     ]
   })
 
-  depends_on = [scaleway_object_bucket.static_site]
 }
 
 resource "scaleway_object_bucket_website_configuration" "static_site" {
-  bucket     = scaleway_object_bucket.static_site.name
+  bucket     = var.bucket_name
   project_id = var.project_id
 
   depends_on = [
