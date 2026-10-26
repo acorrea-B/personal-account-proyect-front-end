@@ -53,6 +53,9 @@ jobs:
           name: static-site-${{ github.sha }}
           path: out
 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
