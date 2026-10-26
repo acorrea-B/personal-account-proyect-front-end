@@ -37,7 +37,7 @@ If the bucket already exists in Scaleway but is not in Terraform state, import i
 before applying:
 
 ```bash
-terraform import scaleway_object_bucket.web fr-par/<bucket-name>
+terraform import scaleway_object_bucket.web fr-par/<bucket-name>@<project-id>
 ```
 
 ## State

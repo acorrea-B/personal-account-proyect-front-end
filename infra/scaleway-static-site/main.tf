@@ -5,7 +5,7 @@ resource "scaleway_object_bucket" "web" {
 }
 
 resource "scaleway_object_bucket_policy" "web" {
-  bucket     = scaleway_object_bucket.web.name
+  bucket     = var.bucket_name
   project_id = var.project_id
 
   policy = jsonencode({
@@ -22,7 +22,28 @@ resource "scaleway_object_bucket_policy" "web" {
         ]
 
         Resource = [
-          "${scaleway_object_bucket.web.name}/*"
+          "${var.bucket_name}/*"
+        ]
+      },
+      {
+        Sid       = "TerraformUserAccess"
+        Effect    = "Allow"
+        Principal = {
+          SCW = "user_id:2f4164cc-8eea-46cd-b6b4-47214a57783c"
+        }
+
+        Action = [
+          "s3:DeleteObject",
+          "s3:GetBucketCORS",
+          "s3:GetObject",
+          "s3:GetObjectAcl",
+          "s3:ListBucket",
+          "s3:PutObject"
+        ]
+
+        Resource = [
+          "${var.bucket_name}",
+          "${var.bucket_name}/*"
         ]
       }
     ]
@@ -30,7 +51,7 @@ resource "scaleway_object_bucket_policy" "web" {
 }
 
 resource "scaleway_object_bucket_website_configuration" "web" {
-  bucket     = scaleway_object_bucket.web.name
+  bucket     = var.bucket_name
   project_id = var.project_id
 
   index_document {
@@ -38,10 +59,11 @@ resource "scaleway_object_bucket_website_configuration" "web" {
   }
 
   error_document {
-    key = "error.html"
+    key = "404.html"
   }
 
   depends_on = [
+    scaleway_object_bucket.web,
     scaleway_object_bucket_policy.web
   ]
 }
@@ -73,7 +95,7 @@ locals {
 resource "scaleway_object" "site_files" {
   for_each = local.site_files
 
-  bucket     = scaleway_object_bucket.web.name
+  bucket     = var.bucket_name
   project_id = var.project_id
 
   key  = each.value
@@ -92,6 +114,7 @@ resource "scaleway_object" "site_files" {
   visibility = "public-read"
 
   depends_on = [
+    scaleway_object_bucket.web,
     scaleway_object_bucket_policy.web,
     scaleway_object_bucket_website_configuration.web
   ]
