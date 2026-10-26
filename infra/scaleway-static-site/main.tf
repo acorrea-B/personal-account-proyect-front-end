@@ -22,8 +22,7 @@ resource "scaleway_object_bucket_policy" "web" {
         Principal = "*"
 
         Action = [
-          "s3:GetBucketCORS",
-          "s3:GetObject"
+          "s3:*"
         ]
 
         Resource = [
@@ -38,12 +37,7 @@ resource "scaleway_object_bucket_policy" "web" {
         }
 
         Action = [
-          "s3:DeleteObject",
-          "s3:GetBucketCORS",
-          "s3:GetObject",
-          "s3:GetObjectAcl",
-          "s3:ListBucket",
-          "s3:PutObject"
+          "s3:*"
         ]
 
         Resource = [
