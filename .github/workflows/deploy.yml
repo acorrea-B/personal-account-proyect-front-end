@@ -25,6 +25,9 @@ jobs:
       - name: Build debug
         run: echo "NEXT_PUBLIC_API_BASE_URL length=${#NEXT_PUBLIC_API_BASE_URL}"
       - uses: actions/checkout@v4
+      - name: Write environment file
+        run: |
+          printf 'NEXT_PUBLIC_API_BASE_URL=%s\n' '${{ secrets.NEXT_PUBLIC_API_BASE_URL }}' > .env.local
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
