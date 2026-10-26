@@ -73,6 +73,12 @@ jobs:
           SCALEWAY_STORAGE_BUCKET: ${{ secrets.SCALEWAY_STORAGE_BUCKET }}
         run: |
           set -euo pipefail
+          for name in SCALEWAY_STORAGE_BUCKET SCW_PROJECT_ID SCW_ACCESS_KEY SCW_SECRET_KEY; do
+            if [ -z "${!name:-}" ]; then
+              echo "Missing $name production secret" >&2
+              exit 1
+            fi
+          done
           terraform init -backend=false -input=false
           terraform import scaleway_object_bucket.static_site "${AWS_REGION}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}" || true
           terraform import scaleway_object_bucket_website_configuration.static_site "${AWS_REGION}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}" || true
