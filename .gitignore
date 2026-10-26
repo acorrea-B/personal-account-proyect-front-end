@@ -38,3 +38,8 @@ next-env.d.ts
 # Agent guidance (kept local, not versioned)
 AGENTS.md
 CLAUDE.md
+# terraform
+terraform.tfstate*
+.terraform/
+*.tfvars
+!infra/scaleway-static-site/terraform.tfvars.example
