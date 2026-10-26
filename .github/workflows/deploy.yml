@@ -19,6 +19,7 @@ jobs:
     environment: production
     env:
       NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+      NODE_ENV: production
     steps:
       - name: Check API base URL
         run: test -n "${{ secrets.NEXT_PUBLIC_API_BASE_URL }}"
