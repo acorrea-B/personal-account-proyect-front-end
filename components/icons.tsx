@@ -103,3 +103,43 @@ export function SignalIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function MailIcon({ className }: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      height="24"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.6"
+      viewBox="0 0 24 24"
+      width="24"
+    >
+      <rect height="16" rx="2" width="20" x="2" y="4" />
+      <path d="M22 6 12 13 2 6" />
+    </svg>
+  );
+}
+
+export function ProfileIcon({ className }: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      height="24"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.6"
+      viewBox="0 0 24 24"
+      width="24"
+    >
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M4 20c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" />
+    </svg>
+  );
+}

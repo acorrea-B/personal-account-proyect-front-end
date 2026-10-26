@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { ProblemError, register } from '@/lib/api/client';
-import { ShieldIcon } from '../../components/icons';
+import { MailIcon, ProfileIcon, ShieldIcon, UserIcon } from '../../components/icons';
 import { registerRequestSchema } from '@/lib/schemas/auth';
 import Link from 'next/link';
 
@@ -77,10 +77,18 @@ export default function RegisterPage() {
           <ShieldIcon className="auth-kicker-icon" /> Verified account setup
         </p>
         <h1 className="auth-heading">Create your professional account</h1>
-        <p className="auth-subtitle">
-          Open a secure workspace for your profile and CV. Verification keeps access trusted and
-          predictable.
-        </p>
+        <p className="auth-subtitle">Three guided steps to your workspace.</p>
+        <ol className="auth-steps">
+          <li className="auth-step is-active">
+            <UserIcon className="auth-step-icon" /> Account
+          </li>
+          <li className="auth-step">
+            <MailIcon className="auth-step-icon" /> Verify
+          </li>
+          <li className="auth-step">
+            <ProfileIcon className="auth-step-icon" /> Profile
+          </li>
+        </ol>
 
         {formError ? (
           <div role="alert" className="form-error">
