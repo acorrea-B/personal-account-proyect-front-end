@@ -1,10 +1,14 @@
-resource "scaleway_object_bucket_policy" "static_site_public_read" {
-  bucket     = var.bucket_name
+resource "scaleway_object_bucket" "web" {
+  name       = var.bucket_name
   project_id = var.project_id
   region     = var.region
+}
+
+resource "scaleway_object_bucket_policy" "web" {
+  bucket     = scaleway_object_bucket.web.name
+  project_id = var.project_id
 
   policy = jsonencode({
-    Id      = "profile-web-app-policy"
     Version = "2023-04-17"
 
     Statement = [
@@ -18,51 +22,77 @@ resource "scaleway_object_bucket_policy" "static_site_public_read" {
         ]
 
         Resource = [
-          "${var.bucket_name}/*"
-        ]
-      },
-      {
-        Sid    = "TerraformUserAccess"
-        Effect = "Allow"
-
-        Principal = {
-          SCW = [
-            "user_id:${var.scw_user_id}"
-          ]
-        }
-
-        Action = [
-          "s3:GetBucketCORS",
-          "s3:ListBucket",
-          "s3:GetObject",
-          "s3:GetObjectAcl",
-          "s3:PutObject",
-          "s3:DeleteObject"
-        ]
-
-        Resource = [
-          var.bucket_name,
-          "${var.bucket_name}/*"
+          "${scaleway_object_bucket.web.name}/*"
         ]
       }
     ]
   })
-
 }
 
-resource "scaleway_object_bucket_website_configuration" "static_site" {
-  bucket     = var.bucket_name
+resource "scaleway_object_bucket_website_configuration" "web" {
+  bucket     = scaleway_object_bucket.web.name
   project_id = var.project_id
-
-  depends_on = [
-    scaleway_object_bucket_policy.static_site_public_read
-  ]
 
   index_document {
     suffix = "index.html"
   }
 
   error_document {
-    key = var.error_document
+    key = "error.html"
   }
+
+  depends_on = [
+    scaleway_object_bucket_policy.web
+  ]
+}
+
+locals {
+  site_files = fileset(
+    "${path.module}/${var.site_directory}",
+    "**"
+  )
+
+  mime_types = {
+    html  = "text/html"
+    css   = "text/css"
+    js    = "application/javascript"
+    json  = "application/json"
+    svg   = "image/svg+xml"
+    png   = "image/png"
+    jpg   = "image/jpeg"
+    jpeg  = "image/jpeg"
+    ico   = "image/x-icon"
+    txt   = "text/plain"
+    xml   = "application/xml"
+    webp  = "image/webp"
+    woff  = "font/woff"
+    woff2 = "font/woff2"
+  }
+}
+
+resource "scaleway_object" "site_files" {
+  for_each = local.site_files
+
+  bucket     = scaleway_object_bucket.web.name
+  project_id = var.project_id
+
+  key  = each.value
+  file = "${path.module}/${var.site_directory}/${each.value}"
+
+  hash = filemd5(
+    "${path.module}/${var.site_directory}/${each.value}"
+  )
+
+  content_type = lookup(
+    local.mime_types,
+    try(reverse(split(".", each.value))[0], ""),
+    "application/octet-stream"
+  )
+
+  visibility = "public-read"
+
+  depends_on = [
+    scaleway_object_bucket_policy.web,
+    scaleway_object_bucket_website_configuration.web
+  ]
 }
