@@ -16,6 +16,8 @@ jobs:
   validate:
     name: Validate production build
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -116,4 +118,3 @@ jobs:
             --add-header="Cache-Control:public,max-age=300" \
             --add-header="Content-Type:text/html; charset=utf-8" \
             out/404.html "s3://${SCALEWAY_STORAGE_BUCKET}/404.html"
-
