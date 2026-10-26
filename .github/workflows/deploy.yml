@@ -19,7 +19,6 @@ jobs:
     environment: production
     env:
       NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
-      NODE_ENV: production
     steps:
       - name: Check API base URL
         run: test -n "${{ secrets.NEXT_PUBLIC_API_BASE_URL }}"
@@ -40,6 +39,8 @@ jobs:
       - run: npm run format:check
       - run: npm run test:coverage
       - run: npm run build
+        env:
+          NODE_ENV: production
       - uses: actions/upload-artifact@v4
         with:
           name: static-site-${{ github.sha }}
