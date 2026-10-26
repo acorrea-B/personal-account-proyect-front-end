@@ -102,8 +102,10 @@ jobs:
 
           import_resource scaleway_object_bucket.web \
             "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}"
-          import_resource scaleway_object_bucket_policy.web \
-            "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}"
+          if ! import_resource scaleway_object_bucket_policy.web \
+            "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}"; then
+            echo "Bucket policy not found remotely; Terraform will create it" >&2
+          fi
           import_resource scaleway_object_bucket_website_configuration.web \
             "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}"
           terraform plan -out=tfplan
