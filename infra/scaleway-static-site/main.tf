@@ -15,11 +15,12 @@ resource "scaleway_object_bucket_policy" "static_site_public_read" {
   region     = var.region
 
   policy = jsonencode({
+    Id      = "profile-web-app-policy"
     Version = "2023-04-17"
 
     Statement = [
       {
-        Sid       = "PublicReadObjects"
+        Sid       = "PublicWebsiteRead"
         Effect    = "Allow"
         Principal = "*"
 
@@ -28,6 +29,29 @@ resource "scaleway_object_bucket_policy" "static_site_public_read" {
         ]
 
         Resource = [
+          "${scaleway_object_bucket.static_site.name}/*"
+        ]
+      },
+      {
+        Sid    = "TerraformUserAccess"
+        Effect = "Allow"
+
+        Principal = {
+          SCW = [
+            "user_id:${var.scw_user_id}"
+          ]
+        }
+
+        Action = [
+          "s3:ListBucket",
+          "s3:GetObject",
+          "s3:GetObjectAcl",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ]
+
+        Resource = [
+          scaleway_object_bucket.static_site.name,
           "${scaleway_object_bucket.static_site.name}/*"
         ]
       }

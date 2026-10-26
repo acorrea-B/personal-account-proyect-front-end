@@ -31,3 +31,8 @@ variable "public_read" {
   type        = bool
   default     = true
 }
+variable "scw_user_id" {
+  description = "Scaleway user principal that applies Terraform and deploys static objects."
+  type        = string
+  default     = "2f4164cc-8eea-46cd-b6b4-47214a57783c"
+}
