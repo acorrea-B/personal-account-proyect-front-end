@@ -26,7 +26,7 @@ resource "scaleway_object_bucket_policy" "web" {
         ]
 
         Resource = [
-          "profile-web-app/*"
+          "${var.bucket_name}/*"
         ]
       },
       {
@@ -41,8 +41,8 @@ resource "scaleway_object_bucket_policy" "web" {
         ]
 
         Resource = [
-          "profile-web-app",
-          "profile-web-app/*"
+          "${var.bucket_name}",
+          "${var.bucket_name}/*"
         ]
       }
     ]
