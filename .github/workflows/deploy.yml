@@ -100,8 +100,10 @@ jobs:
             fi
           }
 
-          import_resource scaleway_object_bucket.web \
-            "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}"
+          if ! import_resource scaleway_object_bucket.web \
+            "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}"; then
+            echo "Bucket import failed; proceeding and using direct S3 sync fallback if apply fails" >&2
+          fi
           if ! import_resource scaleway_object_bucket_policy.web \
             "${AWS_REGION:-fr-par}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}"; then
             echo "Bucket policy not found remotely; Terraform will create it" >&2
