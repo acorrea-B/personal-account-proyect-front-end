@@ -82,3 +82,64 @@ export function ArrowRightIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function SignalIcon({ className }: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      height="24"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.6"
+      viewBox="0 0 24 24"
+      width="24"
+    >
+      <path d="M12 3a9 9 0 0 0-9 9c0 4.9 3.5 7.5 9 9 5.5-1.5 9-4.1 9-9a9 9 0 0 0-9-9Z" />
+      <circle cx="12" cy="9" r="1.3" />
+      <path d="M12 12v4" />
+    </svg>
+  );
+}
+
+export function MailIcon({ className }: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      height="24"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.6"
+      viewBox="0 0 24 24"
+      width="24"
+    >
+      <rect height="16" rx="2" width="20" x="2" y="4" />
+      <path d="M22 6 12 13 2 6" />
+    </svg>
+  );
+}
+
+export function ProfileIcon({ className }: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      height="24"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.6"
+      viewBox="0 0 24 24"
+      width="24"
+    >
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M4 20c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" />
+    </svg>
+  );
+}

@@ -5,7 +5,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { ProblemError, register } from '@/lib/api/client';
+import { MailIcon, ProfileIcon, ShieldIcon, UserIcon } from '../../components/icons';
 import { registerRequestSchema } from '@/lib/schemas/auth';
+import Link from 'next/link';
 
 interface FieldErrors {
   email?: string;
@@ -71,8 +73,22 @@ export default function RegisterPage() {
   return (
     <main className="auth-page">
       <section className="auth-shell auth-card">
-        <h1 className="auth-heading">Create account</h1>
-        <p className="auth-subtitle">Register and verify your email to continue.</p>
+        <p className="auth-kicker">
+          <ShieldIcon className="auth-kicker-icon" /> Verified account setup
+        </p>
+        <h1 className="auth-heading">Create your professional account</h1>
+        <p className="auth-subtitle">Three guided steps to your workspace.</p>
+        <ol className="auth-steps">
+          <li className="auth-step is-active">
+            <UserIcon className="auth-step-icon" /> Account
+          </li>
+          <li className="auth-step">
+            <MailIcon className="auth-step-icon" /> Verify
+          </li>
+          <li className="auth-step">
+            <ProfileIcon className="auth-step-icon" /> Profile
+          </li>
+        </ol>
 
         {formError ? (
           <div role="alert" className="form-error">
@@ -123,6 +139,12 @@ export default function RegisterPage() {
             {isSubmitting ? 'Creating account...' : 'Create account'}
           </button>
         </form>
+        <p className="auth-form-note">
+          Already have an account?{' '}
+          <Link className="link" href="/login/">
+            Sign in instead
+          </Link>
+        </p>
       </section>
     </main>
   );
