@@ -23,7 +23,9 @@ jobs:
       - name: Check API base URL
         run: test -n "${{ secrets.NEXT_PUBLIC_API_BASE_URL }}"
       - name: Build debug
-        run: echo "NEXT_PUBLIC_API_BASE_URL length=${#NEXT_PUBLIC_API_BASE_URL}"
+        run: |
+          echo "NEXT_PUBLIC_API_BASE_URL length=${#NEXT_PUBLIC_API_BASE_URL}"
+          echo "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}"
       - uses: actions/checkout@v4
       - name: Write environment file
         run: |
