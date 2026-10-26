@@ -39,3 +39,11 @@ Per-task token count, execution time, and successful iterations are recorded in
 ## Environment
 
 Copy `.env.example` to `.env.local` and fill in values. Never commit `.env.local`.
+
+## Operations
+
+- Create and maintain Scaleway storage/websites infrastructure with `infra/scaleway-static-site`
+before publishing; store its `bucket_name` output as `SCALEWAY_STORAGE_BUCKET`.
+- Pushing a tag `v*` runs the tag-based GitHub Actions deploy, which publishes only static files.
+  Terraform is intentionally not executed during every tag build because it requires
+ persistent state and only manages repository-independent infrastructure.
