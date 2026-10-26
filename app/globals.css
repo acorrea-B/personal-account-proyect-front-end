@@ -825,7 +825,7 @@ body {
 }
 
 .auth-step.is-active {
-  color: var(--color-soot);
+  color: var(--color-pure-white);
   background: var(--color-cyan-signal);
   border-color: var(--color-cyan-signal);
 }
