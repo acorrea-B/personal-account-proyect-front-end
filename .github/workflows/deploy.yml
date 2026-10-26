@@ -87,9 +87,9 @@ jobs:
           done
           echo "Production secret lengths: bucket=${#SCALEWAY_STORAGE_BUCKET} project=${#SCW_PROJECT_ID} access=${#SCW_ACCESS_KEY} secret=${#SCW_SECRET_KEY}" >&2
           terraform init -backend=false -input=false
-          terraform import scaleway_object_bucket.static_site "${AWS_REGION}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}" || true
           terraform import scaleway_object_bucket_website_configuration.static_site "${AWS_REGION}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}" || true
           terraform import scaleway_object_bucket_policy.static_site_public_read "${AWS_REGION}/${SCALEWAY_STORAGE_BUCKET}@${SCW_PROJECT_ID}" || true
+          echo "Bucket identity is not managed by this workflow; the existing Scaleway bucket is reused."
           terraform apply -input=false -auto-approve \
             -var "bucket_name=${SCALEWAY_STORAGE_BUCKET}" \
             -var "project_id=${SCW_PROJECT_ID}" \

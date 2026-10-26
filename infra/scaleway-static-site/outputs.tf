@@ -1,6 +1,6 @@
 output "bucket_name" {
   description = "Storage bucket published by GitHub Actions."
-  value       = scaleway_object_bucket.static_site.name
+  value       = var.bucket_name
 }
 
 output "region" {
