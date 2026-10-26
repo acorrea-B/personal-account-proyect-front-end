@@ -92,14 +92,13 @@ jobs:
             -var "project_id=${SCW_PROJECT_ID}" \
             -var "region=${AWS_REGION}"
 
-      - name: Configure Scaleway credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.SCALEWAY_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.SCALEWAY_SECRET_KEY }}
-          aws-region: fr-par
-
       - name: Publish to Object Storage
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.SCALEWAY_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SCALEWAY_SECRET_KEY }}
+          AWS_DEFAULT_REGION: fr-par
+          AWS_ENDPOINT_URL: https://s3.fr-par.scw.cloud
+          SCALEWAY_STORAGE_BUCKET: ${{ secrets.SCALEWAY_STORAGE_BUCKET }}
         run: |
           set -euo pipefail
           aws s3 sync out/ "s3://${SCALEWAY_STORAGE_BUCKET}/" \
