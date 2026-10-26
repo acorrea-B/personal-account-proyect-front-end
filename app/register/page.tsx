@@ -5,7 +5,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { ProblemError, register } from '@/lib/api/client';
+import { ShieldIcon } from '../../components/icons';
 import { registerRequestSchema } from '@/lib/schemas/auth';
+import Link from 'next/link';
 
 interface FieldErrors {
   email?: string;
@@ -71,8 +73,14 @@ export default function RegisterPage() {
   return (
     <main className="auth-page">
       <section className="auth-shell auth-card">
-        <h1 className="auth-heading">Create account</h1>
-        <p className="auth-subtitle">Register and verify your email to continue.</p>
+        <p className="auth-kicker">
+          <ShieldIcon className="auth-kicker-icon" /> Verified account setup
+        </p>
+        <h1 className="auth-heading">Create your professional account</h1>
+        <p className="auth-subtitle">
+          Open a secure workspace for your profile and CV. Verification keeps access trusted and
+          predictable.
+        </p>
 
         {formError ? (
           <div role="alert" className="form-error">
@@ -123,6 +131,12 @@ export default function RegisterPage() {
             {isSubmitting ? 'Creating account...' : 'Create account'}
           </button>
         </form>
+        <p className="auth-form-note">
+          Already have an account?{' '}
+          <Link className="link" href="/login/">
+            Sign in instead
+          </Link>
+        </p>
       </section>
     </main>
   );
