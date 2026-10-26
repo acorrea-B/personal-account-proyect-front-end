@@ -95,7 +95,8 @@ jobs:
             if terraform import "$address" "$id"; then
               echo "Imported $address from $id" >&2
             else
-              echo "Warning: import failed for $address; Terraform may create or replace it" >&2
+              echo "Failed to import $address; aborting before apply so existing resources are not recreated" >&2
+              return 1
             fi
           }
 
