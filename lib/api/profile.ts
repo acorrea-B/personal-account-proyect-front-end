@@ -48,3 +48,21 @@ export async function fetchProfile(accessToken: string): Promise<Profile> {
   const data: unknown = await response.json();
   return profileSchema.parse(data as z.infer<typeof profileSchema>);
 }
+
+// The workspace read message for a bearer problem. A 401 never reaches this
+// helper: the page treats it as a session event (clear and go to login).
+export function profileReadMessage(status: number, detail?: string): string {
+  if (status === 429) {
+    return 'Too many requests; please wait a moment and try again.';
+  }
+  if (status === 503) {
+    return 'The service is warming up; try again shortly.';
+  }
+  if (status >= 500) {
+    return 'The service could not be reached; please try again.';
+  }
+  if (detail?.trim()) {
+    return `Alert: ${detail}`;
+  }
+  return 'The profile could not be loaded. Please try again.';
+}
