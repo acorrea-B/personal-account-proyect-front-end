@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
+
+import { siteDescription, siteName, siteUrl } from '@/lib/seo';
+
 import './globals.css';
 
 // The woff2 subsets live in the repo and load through next/font/local: the
@@ -24,8 +27,23 @@ const interTight = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'Professional Profile',
-  description: 'Private profile and CV management.',
+  metadataBase: new URL(siteUrl),
+  title: {
+    // Segment layouts override the %s; the default carries the product
+    // keywords the seo pass anchored.
+    default: `${siteName} — a private workspace for your professional profile and CV`,
+    template: `%s · ${siteName}`,
+  },
+  description: siteDescription,
+  openGraph: {
+    type: 'website',
+    siteName,
+    url: siteUrl,
+    title: `${siteName} — a private workspace for your professional profile and CV`,
+    description: siteDescription,
+    locale: 'en_US',
+  },
+  twitter: { card: 'summary', title: siteName, description: siteDescription },
 };
 
 export default function RootLayout({

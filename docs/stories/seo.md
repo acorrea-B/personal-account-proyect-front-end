@@ -65,3 +65,14 @@ stepped up a rung (body 17, small 16, caption 13, buttons 16) — the
 literal-px rules that the token re-declaration could not reach were
 overridden in the same 640px block. The update-card header keeps "Your
 workspace" (it already was plain).
+
+### Windows 3b-3c status (2026-10-27): the crawler contract files
+
+`lib/seo.ts` pins the canonical host (the static export bucket — one
+constant moves when a custom domain lands), the root layout carries
+metadataBase, the title template with the product keywords default, og
+and twitter cards, and the export generates the crawler contract:
+`manifest.webmanifest` pinned `force-static` (the static-export quirk —
+the first build died on /manifest.webmanifest without it), robots.txt
+with the /app/** + handoff disallows and sitemap.xml with the three
+public urls. Noindex via per-segment layouts rides the next window.
