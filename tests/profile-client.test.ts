@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { fetchProfile } from '../lib/api/profile';
+import { fetchProfile, profileReadMessage } from '../lib/api/profile';
 import { profileSchema, updateProfileRequestSchema } from '../lib/schemas/profile';
 
 describe('profile schema', () => {
@@ -140,5 +140,22 @@ describe('fetchProfile', () => {
       name: 'ProblemError',
       problem: { status: 503 },
     });
+  });
+});
+
+describe('profileReadMessage', () => {
+  it('gives retryable copy for 429 and 503', () => {
+    expect(profileReadMessage(429)).toContain('Too many requests');
+    expect(profileReadMessage(503)).toContain('warming up');
+  });
+
+  it('keeps the api detail for client errors under the Alert convention', () => {
+    expect(profileReadMessage(422, 'The email address is not well formed.')).toBe(
+      'Alert: The email address is not well formed.',
+    );
+  });
+
+  it('falls back to a plain retryable message without detail', () => {
+    expect(profileReadMessage(400)).toBe('The profile could not be loaded. Please try again.');
   });
 });

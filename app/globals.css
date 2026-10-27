@@ -651,3 +651,78 @@ body {
   width: 16px;
   height: 16px;
 }
+
+/* The private workspace: the profile lives in one card, rendered exactly as
+   the api holds it. */
+.workspace-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-16);
+}
+
+.workspace-profile {
+  display: grid;
+  gap: var(--space-16);
+}
+
+.profile-grid {
+  display: grid;
+  gap: var(--space-12);
+  margin: 0;
+}
+
+.profile-grid > div {
+  display: grid;
+  gap: var(--space-4);
+  padding-left: var(--space-12);
+  border-left: 2px solid var(--color-sky-wash);
+}
+
+.profile-grid dt {
+  font-size: var(--text-caption);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-cyan-text);
+}
+
+.profile-grid dd {
+  margin: 0;
+  color: var(--color-ink-black);
+}
+
+.profile-headline {
+  font-size: var(--text-subheading);
+}
+
+.skill-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skill-chips li {
+  padding: var(--space-4) var(--space-12);
+  border: 1px solid var(--color-stone-border);
+  border-radius: var(--radius-full);
+  font-size: 14px;
+  color: var(--color-warm-gray);
+}
+
+.profile-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.workspace-profile .form-error {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-8);
+}

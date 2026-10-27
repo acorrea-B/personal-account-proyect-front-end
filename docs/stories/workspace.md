@@ -7,6 +7,14 @@ it, so that I always see real data before editing.
 
 ## Acceptance criteria
 
+> Progress note: the read state is wired and unit-covered on the branch
+> `feat/workspace-profile`; the live criteria stay gated on the api repository's
+> decision about the empty local JWKS finding — the bearer endpoints answer 401
+> against local gotrue raw. A 401 on the READ keeps the session (one silent
+> renewal is attempted) and surfaces a retryable message instead of clearing
+> the session — a read failure is not a session event. The session
+> destruction path belongs to the auth layer (login/refresh failure).
+
 - [ ] Given a signed-in user opens the workspace, then the page fetches
       `GET /v1/profile` with the stored access token and renders the real fields.
 - [ ] Given the API answers 401, then the invalid session is treated gracefully:
@@ -29,7 +37,11 @@ it, so that I always see real data before editing.
 - Add `fetchProfile(accessToken)` to `lib/api/profile.ts` (GET + Bearer +
   time-bounded fetch, problem+json -> ProblemError).
 - Cover schema and client behaviour with unit tests (fetch stubbed).
-- Wire the `/app` workspace read state in a followup commit of this story.
+- Wire the `/app` workspace read state: loading, ready render of the real
+  fields (headline/name/bio/location/skills/links), retryable messages with a
+  Try again action, and a fail-closed path for out-of-contract responses. A
+  401 on the read attempts one silent refresh and then keeps the session —
+  it never clears it (the clearing belongs to the auth layer, story 7).
 - Defer the PUT flow, the CV text editor and version history to stories
   9 and 10 of the backlog.
 
