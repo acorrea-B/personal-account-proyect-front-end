@@ -228,7 +228,7 @@ export default function CvEditorPage() {
                   </p>
                 </div>
 
-                <div className="form-row">
+                <div className="landing-actions">
                   <button
                     type="submit"
                     className="button button-primary"
