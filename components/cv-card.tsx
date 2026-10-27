@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { ClampedText } from '@/components/clamped-text';
 import { Skeleton } from '@/components/skeleton';
 import { ProfileIcon } from '@/components/icons';
@@ -27,11 +29,17 @@ export function CvCard({ state }: { state: CvCardState }) {
           <>
             <ClampedText text={state.cv.content} lines={3} className="clamped-text" />
             <span>Last saved {state.cv.updated_at}</span>
+            <Link className="button button-primary" href="/app/cv/">
+              Edit CV
+            </Link>
             <span className="status-chip">Live</span>
           </>
         ) : state.kind === 'empty' ? (
           <>
             <span>No cv yet — write yours in the editor.</span>
+            <Link className="button button-primary" href="/app/cv/">
+              Write your CV
+            </Link>
             <span className="status-chip">Empty</span>
           </>
         ) : (

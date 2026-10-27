@@ -1271,3 +1271,44 @@ textarea[aria-invalid='true'] {
     grid-template-columns: 1fr;
   }
 }
+
+/* CV editor: the text block mirrors the auth-card input rules but stands
+   tall (a cv is a document), with a tabular byte counter riding it. The
+   counter turns alert when the draft crosses the contract limit. */
+.cv-editor-card {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.cv-editor-card textarea {
+  resize: vertical;
+  max-width: 100%;
+  min-height: 340px;
+  font-size: var(--text-body-sm);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.cv-editor-count {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.cv-editor-counter {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-black);
+  font-size: var(--text-body-sm);
+}
+
+.cv-editor-counter-over {
+  color: var(--color-alert);
+  font-weight: 500;
+}
+
+@media (max-width: 860px) {
+  .cv-editor-card textarea {
+    min-height: 260px;
+  }
+}
