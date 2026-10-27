@@ -13,6 +13,7 @@ import { MailIcon, ProfileIcon, UserIcon } from '@/components/icons';
 
 type SaveState = { status: 'idle' | 'saving' | 'saved'; note?: string };
 type LoadState = { status: 'loading' | 'ready' | 'error'; profile?: Profile; error?: string };
+type LinkDraft = { type: string; url: string };
 
 export default function ProfileSetupPage() {
   const { isHydrated, isAuthorized, session } = useRequireAuth();
@@ -25,6 +26,7 @@ export default function ProfileSetupPage() {
   const [bio, setBio] = useState('');
   const [location, setLocation] = useState('');
   const [skillsText, setSkillsText] = useState('');
+  const [linksDraft, setLinksDraft] = useState<LinkDraft[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [highlight, setHighlight] = useState(-1);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -38,6 +40,7 @@ export default function ProfileSetupPage() {
     setBio(from.bio ?? '');
     setLocation(from.location ?? '');
     setSkillsText((from.skills ?? []).join(', '));
+    setLinksDraft(from.links ?? []);
   }, []);
 
   const loadProfile = useCallback(
@@ -117,6 +120,11 @@ export default function ProfileSetupPage() {
 
     if (profile && accessToken) {
       const normalizedBio = bio.replace(/\r\n?/g, '\n');
+      // The links editor owns the list: rows left completely empty are
+      // discarded, and an empty list empties it server-side (complete PUT).
+      const cleanLinks = linksDraft
+        .filter((row) => row.type.trim() || row.url.trim())
+        .map((row) => ({ type: row.type.trim(), url: row.url.trim() }));
       const parsed = updateProfileRequestSchema.safeParse({
         full_name: fullName,
         headline: headline.trim() ? headline : undefined,
@@ -125,9 +133,7 @@ export default function ProfileSetupPage() {
         // The editor owns the full skills list now: commas recover the
         // multiple values, and an empty list empties it server-side.
         skills: skillsDraft.length ? skillsDraft : undefined,
-        // This slice keeps the enrichments the api holds; the links editor
-        // lands with the next story, and the PUT travels complete.
-        links: profile.links,
+        links: cleanLinks.length ? cleanLinks : undefined,
       });
       if (!parsed.success) {
         const errors: Record<string, string> = {};
@@ -410,6 +416,83 @@ export default function ProfileSetupPage() {
                 {fieldErrors.skills}
               </p>
             ) : null}
+
+            <div className="link-editor">
+              <p className="auth-kicker">
+                <span className="auth-kicker-icon">●</span>
+                Social and repository links
+              </p>
+              <datalist id="link-types">
+                <option value="github" />
+                <option value="linkedin" />
+                <option value="x" />
+                <option value="website" />
+                <option value="blog" />
+              </datalist>
+              {linksDraft.map((row, index) => (
+                <div key={index} className="link-row">
+                  <input
+                    id={`link-type-${index}`}
+                    name={`link-type-${index}`}
+                    list="link-types"
+                    placeholder="github"
+                    maxLength={40}
+                    value={row.type}
+                    aria-label={`Link ${index + 1} type`}
+                    onChange={(event) =>
+                      setLinksDraft((previous) =>
+                        previous.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, type: event.target.value } : item,
+                        ),
+                      )
+                    }
+                  />
+                  <input
+                    id={`link-url-${index}`}
+                    name={`link-url-${index}`}
+                    type="url"
+                    inputMode="url"
+                    placeholder="https://github.com/you"
+                    maxLength={2048}
+                    value={row.url}
+                    aria-label={`Link ${index + 1} url`}
+                    onChange={(event) =>
+                      setLinksDraft((previous) =>
+                        previous.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, url: event.target.value } : item,
+                        ),
+                      )
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="link"
+                    aria-label={`Remove link ${index + 1}`}
+                    onClick={() =>
+                      setLinksDraft((previous) =>
+                        previous.filter((_, itemIndex) => itemIndex !== index),
+                      )
+                    }
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              {linksDraft.length < 10 ? (
+                <button
+                  type="button"
+                  className="button button-ghost"
+                  onClick={() => setLinksDraft((previous) => [...previous, { type: '', url: '' }])}
+                >
+                  Add link
+                </button>
+              ) : null}
+              {fieldErrors.links ? (
+                <p id="setup-links-error" role="alert" className="field-error">
+                  {fieldErrors.links}
+                </p>
+              ) : null}
+            </div>
 
             {formNote ? (
               <div role="status" className="form-error">
