@@ -250,22 +250,15 @@ body {
 
 .landing-hero {
   width: 100%;
-  max-width: 1200px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: var(--space-64) var(--space-24) var(--space-48);
+  padding: var(--space-64) var(--space-24);
   display: grid;
-  gap: var(--space-48);
-  grid-template-areas: 'copy panel';
-  grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr);
-  align-items: center;
+  gap: var(--space-16);
 }
 
-.landing-copy {
-  grid-area: copy;
-}
-
-.landing-panel {
-  grid-area: panel;
+.landing-copy .landing-actions {
+  margin-top: var(--space-24);
 }
 
 .landing-copy h1 {
@@ -292,7 +285,8 @@ body {
 }
 
 .landing-actions {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-8);
 }
 
@@ -330,11 +324,6 @@ body {
 }
 
 @media (max-width: 860px) {
-  .landing-hero {
-    grid-template-areas: 'panel' 'copy';
-    gap: var(--space-32);
-  }
-
   .landing-copy h1 {
     font-size: var(--text-heading-sm);
     letter-spacing: -0.8px;
