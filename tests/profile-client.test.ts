@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   fetchProfile,
   isProfileIncomplete,
+  linkRowProblem,
   normalizeProfileLinkUrl,
   profileReadMessage,
   updateProfile,
@@ -163,6 +164,37 @@ describe('profileReadMessage', () => {
 
   it('falls back to a plain retryable message without detail', () => {
     expect(profileReadMessage(400)).toBe('The profile could not be loaded. Please try again.');
+  });
+});
+
+describe('linkRowProblem', () => {
+  it('stays neutral for an unused row', () => {
+    expect(linkRowProblem({ type: '', url: '' })).toBeNull();
+  });
+
+  it('names the missing half of a partial row', () => {
+    expect(linkRowProblem({ type: 'github', url: '' })).toBe('The link needs its url.');
+    expect(linkRowProblem({ type: '', url: 'https://github.com/you' })).toBe(
+      'The link needs its label (type).',
+    );
+  });
+
+  it('marks garbage text and foreign schemes with the http(s) message', () => {
+    expect(linkRowProblem({ type: 'github', url: 'asdadadadadasdsa' })).toBe(
+      'Only http and https urls are accepted.',
+    );
+    expect(linkRowProblem({ type: 'github', url: 'ftp://example.com' })).toBe(
+      'Only http and https urls are accepted.',
+    );
+  });
+
+  it('accepts a base url, even deep-paste trimmed', () => {
+    expect(
+      linkRowProblem({
+        type: 'github',
+        url: 'https://github.com/acorrea-B/repo/compare/main?expand=1',
+      }),
+    ).toBeNull();
   });
 });
 

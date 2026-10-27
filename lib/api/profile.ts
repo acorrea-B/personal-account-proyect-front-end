@@ -143,6 +143,27 @@ export function normalizeProfileLinkUrl(raw: string): string {
   return `${parsed.protocol}//${authority}${keptPath ? `/${keptPath}` : ''}`;
 }
 
+// The live evaluator of one link row (evaluated while it is typed, like the
+// email field): neutral when the row is empty, otherwise it names exactly
+// what the row needs before the save even happens.
+export function linkRowProblem(row: { type: string; url: string }): string | null {
+  const type = row.type.trim();
+  const url = normalizeProfileLinkUrl(row.url.trim());
+  if (!type && !url) {
+    return null;
+  }
+  if (!url) {
+    return 'The link needs its url.';
+  }
+  if (!type) {
+    return 'The link needs its label (type).';
+  }
+  if (!/^https?:\/\//i.test(url)) {
+    return 'Only http and https urls are accepted.';
+  }
+  return null;
+}
+
 // The workspace read message for a bearer problem. A 401 never reaches this
 // helper: the page treats it as a session event (clear and go to login).
 export function profileReadMessage(status: number, detail?: string): string {

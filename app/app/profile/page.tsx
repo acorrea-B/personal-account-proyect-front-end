@@ -7,6 +7,7 @@ import { ProblemError } from '@/lib/api/client';
 import { searchCities } from '@/lib/api/geocoding';
 import {
   fetchProfile,
+  linkRowProblem,
   normalizeProfileLinkUrl,
   profileReadMessage,
   updateProfile,
@@ -91,6 +92,10 @@ export default function ProfileSetupPage() {
       loadProfile(accessToken);
     }
   }, [isHydrated, isAuthorized, accessToken, loadProfile]);
+
+  // Real-time evaluation of every link row, exactly like the email field:
+  // the row marks red while its condition is unmet.
+  const rowProblems = linksDraft.map((row) => linkRowProblem(row));
 
   const skillsDraft = skillsText
     .split(',')
@@ -442,64 +447,73 @@ export default function ProfileSetupPage() {
                 <option value="blog" />
               </datalist>
               {linksDraft.map((row, index) => (
-                <div key={index} className="link-row">
-                  <input
-                    id={`link-type-${index}`}
-                    name={`link-type-${index}`}
-                    list="link-types"
-                    placeholder="github"
-                    maxLength={40}
-                    value={row.type}
-                    aria-label={`Link ${index + 1} type`}
-                    onChange={(event) =>
-                      setLinksDraft((previous) =>
-                        previous.map((item, itemIndex) =>
-                          itemIndex === index ? { ...item, type: event.target.value } : item,
-                        ),
-                      )
-                    }
-                  />
-                  <input
-                    id={`link-url-${index}`}
-                    name={`link-url-${index}`}
-                    type="url"
-                    inputMode="url"
-                    placeholder="https://github.com/you"
-                    maxLength={2048}
-                    value={row.url}
-                    aria-label={`Link ${index + 1} url`}
-                    onBlur={() =>
-                      setLinksDraft((previous) =>
-                        previous.map((item, itemIndex) =>
-                          itemIndex === index
-                            ? {
-                                ...item,
-                                url: normalizeProfileLinkUrl(item.url),
-                              }
-                            : item,
-                        ),
-                      )
-                    }
-                    onChange={(event) =>
-                      setLinksDraft((previous) =>
-                        previous.map((item, itemIndex) =>
-                          itemIndex === index ? { ...item, url: event.target.value } : item,
-                        ),
-                      )
-                    }
-                  />
-                  <button
-                    type="button"
-                    className="link"
-                    aria-label={`Remove link ${index + 1}`}
-                    onClick={() =>
-                      setLinksDraft((previous) =>
-                        previous.filter((_, itemIndex) => itemIndex !== index),
-                      )
-                    }
-                  >
-                    Remove
-                  </button>
+                <div key={index} className="link-row-group">
+                  <div className="link-row">
+                    <input
+                      id={`link-type-${index}`}
+                      name={`link-type-${index}`}
+                      list="link-types"
+                      placeholder="github"
+                      maxLength={40}
+                      value={row.type}
+                      aria-label={`Link ${index + 1} type`}
+                      aria-invalid={Boolean(rowProblems[index])}
+                      onChange={(event) =>
+                        setLinksDraft((previous) =>
+                          previous.map((item, itemIndex) =>
+                            itemIndex === index ? { ...item, type: event.target.value } : item,
+                          ),
+                        )
+                      }
+                    />
+                    <input
+                      id={`link-url-${index}`}
+                      name={`link-url-${index}`}
+                      type="url"
+                      inputMode="url"
+                      placeholder="https://github.com/you"
+                      maxLength={2048}
+                      value={row.url}
+                      aria-label={`Link ${index + 1} url`}
+                      aria-invalid={Boolean(rowProblems[index])}
+                      onBlur={() =>
+                        setLinksDraft((previous) =>
+                          previous.map((item, itemIndex) =>
+                            itemIndex === index
+                              ? {
+                                  ...item,
+                                  url: normalizeProfileLinkUrl(item.url),
+                                }
+                              : item,
+                          ),
+                        )
+                      }
+                      onChange={(event) =>
+                        setLinksDraft((previous) =>
+                          previous.map((item, itemIndex) =>
+                            itemIndex === index ? { ...item, url: event.target.value } : item,
+                          ),
+                        )
+                      }
+                    />
+                    <button
+                      type="button"
+                      className="link"
+                      aria-label={`Remove link ${index + 1}`}
+                      onClick={() =>
+                        setLinksDraft((previous) =>
+                          previous.filter((_, itemIndex) => itemIndex !== index),
+                        )
+                      }
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  {rowProblems[index] ? (
+                    <p role="alert" className="field-error">
+                      {rowProblems[index]}
+                    </p>
+                  ) : null}
                 </div>
               ))}
               {linksDraft.length < 10 ? (
