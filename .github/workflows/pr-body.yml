@@ -1,0 +1,62 @@
+name: PR description
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-body-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    name: Generate the description from the commits
+    # Same-repo PRs only: the token cannot patch a fork's pull request anyway.
+    if: >-
+      github.event.repository.fork == false &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate the description from the window commits
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          range="origin/${BASE_BRANCH}..${HEAD_BRANCH}"
+          subjects=$(git log --format='- %s (%h)' "${range}" || true)
+          if [[ -z "${subjects}" ]]; then
+            subjects='- *No window commits in this range (the branch is up to date with its base).*'
+          fi
+          file_count=$(git diff --name-only "${range}" | wc -l | tr -d '[:space:]')
+          file_lines=$(git diff --name-only "${range}" | sed 's/^/- `/;s/$/`/' || true)
+          case "${HEAD_BRANCH}" in
+            chore/pr-description-automation) label='batch 6, window 1 (repo tooling)' ;;
+            feat/workspace-skeletons) label='batch 6, window 2' ;;
+            feat/workspace-resolve-fold) label='batch 6, window 3 (final integration)' ;;
+            *) label='stacked deploy window' ;;
+          esac
+          {
+            printf 'This PR is part of **%s** of the stacked workspace deploy (six changed files or fewer per window; each window stacks on the previous one; the batch ships one version tag when its last window lands).\n' "${label}"
+            printf 'This description is generated from the window commits on every push by the pr-description workflow.\n\n'
+            printf '## Contents\n\n'
+            printf '%s\n\n' "${subjects}"
+            printf '## Changed files (%s per the window gate)\n\n' "${file_count}"
+            printf '%s\n\n' "${file_lines}"
+            printf '## Gates\n\n'
+            printf 'Lint, typecheck, prettier, unit tests and the isolated static build green on the chain tip before opening. Merge window by window, deleting the base branch on each merge; the batch tag `v0.3.x` fires when the last window lands.\n'
+          } > body.md
+          gh api "repos/${REPO}/pulls/${PR_NUMBER}" -X PATCH -F body=@body.md --jq '.html_url'
+          echo "Description patched: ${file_count} files, $(echo "${subjects}" | wc -l | tr -d '[:space:]') commits listed."
