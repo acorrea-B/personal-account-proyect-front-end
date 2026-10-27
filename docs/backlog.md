@@ -15,3 +15,9 @@ Expensive decisions: none beyond the already-decided client-side i18n (en/es).
 5. As a signed-in user, I want to sign out, so that my session ends immediately on this device.
 6. As an unauthenticated visitor, I want private pages to redirect me to login, so that I am prompted to authenticate.
 7. As a signed-in user, I want an expired or invalid session to be cleared gracefully, so that I am returned to login instead of seeing broken screens.
+
+## Workspace backlog (next phase)
+
+8. As a signed-in user, I want my workspace to show my profile exactly as the API holds it, so that I always see real data before editing.
+9. As a signed-in user, I want to edit my profile with optimistic locking (If-Unmodified-Since), so that concurrent edits cannot silently overwrite each other (412 -> resolve).
+10. As a signed-in user, I want to write and read my CV text and browse its version history (at most 10, newest first), so that my CV is safely versioned and recoverable.
