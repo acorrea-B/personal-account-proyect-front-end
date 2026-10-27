@@ -819,23 +819,71 @@ textarea[aria-invalid='true'] {
   }
 }
 
-.save-banner {
+/* The save confirmation: a floating toast pinned to the bottom of the
+   viewport, visible wherever the user is in the form. The page timer
+   auto-dismisses it after 5 seconds; the ✕ dismisses it by hand. */
+.save-toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--space-24);
+  z-index: 30;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: var(--space-8);
   border-radius: var(--radius-lg);
   padding: var(--space-12) var(--space-16);
-  background: var(--color-sky-wash-soft);
+  background: var(--color-pure-white);
   border: 1px solid var(--color-cyan-text);
   color: var(--color-ink-black);
   font-weight: 500;
+  box-shadow: var(--shadow-xl);
+  animation: toast-rise 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.save-banner svg {
+.save-toast svg {
   width: 16px;
   height: 16px;
   flex: none;
   color: var(--color-cyan-text);
+}
+
+.save-toast p {
+  margin: 0;
+}
+
+.save-toast-dismiss {
+  background: none;
+  border: none;
+  color: var(--color-warm-gray);
+  font: inherit;
+  cursor: pointer;
+  padding: 0 0 0 var(--space-8);
+  line-height: 1;
+}
+
+.save-toast-dismiss:hover {
+  color: var(--color-ink-black);
+}
+
+@keyframes toast-rise {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* The reduced-motion voice keeps the toast static: only the entrance
+   animation is dropped; the centering transform must survive. */
+@media (prefers-reduced-motion: reduce) {
+  .save-toast {
+    animation: none;
+    transform: translateX(-50%);
+  }
 }
 
 /* The info notes (role=status): sky-wash tinted, distinct from alerts. */

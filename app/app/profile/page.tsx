@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { type SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { type SyntheticEvent, useCallback, useEffect, useState } from 'react';
 
 import { ProblemError } from '@/lib/api/client';
 import { searchCities } from '@/lib/api/geocoding';
@@ -43,23 +43,23 @@ export default function ProfileSetupPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formNote, setFormNote] = useState<string | null>(null);
   const [save, setSave] = useState<SaveState>({ status: 'idle' });
-  // The save banner: the big, unmissable confirmation at the top of the
-  // card. It stays until the next save so the step is never missed.
-  const [showBanner, setShowBanner] = useState(false);
-  const bannerRef = useRef<HTMLDivElement | null>(null);
+  // The save toast: pinned to the bottom of the viewport, so the
+  // confirmation is visible wherever the user is in the form. It
+  // auto-dismisses after 5 seconds and stays dismissible by hand.
+  const [showToast, setShowToast] = useState(false);
 
+  // The toast rides the viewport for 5 seconds; the button flashes Saved
+  // for 3.5. Both timers clean up independently.
   useEffect(() => {
-    if (showBanner && bannerRef.current) {
-      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      bannerRef.current.scrollIntoView({
-        behavior: prefersReduced ? 'auto' : 'smooth',
-        block: 'nearest',
-      });
+    if (!showToast) {
+      return;
     }
-  }, [showBanner]);
+    const timer = window.setTimeout(() => setShowToast(false), 5000);
+    return () => window.clearTimeout(timer);
+  }, [showToast]);
 
-  // The button flashes Saved briefly; the banner above keeps the
-  // confirmation sticky for the eyes that arrive later.
+  // The button flashes Saved briefly; the viewport toast keeps the
+  // confirmation visible meanwhile.
   useEffect(() => {
     if (save.status !== 'saved') {
       return;
@@ -203,14 +203,14 @@ export default function ProfileSetupPage() {
       try {
         const saved = await updateProfile(accessToken, parsed.data, profile.updated_at);
         setProfile(saved);
-        setShowBanner(true);
+        setShowToast(true);
         setSave({ status: 'saved' });
         return;
       } catch (error) {
         if (error instanceof ProblemError && error.problem.status === 412) {
           // The optimistic lock: reload the latest version, drop the stale
-          // banner, and ask for a re-review.
-          setShowBanner(false);
+          // toast, and ask for a re-review.
+          setShowToast(false);
           if (accessToken) {
             await loadProfile(accessToken);
           }
@@ -279,10 +279,18 @@ export default function ProfileSetupPage() {
           </li>
         </ol>
 
-        {showBanner ? (
-          <div ref={bannerRef} role="status" className="save-banner">
+        {showToast ? (
+          <div role="status" className="save-toast">
             <CheckIcon />
             <p>Profile saved — it is live in the workspace.</p>
+            <button
+              type="button"
+              className="save-toast-dismiss"
+              aria-label="Dismiss the saved confirmation"
+              onClick={() => setShowToast(false)}
+            >
+              ✕
+            </button>
           </div>
         ) : null}
 
@@ -608,7 +616,7 @@ export default function ProfileSetupPage() {
                   'Save profile'
                 )}
               </button>
-              {showBanner ? (
+              {showToast ? (
                 <Link className="button button-ghost" href="/app/">
                   Open workspace
                 </Link>
