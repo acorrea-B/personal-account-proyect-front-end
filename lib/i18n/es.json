@@ -45,5 +45,21 @@
   "clampedText": {
     "showMore": "Mostrar más",
     "showLess": "Mostrar menos"
+  },
+  "login": {
+    "heading": "Iniciar sesión",
+    "subtitle": "Usa las credenciales de tu cuenta verificada.",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "submit": "Iniciar sesión",
+    "submitting": "Iniciando sesión…",
+    "invalid": "El correo o la contraseña no son válidos.",
+    "rateCappedWithSeconds": "Demasiados intentos; reintenta en {seconds} segundos.",
+    "rateCapped": "Demasiados intentos; por favor reintenta más tarde.",
+    "generic": "No se pudo iniciar sesión. Por favor inténtalo de nuevo.",
+    "timeout": "La petición agotó el tiempo de espera. Por favor inténtalo de nuevo.",
+    "unexpected": "Error inesperado. Por favor inténtalo de nuevo.",
+    "registerEntry": "Mejor crea una cuenta",
+    "otherLanguage": "English"
   }
 }

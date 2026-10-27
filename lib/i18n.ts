@@ -59,6 +59,22 @@ export const labelsSchema = z.object({
     showMore: z.string(),
     showLess: z.string(),
   }),
+  login: z.object({
+    heading: z.string(),
+    subtitle: z.string(),
+    email: z.string(),
+    password: z.string(),
+    submit: z.string(),
+    submitting: z.string(),
+    invalid: z.string(),
+    rateCappedWithSeconds: z.string(),
+    rateCapped: z.string(),
+    generic: z.string(),
+    timeout: z.string(),
+    unexpected: z.string(),
+    registerEntry: z.string(),
+    otherLanguage: z.string(),
+  }),
 });
 
 export type Labels = z.infer<typeof labelsSchema>;

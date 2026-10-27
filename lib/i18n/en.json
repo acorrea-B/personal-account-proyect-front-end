@@ -45,5 +45,21 @@
   "clampedText": {
     "showMore": "Show more",
     "showLess": "Show less"
+  },
+  "login": {
+    "heading": "Sign in",
+    "subtitle": "Use your verified account credentials.",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in...",
+    "invalid": "Email or password is invalid.",
+    "rateCappedWithSeconds": "Too many attempts; try again in {seconds} seconds.",
+    "rateCapped": "Too many attempts; please try again later.",
+    "generic": "Sign-in could not be completed. Please try again.",
+    "timeout": "Request timed out. Please try again.",
+    "unexpected": "Unexpected error. Please try again.",
+    "registerEntry": "Create an account instead",
+    "otherLanguage": "Español"
   }
 }
