@@ -5,14 +5,16 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { ProblemError } from '@/lib/api/client';
+import { cvLoadMessage, fetchCvText } from '@/lib/api/cv';
 import { fetchProfile, isProfileIncomplete, profileReadMessage } from '@/lib/api/profile';
 import { loadSession, refreshSession } from '@/lib/auth/session';
 import type { Profile } from '@/lib/schemas/profile';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
 import { ClampedText } from '@/components/clamped-text';
+import { CvCard, type CvCardState } from '@/components/cv-card';
 import { Skeleton } from '@/components/skeleton';
-import { ProfileIcon, ShieldIcon, SignalIcon } from '@/components/icons';
+import { ShieldIcon, SignalIcon } from '@/components/icons';
 
 interface WorkspaceLoad {
   status: 'loading' | 'ready' | 'error';
@@ -26,6 +28,44 @@ export default function AppHomePage() {
   const accessToken = session?.accessToken ?? null;
 
   const [load, setLoad] = useState<WorkspaceLoad>({ status: 'loading' });
+  const [cvLoad, setCvLoad] = useState<CvCardState>({ kind: 'loading' });
+
+  const loadCv = useCallback(async (token: string) => {
+    setCvLoad({ kind: 'loading' });
+    try {
+      const cv = await fetchCvText(token);
+      setCvLoad({ kind: 'ready', cv });
+    } catch (error) {
+      // Mirror the profile read: a cv read failure never destroys the
+      // session and never waits on the profile - the rail card carries
+      // its own retry while the profile panel stays usable.
+      if (error instanceof ProblemError) {
+        if (error.problem.status === 404) {
+          setCvLoad({ kind: 'empty' });
+          return;
+        }
+        setCvLoad({
+          kind: 'error',
+          message: cvLoadMessage(error.problem.status, error.problem.detail ?? error.problem.title),
+          onRetry: () => loadCv(token),
+        });
+        return;
+      }
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        setCvLoad({
+          kind: 'error',
+          message: 'Request timed out. Please try again.',
+          onRetry: () => loadCv(token),
+        });
+        return;
+      }
+      setCvLoad({
+        kind: 'error',
+        message: 'The cv response was not understood. Please retry or report it.',
+        onRetry: () => loadCv(token),
+      });
+    }
+  }, []);
 
   const loadProfile = useCallback(
     async (token: string, viaRenewal = false) => {
@@ -92,8 +132,11 @@ export default function AppHomePage() {
   useEffect(() => {
     if (isHydrated && isAuthorized && accessToken) {
       loadProfile(accessToken);
+      // The cv rides the profile in parallel: the profile panel never waits
+      // on the cv, and the rail carves its own card with its own retry.
+      loadCv(accessToken);
     }
-  }, [isHydrated, isAuthorized, accessToken, loadProfile]);
+  }, [isHydrated, isAuthorized, accessToken, loadProfile, loadCv]);
 
   // The waiting face: the session check and the profile fetch both hide
   // the dashboard behind the skeleton screen — never a white page.
@@ -210,14 +253,7 @@ export default function AppHomePage() {
             <aside className="upcoming-panel" aria-label="Coming to your workspace">
               <p className="eyebrow">Coming up</p>
               <ul className="upcoming-list">
-                <li className="upcoming-item">
-                  <ProfileIcon />
-                  <div className="upcoming-copy">
-                    <strong>CV editor</strong>
-                    <span>Write and save your CV text, in place.</span>
-                    <span className="status-chip">Planned next</span>
-                  </div>
-                </li>
+                <CvCard state={cvLoad} />
                 <li className="upcoming-item">
                   <ShieldIcon />
                   <div className="upcoming-copy">
