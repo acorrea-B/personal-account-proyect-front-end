@@ -1271,3 +1271,69 @@ textarea[aria-invalid='true'] {
     grid-template-columns: 1fr;
   }
 }
+
+/* CV editor: the text block mirrors the auth-card input rules but stands
+   tall (a cv is a document), with a tabular byte counter riding it. The
+   counter turns alert when the draft crosses the contract limit. */
+.cv-editor-card {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.cv-editor-card textarea {
+  /* Fill the card: a textarea defaults to its intrinsic cols width (~20
+     characters) and looks tiny against an 880px card — and with the
+     vertical-only resize (the bio lesson: horizontal resize breaks the
+     card track) the user could never widen it by hand. */
+  display: block;
+  width: 100%;
+  resize: vertical;
+  max-width: 100%;
+  min-height: 340px;
+  font-size: var(--text-body-sm);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.cv-editor-count {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.cv-editor-counter {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-black);
+  font-size: var(--text-body-sm);
+}
+
+.cv-editor-counter-over {
+  color: var(--color-alert);
+  font-weight: 500;
+}
+
+@media (max-width: 860px) {
+  .cv-editor-card textarea {
+    min-height: 260px;
+  }
+}
+
+/* The cv card preview: block text with its paragraph breaks preserved
+   (pre-line), capped by a js truncation at 280 chars - the full document
+   lives in the editor, not in the rail. */
+.cv-preview {
+  display: block;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* The cv card actions: a hairline divider between the preview text and
+   the entry button - the rail's space-4 gap reads too tight against a
+   multi-line preview. */
+.cv-card-actions {
+  border-top: 1px solid var(--color-stone-border);
+  margin-top: var(--space-8);
+  padding-top: var(--space-12);
+  width: 100%;
+}

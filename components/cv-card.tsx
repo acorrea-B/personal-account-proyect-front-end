@@ -1,4 +1,5 @@
-import { ClampedText } from '@/components/clamped-text';
+import Link from 'next/link';
+
 import { Skeleton } from '@/components/skeleton';
 import { ProfileIcon } from '@/components/icons';
 import { type Cv } from '@/lib/schemas/cv';
@@ -10,9 +11,18 @@ export type CvCardState =
   | { kind: 'error'; message: string; onRetry?: () => void };
 
 // The cv card of the dashboard rail: the real cv (window 2 of the cv
-// stack, read only) replacing the "Coming up" planned card. The editor
-// entry point and the version history ride their own windows and turn
-// this card into their hub.
+// stack) replacing the "Coming up" planned card. A cv can reach 51200
+// bytes, so the rail carries a hard truncation instead of an unfolding
+// clamp (a document reader does not belong in a rail) - the full text is
+// one click away in the editor, and a future structured (html) api answer
+// will power a proper full page.
+const previewLimit = 280;
+
+function cvPreview(content: string): string {
+  const trimmed = content.trim();
+  return trimmed.length > previewLimit ? `${trimmed.slice(0, previewLimit).trimEnd()}…` : trimmed;
+}
+
 export function CvCard({ state }: { state: CvCardState }) {
   return (
     <li className="upcoming-item">
@@ -25,14 +35,22 @@ export function CvCard({ state }: { state: CvCardState }) {
           </span>
         ) : state.kind === 'ready' ? (
           <>
-            <ClampedText text={state.cv.content} lines={3} className="clamped-text" />
+            <span className="cv-preview">{cvPreview(state.cv.content)}</span>
             <span>Last saved {state.cv.updated_at}</span>
-            <span className="status-chip">Live</span>
+            <div className="cv-card-actions">
+              <Link className="link" href="/app/cv/">
+                Edit CV
+              </Link>
+            </div>
           </>
         ) : state.kind === 'empty' ? (
           <>
             <span>No cv yet — write yours in the editor.</span>
-            <span className="status-chip">Empty</span>
+            <div className="cv-card-actions">
+              <Link className="link" href="/app/cv/">
+                Write your CV
+              </Link>
+            </div>
           </>
         ) : (
           <>
