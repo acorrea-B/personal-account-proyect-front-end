@@ -44,6 +44,10 @@ export default function ProfileSetupPage() {
   // searching action (the debounce plus the network ride behind it).
   const [isSearching, setIsSearching] = useState(false);
   const [searched, setSearched] = useState(false);
+  // The search belongs to the user's typing only: the value loaded from
+  // the api (or a just-picked suggestion) must never open the list by
+  // itself, on top of the field.
+  const [isLocationTouched, setLocationTouched] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formNote, setFormNote] = useState<string | null>(null);
   const [save, setSave] = useState<SaveState>({ status: 'idle' });
@@ -84,6 +88,9 @@ export default function ProfileSetupPage() {
     setLocation(from.location ?? '');
     setSkillsText((from.skills ?? []).join(', '));
     setLinksDraft(from.links ?? []);
+    // A fresh population is not typing: the autocomplete stays closed
+    // until the user touches the field again.
+    setLocationTouched(false);
   }, []);
 
   const loadProfile = useCallback(
@@ -147,9 +154,11 @@ export default function ProfileSetupPage() {
   // Debounced location autocomplete against the geocoding api: the field
   // ends with an exact place value, every failure degrades to silence, and
   // the spinner runs from the keystroke so the action is always visible.
+  // Only the user's own edits trigger the search: the loaded value and a
+  // picked suggestion never reopen the list over the field.
   useEffect(() => {
     const trimmed = location.trim();
-    if (trimmed.length < 2) {
+    if (!isLocationTouched || trimmed.length < 2) {
       setSuggestions([]);
       setShowSuggestions(false);
       setIsSearching(false);
@@ -168,12 +177,15 @@ export default function ProfileSetupPage() {
       window.clearTimeout(timer);
       setIsSearching(false);
     };
-  }, [location]);
+  }, [location, isLocationTouched]);
 
   function pickSuggestion(index: number) {
     setLocation(suggestions[index]);
     setShowSuggestions(false);
     setHighlight(-1);
+    // Picking is not typing either: the exact value is set, the list
+    // closes and no re-search fires over it.
+    setLocationTouched(false);
   }
 
   async function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
@@ -467,6 +479,7 @@ export default function ProfileSetupPage() {
                     value={location}
                     onChange={(event) => {
                       setLocation(event.target.value);
+                      setLocationTouched(true);
                       setShowSuggestions(true);
                       setHighlight(-1);
                     }}
