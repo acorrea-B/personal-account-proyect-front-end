@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useEffect, useRef } from 'react';
 
 import { ShieldIcon, SignalIcon, UserIcon } from '../../components/icons';
+import { LanguageSelect } from '../../components/language-select';
 import { useSession } from '@/lib/auth/useSession';
 
 // Reveals a section when it scrolls into view. The hidden state only applies
@@ -83,12 +84,7 @@ export default function LandingEsPage() {
                 </Link>
               </>
             )}
-            <Link className="nav-link nav-link--quiet" href="/" lang="en" hrefLang="en">
-              EN
-            </Link>
-            <span className="nav-link nav-link--quiet" aria-current="true">
-              ES
-            </span>
+            <LanguageSelect current="es" path="/es/" />
           </nav>
         </div>
       </header>

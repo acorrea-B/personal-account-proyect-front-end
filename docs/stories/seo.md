@@ -55,3 +55,14 @@ centralizes the copy so the trees stay thin. Known limitation recorded:
 the root layout owns the html tag and stays en - the es pages patch
 `document lang` on the client until the [locale] restructure. hreflang
 pairs + the /es/ sitemap entries ride the metadata window.
+
+### i18n window 2 (2026-10-27): the language picker becomes a control
+
+The en/es text links became a native select (components/language-select.tsx)
+that navigates between the locale subtrees — the OS picker on mobile, a
+44px row, full-width inside the stacked 640px header, 16px text (no iOS
+zoom rules needed on selects). The path mapping lives in
+`swapLocalePath` (pure, tested: the landing root, the es prefix strip on
+inner routes and the never-stack guard) and is built to map the
+/es/app/** trees when their windows land. hreflang pairs stay in the
+metadata window.

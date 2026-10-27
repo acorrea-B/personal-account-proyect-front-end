@@ -1513,3 +1513,29 @@ textarea[aria-invalid='true'] {
   opacity: 0.4;
   cursor: default;
 }
+
+/* The language picker: native select, 44px row, desktop-quiet in the nav
+   row and full-width in the stacked 640px header. */
+.language-select {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-stone-border);
+  border-radius: var(--radius-md);
+  background: var(--color-pure-white);
+  font: inherit;
+  font-size: 16px;
+  color: var(--color-ink-black);
+}
+
+@media (max-width: 640px) {
+  .language-select {
+    width: 100%;
+  }
+
+  .site-nav {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
