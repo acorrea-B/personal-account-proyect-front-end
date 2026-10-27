@@ -1337,3 +1337,50 @@ textarea[aria-invalid='true'] {
   padding-top: var(--space-12);
   width: 100%;
 }
+
+/* The cv version timeline (rail, window 5): a vertical spine with dots
+   behind the entries; the newest archived version rides on top. */
+.cv-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.cv-timeline-entry {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.cv-timeline-entry::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: -14px;
+  bottom: 14px;
+  border-left: 1px solid var(--color-stone-border);
+}
+
+.cv-timeline-entry:first-child::before {
+  display: none;
+}
+
+.cv-timeline-dot {
+  position: relative;
+  z-index: 1;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-cyan-text);
+  flex-shrink: 0;
+}
+
+.cv-timeline-date {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-body-sm);
+  color: var(--color-ink-black);
+}
