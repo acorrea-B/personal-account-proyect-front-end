@@ -80,6 +80,11 @@ describe('LoginView', () => {
   });
 
   async function render(locale: 'en' | 'es'): Promise<void> {
+    if (root) {
+      const previous = root;
+      root = null;
+      await act(async () => previous.unmount());
+    }
     await act(async () => {
       root = createRoot(container as HTMLDivElement);
       root.render(createElement(LoginView, { locale }));
