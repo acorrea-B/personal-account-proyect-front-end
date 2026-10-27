@@ -46,20 +46,34 @@ export function CvHistoryCard({
             <ol className="cv-timeline" aria-label="Archived versions, newest first">
               {state.versions.map((version) => (
                 <li key={version.id} className="cv-timeline-entry">
+                  <span className="cv-timeline-dot" aria-hidden="true" />
+                  <time className="cv-timeline-date" dateTime={version.archived_at}>
+                    {formatWhen(version.archived_at)}
+                  </time>
+                  {/* The view action is icon-only (the eye always means view
+                      detail), separated from the timeline text row so the
+                      spine stays clean. */}
                   <button
                     type="button"
-                    className="cv-timeline-row"
-                    aria-label={`Open the version archived ${formatWhen(version.archived_at)}`}
+                    className="cv-timeline-view"
+                    aria-label={`View the version archived ${formatWhen(version.archived_at)}`}
                     disabled={!onSelect}
                     onClick={() => onSelect?.(version.id)}
                   >
-                    <span className="cv-timeline-dot" aria-hidden="true" />
-                    <time className="cv-timeline-date" dateTime={version.archived_at}>
-                      {formatWhen(version.archived_at)}
-                    </time>
-                    <span className="cv-timeline-go" aria-hidden="true">
-                      ›
-                    </span>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M2.06 13.35a1 1 0 0 1 0-1.7 15.05 15.05 0 0 1 19.88 0 1 1 0 0 1 0 1.7 15.05 15.05 0 0 1-19.88 0Z" />
+                      <circle cx="12" cy="12.5" r="3" />
+                    </svg>
                   </button>
                 </li>
               ))}

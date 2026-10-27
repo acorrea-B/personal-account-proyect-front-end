@@ -1465,29 +1465,22 @@ textarea[aria-invalid='true'] {
   font-size: var(--text-body-sm);
 }
 
-.cv-timeline-row {
-  display: flex;
+.cv-timeline-view {
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-8);
-  width: 100%;
-  text-align: left;
-  background: none;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
   border: none;
-  font: inherit;
-  color: inherit;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-cyan-text);
   cursor: pointer;
-  border-radius: var(--radius-full);
-  padding: var(--space-4) var(--space-8);
-  margin: calc(var(--space-4) * -1) calc(var(--space-8) * -1);
   transition: 160ms ease;
 }
 
-.cv-timeline-row:hover {
+.cv-timeline-view:hover {
   background: var(--color-sky-wash);
-}
-
-.cv-timeline-go {
-  margin-left: auto;
-  color: var(--color-cyan-text);
-  font-size: 18px;
+  color: var(--color-cyan-text-strong);
 }
