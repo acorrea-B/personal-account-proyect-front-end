@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { fetchProfile, profileReadMessage } from '../lib/api/profile';
+import {
+  fetchProfile,
+  isProfileIncomplete,
+  profileReadMessage,
+  updateProfile,
+} from '../lib/api/profile';
 import { profileSchema, updateProfileRequestSchema } from '../lib/schemas/profile';
 
 describe('profile schema', () => {
@@ -157,5 +162,94 @@ describe('profileReadMessage', () => {
 
   it('falls back to a plain retryable message without detail', () => {
     expect(profileReadMessage(400)).toBe('The profile could not be loaded. Please try again.');
+  });
+});
+
+describe('isProfileIncomplete', () => {
+  function profile(fullName: string) {
+    return {
+      id: '11111111-1111-4111-8111-111111111111',
+      email: 'juan@example.com',
+      full_name: fullName,
+      created_at: '2026-10-27T00:00:00.000Z',
+      updated_at: '2026-10-27T00:00:00.000Z',
+    };
+  }
+
+  it('treats the seeded placeholder as incomplete (always User on register)', () => {
+    expect(isProfileIncomplete(profile('User'))).toBe(true);
+    expect(isProfileIncomplete(profile('user'))).toBe(true);
+    expect(isProfileIncomplete(profile('  User  '))).toBe(true);
+  });
+
+  it('treats a real name as complete', () => {
+    expect(isProfileIncomplete(profile('Juan Pérez'))).toBe(false);
+  });
+});
+
+describe('updateProfile', () => {
+  const profile = {
+    id: '11111111-1111-4111-8111-111111111111',
+    email: 'juan@example.com',
+    full_name: 'User',
+    created_at: '2026-10-27T00:00:00.000Z',
+    updated_at: '2026-10-27T00:00:00.000Z',
+  };
+
+  it('PUTs the full update with If-Unmodified-Since and returns the fresh profile', async () => {
+    const updated = {
+      ...profile,
+      full_name: 'Juan Pérez',
+      updated_at: '2026-10-27T12:19:19Z',
+    };
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify(updated), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await updateProfile(
+      'access-token',
+      { full_name: 'Juan Pérez', skills: ['rust'] },
+      profile.updated_at,
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/v1/profile',
+      expect.objectContaining({
+        method: 'PUT',
+        headers: expect.objectContaining({
+          Authorization: 'Bearer access-token',
+          'If-Unmodified-Since': profile.updated_at,
+        }),
+      }),
+    );
+    expect(result).toEqual(updated);
+  });
+
+  it('surfaces the 412 conflict with the current_updated_at of the problem', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          type: 'https://api.example.com/errors/stale-version',
+          title: 'Precondition Failed',
+          status: 412,
+          detail: 'The resource changed since your last read; nothing was overwritten.',
+          instance: '/v1/profile',
+          current_updated_at: '2026-10-27T12:19:19Z',
+        }),
+        { status: 412, headers: { 'Content-Type': 'application/problem+json' } },
+      ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(
+      updateProfile('access-token', { full_name: 'Juan' }, profile.updated_at),
+    ).rejects.toMatchObject({
+      name: 'ProblemError',
+      problem: { status: 412, current_updated_at: '2026-10-27T12:19:19Z' },
+    });
   });
 });
