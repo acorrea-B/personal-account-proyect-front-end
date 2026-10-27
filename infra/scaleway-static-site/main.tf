@@ -90,18 +90,21 @@ locals {
     "**"
   )
 
+  # text/* carries the charset the SEO checker flagged as missing from the
+  # HTTP header; cache_control is not supported by scaleway_object - the
+  # cache policy rides the CDN decision like gzip and the redirects.
   mime_types = {
-    html  = "text/html"
-    css   = "text/css"
-    js    = "application/javascript"
-    json  = "application/json"
+    html  = "text/html; charset=utf-8"
+    css   = "text/css; charset=utf-8"
+    js    = "application/javascript; charset=utf-8"
+    json  = "application/json; charset=utf-8"
     svg   = "image/svg+xml"
     png   = "image/png"
     jpg   = "image/jpeg"
     jpeg  = "image/jpeg"
     ico   = "image/x-icon"
-    txt   = "text/plain"
-    xml   = "application/xml"
+    txt   = "text/plain; charset=utf-8"
+    xml   = "application/xml; charset=utf-8"
     webp  = "image/webp"
     woff  = "font/woff"
     woff2 = "font/woff2"
