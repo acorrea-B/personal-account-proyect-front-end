@@ -21,3 +21,15 @@ Expensive decisions: none beyond the already-decided client-side i18n (en/es).
 8. As a signed-in user, I want my workspace to show my profile exactly as the API holds it, so that I always see real data before editing.
 9. As a signed-in user, I want to edit my profile with optimistic locking (If-Unmodified-Since), so that concurrent edits cannot silently overwrite each other (412 -> resolve).
 10. As a signed-in user, I want to write and read my CV text and browse its version history (at most 10, newest first), so that my CV is safely versioned and recoverable.
+
+## Deferred improvements (post beta 1)
+
+- **Skills suggestion endpoint (api side).** An api endpoint that suggests
+  skills for the signed-in user from what the system already knows: the
+  profile's own skills, the CV text corpus and its version history, and the
+  client-side catalog. Per plan D15 the flow is consent-gated
+  (`profiles.processing_consent`) with the async job pattern (202 + job
+  status) and usage quotas; until it exists, the front ships the local
+  suggester (detection runs in the browser, the CV text never leaves the
+  machine). When it lands, the front swaps the local suggester for the job
+  call without touching the workspace layout.
