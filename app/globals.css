@@ -732,3 +732,52 @@ body {
   display: grid;
   gap: var(--space-16);
 }
+
+/* Live counter of the api contract limits (bio = 2000). */
+.char-counter {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--color-warm-gray);
+  text-align: right;
+}
+
+/* Location autocomplete: the suggestions hang from the field. */
+.location-field {
+  position: relative;
+  display: grid;
+  gap: var(--space-4);
+}
+
+.suggestions {
+  position: absolute;
+  z-index: 10;
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: var(--space-4);
+  list-style: none;
+  background: var(--color-pure-white);
+  border: 1px solid var(--color-stone-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.suggestions button {
+  display: block;
+  width: 100%;
+  padding: var(--space-8) var(--space-12);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-ink-black);
+  cursor: pointer;
+}
+
+.suggestions button.is-highlight,
+.suggestions button:hover {
+  background: var(--color-sky-wash);
+  color: var(--color-ink-black);
+}
