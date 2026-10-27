@@ -37,16 +37,20 @@ export function CvCard({ state }: { state: CvCardState }) {
           <>
             <span className="cv-preview">{cvPreview(state.cv.content)}</span>
             <span>Last saved {state.cv.updated_at}</span>
-            <Link className="button button-primary" href="/app/cv/">
-              Edit CV
-            </Link>
+            <div className="cv-card-actions">
+              <Link className="button button-primary" href="/app/cv/">
+                Edit CV
+              </Link>
+            </div>
           </>
         ) : state.kind === 'empty' ? (
           <>
             <span>No cv yet — write yours in the editor.</span>
-            <Link className="button button-primary" href="/app/cv/">
-              Write your CV
-            </Link>
+            <div className="cv-card-actions">
+              <Link className="button button-primary" href="/app/cv/">
+                Write your CV
+              </Link>
+            </div>
           </>
         ) : (
           <>

@@ -1327,3 +1327,13 @@ textarea[aria-invalid='true'] {
   white-space: pre-line;
   overflow-wrap: anywhere;
 }
+
+/* The cv card actions: a hairline divider between the preview text and
+   the entry button - the rail's space-4 gap reads too tight against a
+   multi-line preview. */
+.cv-card-actions {
+  border-top: 1px solid var(--color-stone-border);
+  margin-top: var(--space-8);
+  padding-top: var(--space-12);
+  width: 100%;
+}
