@@ -1466,21 +1466,34 @@ textarea[aria-invalid='true'] {
 }
 
 .cv-timeline-view {
+  /* A solid cyan circle: the eye reads as a first-class action, centered
+     against the row and unmistakable at a glance. */
   display: inline-flex;
+  align-self: center;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
   margin-left: auto;
   border: none;
-  border-radius: var(--radius-md);
-  background: none;
-  color: var(--color-cyan-text);
+  border-radius: var(--radius-full);
+  background: var(--color-cyan-text);
+  color: var(--color-pure-white);
   cursor: pointer;
   transition: 160ms ease;
 }
 
 .cv-timeline-view:hover {
-  background: var(--color-sky-wash);
-  color: var(--color-cyan-text-strong);
+  background: var(--color-cyan-text-strong);
+}
+
+.cv-timeline-view:focus-visible {
+  outline: 2px solid var(--color-cyan-text-strong);
+  outline-offset: 2px;
+}
+
+.cv-timeline-view:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
