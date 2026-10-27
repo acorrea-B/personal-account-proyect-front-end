@@ -5,7 +5,12 @@ import { type SyntheticEvent, useCallback, useEffect, useState } from 'react';
 
 import { ProblemError } from '@/lib/api/client';
 import { searchCities } from '@/lib/api/geocoding';
-import { fetchProfile, profileReadMessage, updateProfile } from '@/lib/api/profile';
+import {
+  fetchProfile,
+  normalizeProfileLinkUrl,
+  profileReadMessage,
+  updateProfile,
+} from '@/lib/api/profile';
 import { loadSession, signOut } from '@/lib/auth/session';
 import { updateProfileRequestSchema, type Profile } from '@/lib/schemas/profile';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
@@ -123,8 +128,11 @@ export default function ProfileSetupPage() {
       // The links editor owns the list: rows left completely empty are
       // discarded, and an empty list empties it server-side (complete PUT).
       const cleanLinks = linksDraft
-        .filter((row) => row.type.trim() || row.url.trim())
-        .map((row) => ({ type: row.type.trim(), url: row.url.trim() }));
+        .map((row) => ({
+          type: row.type.trim(),
+          url: normalizeProfileLinkUrl(row.url.trim()),
+        }))
+        .filter((row) => row.type || row.url);
       const parsed = updateProfileRequestSchema.safeParse({
         full_name: fullName,
         headline: headline.trim() ? headline : undefined,
@@ -460,6 +468,18 @@ export default function ProfileSetupPage() {
                     maxLength={2048}
                     value={row.url}
                     aria-label={`Link ${index + 1} url`}
+                    onBlur={() =>
+                      setLinksDraft((previous) =>
+                        previous.map((item, itemIndex) =>
+                          itemIndex === index
+                            ? {
+                                ...item,
+                                url: normalizeProfileLinkUrl(item.url),
+                              }
+                            : item,
+                        ),
+                      )
+                    }
                     onChange={(event) =>
                       setLinksDraft((previous) =>
                         previous.map((item, itemIndex) =>

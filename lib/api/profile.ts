@@ -87,6 +87,50 @@ export async function updateProfile(
   return profileSchema.parse(data as z.infer<typeof profileSchema>);
 }
 
+// The pasted urls from github/linkedin/x carry deep paths and query cruft
+// (a compare view, a blob, a status, tracking params): the profile wants
+// the BASE. Known hosts truncate at their natural profile depth; anything
+// else only loses query/hash/trailing slash.
+export function normalizeProfileLinkUrl(raw: string): string {
+  let candidate = raw.trim();
+  if (!candidate) {
+    return '';
+  }
+  // A paste with another scheme (ftp:, mailto:) returns untouched: the
+  // schema rejects it later with its http(s) message.
+  if (/^[a-z][a-z0-9+.\-]*:\/\//i.test(candidate) && !/^https?:\/\//i.test(candidate)) {
+    return candidate;
+  }
+  if (!/^https?:\/\//i.test(candidate)) {
+    candidate = `https://${candidate}`;
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(candidate);
+  } catch {
+    return candidate;
+  }
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+    return candidate;
+  }
+
+  const host = parsed.hostname.replace(/^www\./i, '').toLowerCase();
+  const segments = parsed.pathname.split('/').filter(Boolean);
+
+  let keep = segments.length;
+  if (host === 'github.com') {
+    keep = Math.min(segments.length, 2); // owner[/repo]
+  } else if (host === 'linkedin.com') {
+    keep = Math.min(segments.length, 2); // in|company/<slug>
+  } else if (host === 'x.com' || host === 'twitter.com') {
+    keep = Math.min(segments.length, 1); // handle
+  }
+
+  const keptPath = segments.slice(0, keep).join('/');
+  return keptPath ? `${parsed.protocol}//${host}/${keptPath}` : `${parsed.protocol}//${host}`;
+}
+
 // The workspace read message for a bearer problem. A 401 never reaches this
 // helper: the page treats it as a session event (clear and go to login).
 export function profileReadMessage(status: number, detail?: string): string {

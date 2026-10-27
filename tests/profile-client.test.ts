@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   fetchProfile,
   isProfileIncomplete,
+  normalizeProfileLinkUrl,
   profileReadMessage,
   updateProfile,
 } from '../lib/api/profile';
@@ -251,5 +252,42 @@ describe('updateProfile', () => {
       name: 'ProblemError',
       problem: { status: 412, current_updated_at: '2026-10-27T12:19:19Z' },
     });
+  });
+});
+
+describe('normalizeProfileLinkUrl', () => {
+  it('trims a deep github paste to the base, without query or fragment', () => {
+    expect(
+      normalizeProfileLinkUrl(
+        'https://github.com/acorrea-B/personal-account-proyect-front-end/compare/feat/workspace-profile?expand=1',
+      ),
+    ).toBe('https://github.com/acorrea-B/personal-account-proyect-front-end');
+  });
+
+  it('prepends https and keeps the profile path of the owner', () => {
+    expect(normalizeProfileLinkUrl('github.com/acorrea-B')).toBe('https://github.com/acorrea-B');
+    expect(normalizeProfileLinkUrl('https://github.com/acorrea-B?tab=repositories')).toBe(
+      'https://github.com/acorrea-B',
+    );
+  });
+
+  it('trims linkedin to the identity slug and x to the handle', () => {
+    expect(
+      normalizeProfileLinkUrl('https://www.linkedin.com/in/juan-perez/?originalSubdomain=es'),
+    ).toBe('https://linkedin.com/in/juan-perez');
+    expect(normalizeProfileLinkUrl('https://x.com/juan/status/1234567890?s=20')).toBe(
+      'https://x.com/juan',
+    );
+  });
+
+  it('only strips query, hash and trailing slash on other hosts', () => {
+    expect(
+      normalizeProfileLinkUrl('https://blog.juan.dev/posts/2026/why-rust/?utm_source=x#top'),
+    ).toBe('https://blog.juan.dev/posts/2026/why-rust');
+  });
+
+  it('leaves untouched the paste it cannot repair', () => {
+    expect(normalizeProfileLinkUrl('ftp://example.com')).toBe('ftp://example.com');
+    expect(normalizeProfileLinkUrl('   ')).toBe('');
   });
 });
