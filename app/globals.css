@@ -1060,6 +1060,15 @@ textarea[aria-invalid='true'] {
   background: var(--color-pure-white);
 }
 
+/* The update-profile flow opens inside the dashboard shell: the edit
+   card sits centered on the rail and keeps a form width — wider than
+   the registration card, honest to the two-track form it hosts. */
+.workspace-page .auth-shell.auth-card {
+  justify-self: center;
+  width: 100%;
+  max-width: 800px;
+}
+
 .panel-head {
   display: flex;
   align-items: center;

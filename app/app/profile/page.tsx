@@ -19,6 +19,7 @@ import { signOut } from '@/lib/auth/session';
 import { updateProfileRequestSchema, type Profile } from '@/lib/schemas/profile';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { CheckIcon, MailIcon, ProfileIcon, UserIcon } from '@/components/icons';
+import { AccountMenu } from '@/components/account-menu';
 
 type SaveState = { status: 'idle' | 'saving' | 'saved'; note?: string };
 type LoadState = { status: 'loading' | 'ready' | 'error'; profile?: Profile; error?: string };
@@ -261,6 +262,11 @@ export default function ProfileSetupPage() {
     }
   }
 
+  const isUpdateFlow = flow === 'update';
+  // The update flow is part of the dashboard: it opens inside the
+  // dashboard shell, under the same identity bar and Account menu.
+  const firstName = profile ? profile.full_name.trim().split(/\s+/)[0] : '';
+
   if (!isHydrated || !isAuthorized) {
     return (
       <main className="auth-page">
@@ -270,31 +276,48 @@ export default function ProfileSetupPage() {
   }
 
   return (
-    <main className="auth-page">
+    <main className={isUpdateFlow ? 'workspace-page' : 'auth-page'}>
+      {isUpdateFlow ? (
+        <header className="workspace-bar">
+          <div className="workspace-identity">
+            <p className="eyebrow">Your workspace</p>
+            <p className="workspace-title">
+              {firstName ? `Hello, ${firstName}.` : 'Your workspace'}
+            </p>
+            <p className="auth-subtitle">Signed in as {session?.user.email}</p>
+          </div>
+          <AccountMenu />
+        </header>
+      ) : null}
       <section
         className="auth-shell auth-card"
         aria-label={flow === 'onboarding' ? 'Complete your profile' : 'Update profile'}
       >
-        <header className="workspace-header">
-          <div>
-            <h1 className="auth-heading">
-              {flow === 'onboarding' ? 'Complete your profile' : 'Update profile'}
-            </h1>
-            <p className="auth-subtitle">
-              {flow === 'onboarding'
-                ? `Signed in as ${session?.user.email} — one short pass and the workspace is yours.`
-                : `Signed in as ${session?.user.email} — this save travels complete; a cleared field empties it.`}
-            </p>
-          </div>
-          <button
-            type="button"
-            className="link"
-            onClick={() => void signOut()}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit' }}
-          >
-            Sign out
-          </button>
-        </header>
+        {flow === 'onboarding' ? (
+          <header className="workspace-header">
+            <div>
+              <h1 className="auth-heading">Complete your profile</h1>
+              <p className="auth-subtitle">
+                Signed in as {session?.user.email} — one short pass and the workspace is yours.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="link"
+              onClick={() => void signOut()}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit' }}
+            >
+              Sign out
+            </button>
+          </header>
+        ) : (
+          <header className="workspace-header">
+            <h1 className="auth-heading">Update profile</h1>
+            <Link className="link" href="/app/">
+              Back to workspace
+            </Link>
+          </header>
+        )}
 
         {flow === 'onboarding' ? (
           <ol className="auth-steps" aria-label="Registration phases">

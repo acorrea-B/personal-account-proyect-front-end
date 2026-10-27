@@ -107,3 +107,16 @@ header), but the two flows that call it are not the same flow:
 The flow derives once from the loaded profile (`profileWriteFlow`), is
 frozen for the page's lifetime and both rules are unit-covered in
 `tests/profile-flows.test.ts` (`fullNameProblem` per flow).
+
+## The update flow opens inside the dashboard shell (2026-10-27)
+
+The update-profile view is part of the dashboard's flow, so it lost its
+ad-hoc header (the "Signed in as ..." subtitle and the bare Sign out
+button) and now opens under the dashboard's identity bar with the
+Account menu at the top:
+
+- the Account menu moved to `components/account-menu.tsx` (shared by
+  the dashboard and the update flow, same click-outside/Escape rules)
+- the update card keeps its own h1 (Update profile); the bar's title
+  is a paragraph so the page keeps exactly one h1
+- the onboarding flow keeps its registration card as it was
