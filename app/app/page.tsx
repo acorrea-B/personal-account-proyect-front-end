@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { ProblemError } from '@/lib/api/client';
-import { fetchProfile, profileReadMessage } from '@/lib/api/profile';
+import { fetchProfile, isProfileIncomplete, profileReadMessage } from '@/lib/api/profile';
 import { loadSession, refreshSession } from '@/lib/auth/session';
 import type { Profile } from '@/lib/schemas/profile';
 import { useRequireAuth } from '../../lib/auth/useRequireAuth';
@@ -16,62 +17,73 @@ interface WorkspaceLoad {
 }
 
 export default function AppHomePage() {
+  const router = useRouter();
   const { isHydrated, isAuthorized, session } = useRequireAuth();
   const accessToken = session?.accessToken ?? null;
 
   const [load, setLoad] = useState<WorkspaceLoad>({ status: 'loading' });
 
-  const loadProfile = useCallback(async (token: string, viaRenewal = false) => {
-    setLoad({ status: 'loading' });
-    try {
-      const profile = await fetchProfile(token);
-      setLoad({ status: 'ready', profile });
-    } catch (error) {
-      // A 401 on a READ never destroys the session: a read failure is not
-      // a session event. One silent renewal is attempted with the kept
-      // refresh token; if the service still declines, the session stays
-      // and the failure is surfaced with a retryable message.
-      if (error instanceof ProblemError && error.problem.status === 401 && !viaRenewal) {
-        const kept = loadSession();
-        if (kept?.refreshToken) {
-          try {
-            const next = await refreshSession();
-            if (next) {
-              return loadProfile(next.accessToken, true);
-            }
-          } catch {
-            // fall through: keep the session, report the failure below
-          }
+  const loadProfile = useCallback(
+    async (token: string, viaRenewal = false) => {
+      setLoad({ status: 'loading' });
+      try {
+        const profile = await fetchProfile(token);
+        // The api always seeds full_name as 'User': the placeholder owns the
+        // setup flow until the user completes their profile.
+        if (isProfileIncomplete(profile)) {
+          router.replace('/app/profile/');
+          setLoad({ status: 'loading' });
+          return;
         }
+        setLoad({ status: 'ready', profile });
+      } catch (error) {
+        // A 401 on a READ never destroys the session: a read failure is not
+        // a session event. One silent renewal is attempted with the kept
+        // refresh token; if the service still declines, the session stays
+        // and the failure is surfaced with a retryable message.
+        if (error instanceof ProblemError && error.problem.status === 401 && !viaRenewal) {
+          const kept = loadSession();
+          if (kept?.refreshToken) {
+            try {
+              const next = await refreshSession();
+              if (next) {
+                return loadProfile(next.accessToken, true);
+              }
+            } catch {
+              // fall through: keep the session, report the failure below
+            }
+          }
+          setLoad({
+            status: 'error',
+            error:
+              'The service did not accept the credential for now. Your session is kept; try again shortly.',
+          });
+          return;
+        }
+        if (error instanceof ProblemError) {
+          setLoad({
+            status: 'error',
+            error: profileReadMessage(
+              error.problem.status,
+              error.problem.detail ?? error.problem.title,
+            ),
+          });
+          return;
+        }
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          setLoad({ status: 'error', error: 'Request timed out. Please try again.' });
+          return;
+        }
+        // A response outside the schema or an unknown failure: fail closed —
+        // never render improvised data for the user's real profile.
         setLoad({
           status: 'error',
-          error:
-            'The service did not accept the credential for now. Your session is kept; try again shortly.',
+          error: 'The profile response was not understood. Please retry or report it.',
         });
-        return;
       }
-      if (error instanceof ProblemError) {
-        setLoad({
-          status: 'error',
-          error: profileReadMessage(
-            error.problem.status,
-            error.problem.detail ?? error.problem.title,
-          ),
-        });
-        return;
-      }
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        setLoad({ status: 'error', error: 'Request timed out. Please try again.' });
-        return;
-      }
-      // A response outside the schema or an unknown failure: fail closed —
-      // never render improvised data for the user's real profile.
-      setLoad({
-        status: 'error',
-        error: 'The profile response was not understood. Please retry or report it.',
-      });
-    }
-  }, []);
+    },
+    [router],
+  );
 
   useEffect(() => {
     if (isHydrated && isAuthorized && accessToken) {

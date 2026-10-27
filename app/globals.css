@@ -726,3 +726,9 @@ body {
   justify-items: start;
   gap: var(--space-8);
 }
+
+/* The complete-your-profile setup: one short pass of real fields. */
+.setup-form {
+  display: grid;
+  gap: var(--space-16);
+}
