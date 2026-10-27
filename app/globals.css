@@ -1491,8 +1491,12 @@ textarea[aria-invalid='true'] {
 }
 
 .cv-timeline-view svg {
-  /* The rail scopes .upcoming-item svg to its cyan icons - that rule beats
-     the inherited color, so the button pins its own svg draw. */
+  /* The rail scopes .upcoming-item svg (20px, cyan, 4px top margin) — that
+     rule beats inheritance and both centered AND grew the glyph: pin the
+     whole set so the icon centers inside the circle as drawn. */
+  width: 15px;
+  height: 15px;
+  margin-top: 0;
   color: var(--color-pure-white);
 }
 
