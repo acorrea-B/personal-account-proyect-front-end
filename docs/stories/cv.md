@@ -78,3 +78,14 @@ backend backlog, not this front stack.
 `getVersionDetail` (summary + content) with their envelope schemas; 6 new
 tests (94 total) cover the empty first-time list, the id path segment and
 the anti-BOLA 404 that the api uses to mask other users' versions.
+
+### Window 5 (2026-10-27): the version timeline lands in the rail
+
+The "Version history · Planned" card became real: `components/cv-timeline.tsx`
+renders the timeline of the archived versions newest first — a vertical
+spine with dots and short en-US stamps (minutes visible; the Intl zone is
+the user's at runtime, the tests pin UTC for determinism). Empty state
+answering the first-time saver, error with its own retry. The entries stay
+plain rows until the detail dialog turns them interactive (window 6).
+The vitest harness gained the `@` alias map and a TZ=UTC pin, so
+component tests share the app vocabulary and dates stay deterministic.

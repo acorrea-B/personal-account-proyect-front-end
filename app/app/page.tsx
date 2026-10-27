@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { ProblemError } from '@/lib/api/client';
-import { cvLoadMessage, fetchCvText } from '@/lib/api/cv';
+import { cvLoadMessage, fetchCvText, getVersions } from '@/lib/api/cv';
 import { fetchProfile, isProfileIncomplete, profileReadMessage } from '@/lib/api/profile';
 import { loadSession, refreshSession } from '@/lib/auth/session';
 import type { Profile } from '@/lib/schemas/profile';
@@ -13,8 +13,9 @@ import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
 import { ClampedText } from '@/components/clamped-text';
 import { CvCard, type CvCardState } from '@/components/cv-card';
+import { CvHistoryCard, type CvHistoryState } from '@/components/cv-timeline';
 import { Skeleton } from '@/components/skeleton';
-import { ShieldIcon, SignalIcon } from '@/components/icons';
+import { SignalIcon } from '@/components/icons';
 
 interface WorkspaceLoad {
   status: 'loading' | 'ready' | 'error';
@@ -29,6 +30,7 @@ export default function AppHomePage() {
 
   const [load, setLoad] = useState<WorkspaceLoad>({ status: 'loading' });
   const [cvLoad, setCvLoad] = useState<CvCardState>({ kind: 'loading' });
+  const [history, setHistory] = useState<CvHistoryState>({ kind: 'loading' });
 
   const loadCv = useCallback(async (token: string) => {
     setCvLoad({ kind: 'loading' });
@@ -129,14 +131,42 @@ export default function AppHomePage() {
     [router],
   );
 
+  const loadHistory = useCallback(async (token: string) => {
+    setHistory({ kind: 'loading' });
+    try {
+      const versions = await getVersions(token);
+      setHistory({ kind: 'ready', versions });
+    } catch (error) {
+      // Same read rule as the cv card: the history failure never destroys
+      // the session and stays inside its own card with a retry.
+      if (error instanceof ProblemError) {
+        setHistory({
+          kind: 'error',
+          message:
+            error.problem.status === 401
+              ? cvLoadMessage(401)
+              : cvLoadMessage(error.problem.status, error.problem.detail ?? error.problem.title),
+          onRetry: () => loadHistory(token),
+        });
+        return;
+      }
+      setHistory({
+        kind: 'error',
+        message: 'The version history failed to load. Please try again.',
+        onRetry: () => loadHistory(token),
+      });
+    }
+  }, []);
+
   useEffect(() => {
     if (isHydrated && isAuthorized && accessToken) {
       loadProfile(accessToken);
       // The cv rides the profile in parallel: the profile panel never waits
       // on the cv, and the rail carves its own card with its own retry.
       loadCv(accessToken);
+      loadHistory(accessToken);
     }
-  }, [isHydrated, isAuthorized, accessToken, loadProfile, loadCv]);
+  }, [isHydrated, isAuthorized, accessToken, loadProfile, loadCv, loadHistory]);
 
   // The waiting face: the session check and the profile fetch both hide
   // the dashboard behind the skeleton screen — never a white page.
@@ -254,14 +284,7 @@ export default function AppHomePage() {
               <p className="eyebrow">Coming up</p>
               <ul className="upcoming-list">
                 <CvCard state={cvLoad} />
-                <li className="upcoming-item">
-                  <ShieldIcon />
-                  <div className="upcoming-copy">
-                    <strong>Version history</strong>
-                    <span>At most 10 versions, newest first, ready to read.</span>
-                    <span className="status-chip">Planned</span>
-                  </div>
-                </li>
+                <CvHistoryCard state={history} />
                 <li className="upcoming-item">
                   <SignalIcon />
                   <div className="upcoming-copy">
