@@ -145,7 +145,8 @@ export function normalizeProfileLinkUrl(raw: string): string {
 
 // The live evaluator of one link row (evaluated while it is typed, like the
 // email field): neutral when the row is empty, otherwise it names exactly
-// what the row needs before the save even happens.
+// what is expected - including the shape of the address - before the save
+// even happens.
 export function linkRowProblem(row: { type: string; url: string }): string | null {
   const type = row.type.trim();
   const url = normalizeProfileLinkUrl(row.url.trim());
@@ -153,13 +154,13 @@ export function linkRowProblem(row: { type: string; url: string }): string | nul
     return null;
   }
   if (!url) {
-    return 'The link needs its url.';
+    return 'Add the link address, like https://example.com';
   }
   if (!type) {
-    return 'The link needs its label (type).';
+    return 'Add the site name, like github, linkedin or x';
   }
   if (!/^https?:\/\//i.test(url)) {
-    return 'Only http and https urls are accepted.';
+    return 'An https address is expected, like https://example.com';
   }
   return null;
 }

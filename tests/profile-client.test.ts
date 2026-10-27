@@ -173,18 +173,20 @@ describe('linkRowProblem', () => {
   });
 
   it('names the missing half of a partial row', () => {
-    expect(linkRowProblem({ type: 'github', url: '' })).toBe('The link needs its url.');
+    expect(linkRowProblem({ type: 'github', url: '' })).toBe(
+      'Add the link address, like https://example.com',
+    );
     expect(linkRowProblem({ type: '', url: 'https://github.com/you' })).toBe(
-      'The link needs its label (type).',
+      'Add the site name, like github, linkedin or x',
     );
   });
 
-  it('marks garbage text and foreign schemes with the http(s) message', () => {
+  it('marks garbage text and foreign schemes with the expected address shape', () => {
     expect(linkRowProblem({ type: 'github', url: 'asdadadadadasdsa' })).toBe(
-      'Only http and https urls are accepted.',
+      'An https address is expected, like https://example.com',
     );
     expect(linkRowProblem({ type: 'github', url: 'ftp://example.com' })).toBe(
-      'Only http and https urls are accepted.',
+      'An https address is expected, like https://example.com',
     );
   });
 
