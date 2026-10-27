@@ -20,9 +20,16 @@ export function formatWhen(archivedAt: string): string {
 }
 
 // The version history card of the dashboard rail (window 5): a timeline
-// with the archived versions newest first. The entries stay plain rows
-// here - the detail dialog turns them interactive in its own window.
-export function CvHistoryCard({ state }: { state: CvHistoryState }) {
+// with the archived versions newest first. With an onSelect handler the
+// entries turn interactive and open the detail dialog (window 6); without
+// one they stay honest plain rows.
+export function CvHistoryCard({
+  state,
+  onSelect,
+}: {
+  state: CvHistoryState;
+  onSelect?: (id: string) => void;
+}) {
   return (
     <li className="upcoming-item">
       <ShieldIcon />
@@ -39,10 +46,21 @@ export function CvHistoryCard({ state }: { state: CvHistoryState }) {
             <ol className="cv-timeline" aria-label="Archived versions, newest first">
               {state.versions.map((version) => (
                 <li key={version.id} className="cv-timeline-entry">
-                  <span className="cv-timeline-dot" aria-hidden="true" />
-                  <time className="cv-timeline-date" dateTime={version.archived_at}>
-                    {formatWhen(version.archived_at)}
-                  </time>
+                  <button
+                    type="button"
+                    className="cv-timeline-row"
+                    aria-label={`Open the version archived ${formatWhen(version.archived_at)}`}
+                    disabled={!onSelect}
+                    onClick={() => onSelect?.(version.id)}
+                  >
+                    <span className="cv-timeline-dot" aria-hidden="true" />
+                    <time className="cv-timeline-date" dateTime={version.archived_at}>
+                      {formatWhen(version.archived_at)}
+                    </time>
+                    <span className="cv-timeline-go" aria-hidden="true">
+                      ›
+                    </span>
+                  </button>
                 </li>
               ))}
             </ol>

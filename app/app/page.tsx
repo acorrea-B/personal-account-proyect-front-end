@@ -14,6 +14,7 @@ import { AccountMenu } from '@/components/account-menu';
 import { ClampedText } from '@/components/clamped-text';
 import { CvCard, type CvCardState } from '@/components/cv-card';
 import { CvHistoryCard, type CvHistoryState } from '@/components/cv-timeline';
+import { CvVersionDetail } from '@/components/cv-version-detail';
 import { Skeleton } from '@/components/skeleton';
 import { SignalIcon } from '@/components/icons';
 
@@ -31,6 +32,7 @@ export default function AppHomePage() {
   const [load, setLoad] = useState<WorkspaceLoad>({ status: 'loading' });
   const [cvLoad, setCvLoad] = useState<CvCardState>({ kind: 'loading' });
   const [history, setHistory] = useState<CvHistoryState>({ kind: 'loading' });
+  const [detailVersionId, setDetailVersionId] = useState<string | null>(null);
 
   const loadCv = useCallback(async (token: string) => {
     setCvLoad({ kind: 'loading' });
@@ -284,7 +286,10 @@ export default function AppHomePage() {
               <p className="eyebrow">Coming up</p>
               <ul className="upcoming-list">
                 <CvCard state={cvLoad} />
-                <CvHistoryCard state={history} />
+                <CvHistoryCard
+                  state={history}
+                  onSelect={accessToken ? (id) => setDetailVersionId(id) : undefined}
+                />
                 <li className="upcoming-item">
                   <SignalIcon />
                   <div className="upcoming-copy">
@@ -296,6 +301,22 @@ export default function AppHomePage() {
               </ul>
             </aside>
           </div>
+        ) : null}
+
+        {accessToken && detailVersionId ? (
+          <CvVersionDetail
+            id={detailVersionId}
+            accessToken={accessToken}
+            currentUpdatedAt={cvLoad.kind === 'ready' ? cvLoad.cv.updated_at : undefined}
+            onClose={() => setDetailVersionId(null)}
+            onRestored={() => {
+              setDetailVersionId(null);
+              if (accessToken) {
+                void loadCv(accessToken);
+                void loadHistory(accessToken);
+              }
+            }}
+          />
         ) : null}
       </div>
     </main>
