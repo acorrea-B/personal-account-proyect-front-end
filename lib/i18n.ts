@@ -35,6 +35,23 @@ export type Labels = {
     close: string;
     dismiss: string;
   };
+  panel: {
+    eyebrow: string;
+    fullName: string;
+    headline: string;
+    bio: string;
+    location: string;
+    skills: string;
+    links: string;
+    updatedNote: string;
+    updateLink: string;
+    comingUp: string;
+    liveCard: string;
+  };
+  clampedText: {
+    showMore: string;
+    showLess: string;
+  };
 };
 
 export function tr(template: string, vars: Record<string, string> = {}): string {
@@ -73,6 +90,23 @@ const strings: Record<Locale, Labels> = {
       close: 'Close',
       dismiss: 'Dismiss the saved confirmation',
     },
+    panel: {
+      eyebrow: 'Profile',
+      fullName: 'Full name',
+      headline: 'Headline',
+      bio: 'Bio',
+      location: 'Location',
+      skills: 'Skills',
+      links: 'Links',
+      updatedNote: 'Updated {date}',
+      updateLink: 'Update profile',
+      comingUp: 'Coming up',
+      liveCard: 'Profile',
+    },
+    clampedText: {
+      showMore: 'Show more',
+      showLess: 'Show less',
+    },
   },
   es: {
     account: 'Cuenta',
@@ -93,6 +127,23 @@ const strings: Record<Locale, Labels> = {
       empty: 'Aún no hay versiones archivadas — guarda el CV para empezar el historial.',
       retry: 'Intentar de nuevo',
       viewLabel: 'Ver la versión archivada el {date}',
+    },
+    panel: {
+      eyebrow: 'Perfil',
+      fullName: 'Nombre',
+      headline: 'Titular',
+      bio: 'Bio',
+      location: 'Ubicación',
+      skills: 'Habilidades',
+      links: 'Enlaces',
+      updatedNote: 'Actualizado el {date}',
+      updateLink: 'Actualizar perfil',
+      comingUp: 'Lo que viene',
+      liveCard: 'Perfil',
+    },
+    clampedText: {
+      showMore: 'Mostrar más',
+      showLess: 'Mostrar menos',
     },
     versionDetail: {
       eyebrow: 'Historial de versiones · archivada',

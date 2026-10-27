@@ -66,3 +66,17 @@ zoom rules needed on selects). The path mapping lives in
 inner routes and the never-stack guard) and is built to map the
 /es/app/** trees when their windows land. hreflang pairs stay in the
 metadata window.
+
+### i18n window 3b (2026-10-27): the /es/app dashboard tree
+
+The dashboard es tree exists now (app/es/app/page.tsx): the identity bar
+(Tu espacio / Hola, {nombre} / Sesión iniciada como), the profile panel
+with the dictionary field labels and the human updated note, the rail
+with the cv card + the timeline + the skill-suggestions card all reading
+the dictionary via the locale prop, and the AccountMenu in spanish with
+the Language select (the previous turn's addition) navigating the
+mirrored paths. The update link targets /es/app/profile/ (its window
+lands next; interim prod is safe because deploys ride batches, not
+windows). The clamped bio speaks Mostrar más/Mostrar menos. The menu's
+language select lost its bordered look: it rides the menu row style now
+(transparent, sky hover).
