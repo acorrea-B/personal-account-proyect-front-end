@@ -120,3 +120,16 @@ Account menu at the top:
 - the update card keeps its own h1 (Update profile); the bar's title
   is a paragraph so the page keeps exactly one h1
 - the onboarding flow keeps its registration card as it was
+
+## The way back is persistent (2026-10-27)
+
+The save toast pinned bottom-center could ride over the actions row,
+and the only escape link lived and died with it (5 seconds). The
+update flow now carries its exits permanently:
+
+- the actions row keeps a persistent "Back to workspace" ghost button
+  (HomeIcon + text) next to Save changes
+- the dashboard bar gains an icon-only home action beside the Account
+  menu (the navigation contract: an `<a>`, aria-label, focus-visible)
+- the toast anchors to the bottom-right corner, off the centered
+  actions row; the onboarding handoff still opens with the toast

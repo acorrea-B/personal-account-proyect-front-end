@@ -18,8 +18,8 @@ import {
 import { signOut } from '@/lib/auth/session';
 import { updateProfileRequestSchema, type Profile } from '@/lib/schemas/profile';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
-import { CheckIcon, MailIcon, ProfileIcon, UserIcon } from '@/components/icons';
 import { AccountMenu } from '@/components/account-menu';
+import { CheckIcon, HomeIcon, MailIcon, ProfileIcon, UserIcon } from '@/components/icons';
 
 type SaveState = { status: 'idle' | 'saving' | 'saved'; note?: string };
 type LoadState = { status: 'loading' | 'ready' | 'error'; profile?: Profile; error?: string };
@@ -286,7 +286,12 @@ export default function ProfileSetupPage() {
             </p>
             <p className="auth-subtitle">Signed in as {session?.user.email}</p>
           </div>
-          <AccountMenu />
+          <div className="workspace-actions">
+            <Link className="workspace-home" href="/app/" aria-label="Back to the workspace">
+              <HomeIcon />
+            </Link>
+            <AccountMenu />
+          </div>
         </header>
       ) : null}
       <section
@@ -311,12 +316,7 @@ export default function ProfileSetupPage() {
             </button>
           </header>
         ) : (
-          <header className="workspace-header">
-            <h1 className="auth-heading">Update profile</h1>
-            <Link className="link" href="/app/">
-              Back to workspace
-            </Link>
-          </header>
+          <h1 className="auth-heading">Update profile</h1>
         )}
 
         {flow === 'onboarding' ? (
@@ -680,11 +680,19 @@ export default function ProfileSetupPage() {
                   'Save changes'
                 )}
               </button>
-              {showToast ? (
+              {flow === 'onboarding' ? (
+                showToast ? (
+                  <Link className="button button-ghost" href="/app/">
+                    Open workspace
+                  </Link>
+                ) : null
+              ) : (
+                // The persistent way back: never tied to the toast's
+                // five seconds, so the exit does not vanish with it.
                 <Link className="button button-ghost" href="/app/">
-                  Open workspace
+                  <HomeIcon /> Back to workspace
                 </Link>
-              ) : null}
+              )}
             </div>
           </form>
         ) : null}
