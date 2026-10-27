@@ -169,7 +169,7 @@ export default function LandingPage() {
             <p>
               A professional profile starts as one page and grows with you: the headline that opens
               doors, the bio that reads like you sound, and the CV that keeps its whole history. On
-              a bad day you restore yesterday's text and keep writing today's — the account
+              a bad day you restore yesterday’s text and keep writing today’s — the account
               remembers, so you can focus on the career.
             </p>
             <p>
