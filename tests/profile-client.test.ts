@@ -194,7 +194,7 @@ describe('linkRowProblem', () => {
     expect(
       linkRowProblem({
         type: 'github',
-        url: 'https://github.com/acorrea-B/repo/compare/main?expand=1',
+        url: 'https://github.com/example-org/example-repo/compare/main?expand=1',
       }),
     ).toBeNull();
   });
@@ -293,18 +293,20 @@ describe('normalizeProfileLinkUrl', () => {
   it('trims a deep github paste to the owner profile, without query or fragment', () => {
     expect(
       normalizeProfileLinkUrl(
-        'https://github.com/acorrea-B/personal-account-proyect-front-end/compare/feat/workspace-profile?expand=1',
+        'https://github.com/example-org/example-repo/compare/feat/workspace-profile?expand=1',
       ),
-    ).toBe('https://github.com/acorrea-B');
-    expect(
-      normalizeProfileLinkUrl('https://github.com/acorrea-B/personal-account-proyect-front-end'),
-    ).toBe('https://github.com/acorrea-B');
+    ).toBe('https://github.com/example-org');
+    expect(normalizeProfileLinkUrl('https://github.com/example-org/example-repo')).toBe(
+      'https://github.com/example-org',
+    );
   });
 
   it('prepends https and keeps the profile path of the owner', () => {
-    expect(normalizeProfileLinkUrl('github.com/acorrea-B')).toBe('https://github.com/acorrea-B');
-    expect(normalizeProfileLinkUrl('https://github.com/acorrea-B?tab=repositories')).toBe(
-      'https://github.com/acorrea-B',
+    expect(normalizeProfileLinkUrl('github.com/example-org')).toBe(
+      'https://github.com/example-org',
+    );
+    expect(normalizeProfileLinkUrl('https://github.com/example-org?tab=repositories')).toBe(
+      'https://github.com/example-org',
     );
   });
 
