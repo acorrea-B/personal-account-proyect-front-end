@@ -40,6 +40,43 @@ versioned CV, the safety net), longer feature-card paragraphs in the same
 calm voice, a growth section with two full paragraphs and a closing that
 echoes the keywords. No stuffing — every sentence is a product sentence,
 per the refero voice.
+++ b/docs/stories/seo.md
+
+### Mobile pass (2026-10-27, iPhone 16 Pro review)
+
+The operator's device review: tiny text, small buttons, hard taps at
+402px. The audit found the root cause plus a latent one: `--text-body-sm`
+was consumed five times but never defined (an invalid font-size that fell
+back to inherited small sizes), and the button scale sat under the 44x44
+touch bar. The pass defines the token, steps the whole ladder down in a
+single 640px media block (`:root` token re-declaration — every consumer
+follows), and raises controls to touch targets: buttons 44px min with
+15px text, menu items 44px, inputs 44px with 16px (no iOS focus zoom), and
+the trailing actions stack full-width on phones. The viewport meta was
+already correct.
+
+### Panel copy + mobile scale round 2 (2026-10-27, operator)
+
+The dashboard stopped speaking api ("Profile · live from the api" is
+just "Profile"; the updated note reads "Updated Oct 27, 9:03 AM" with a
+human stamp), the Update profile link stacks below the panel head at
+full card width with a 44px tap row on phones, and the mobile scale
+stepped up a rung (body 17, small 16, caption 13, buttons 16) — the
+literal-px rules that the token re-declaration could not reach were
+overridden in the same 640px block. The update-card header keeps "Your
+workspace" (it already was plain).
+
+### Windows 3b-3c status (2026-10-27): the crawler contract files
+
+`lib/seo.ts` pins the canonical host (the static export bucket — one
+constant moves when a custom domain lands), the root layout carries
+metadataBase, the title template with the product keywords default, og
+and twitter cards, and the export generates the crawler contract:
+`manifest.webmanifest` pinned `force-static` (the static-export quirk —
+the first build died on /manifest.webmanifest without it), robots.txt
+with the /app/** + handoff disallows and sitemap.xml with the three
+public urls. Noindex via per-segment layouts rides the next window.
+++ b/docs/stories/seo.md
 
 ### i18n window 1 (2026-10-27, operator order): the es subtree starts
 

@@ -13,7 +13,7 @@ import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
 import { ClampedText } from '@/components/clamped-text';
 import { CvCard, type CvCardState } from '@/components/cv-card';
-import { CvHistoryCard, type CvHistoryState } from '@/components/cv-timeline';
+import { CvHistoryCard, formatWhen, type CvHistoryState } from '@/components/cv-timeline';
 import { CvVersionDetail } from '@/components/cv-version-detail';
 import { Skeleton } from '@/components/skeleton';
 import { SignalIcon } from '@/components/icons';
@@ -216,7 +216,7 @@ export default function AppHomePage() {
           <div className="dashboard-grid">
             <section className="profile-panel" aria-label="Your profile">
               <div className="panel-head">
-                <p className="eyebrow">Profile · live from the api</p>
+                <p className="eyebrow">Profile</p>
                 <Link className="link" href="/app/profile/">
                   Update profile
                 </Link>
@@ -279,7 +279,7 @@ export default function AppHomePage() {
                 </div>
               ) : null}
 
-              <p className="auth-form-note">As the api holds it · Updated {profile.updated_at}</p>
+              <p className="auth-form-note">Updated {formatWhen(profile.updated_at)}</p>
             </section>
 
             <aside className="upcoming-panel" aria-label="Coming to your workspace">
