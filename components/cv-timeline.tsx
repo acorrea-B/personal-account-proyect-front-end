@@ -61,8 +61,8 @@ export function CvHistoryCard({
                     onClick={() => onSelect?.(version.id)}
                   >
                     <svg
-                      width="16"
-                      height="16"
+                      width="15"
+                      height="15"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -71,8 +71,11 @@ export function CvHistoryCard({
                       strokeLinejoin="round"
                       aria-hidden="true"
                     >
-                      <path d="M2.06 13.35a1 1 0 0 1 0-1.7 15.05 15.05 0 0 1 19.88 0 1 1 0 0 1 0 1.7 15.05 15.05 0 0 1-19.88 0Z" />
-                      <circle cx="12" cy="12.5" r="3" />
+                      {/* A history glyph: the rewind arc plus the clock hands
+                          - each dot is a moment, the action opens it. */}
+                      <path d="M3 12a9 9 0 1 0 9-9-9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                      <path d="M3 3v5h5" />
+                      <path d="M12 7v5l4 2" />
                     </svg>
                   </button>
                 </li>
