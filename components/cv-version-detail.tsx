@@ -132,6 +132,9 @@ export function CvVersionDetail({
                 ? `Version from ${formatWhen(detail.detail.archived_at)}`
                 : 'Version'}
             </h2>
+            {detail.status === 'ready' ? (
+              <p className="eyebrow">origin {detail.detail.origin}</p>
+            ) : null}
           </div>
           <button
             ref={closeRef}

@@ -124,3 +124,17 @@ which owns revoke + clear + redirect. The fix is guarded by the repo's
 first component test (jsdom + esbuild automatic jsx + act environment +
 the @ alias map) - the harness pieces the component suite needed all
 along.
+
+### v0.4.3 window 2 (2026-10-27): the panel polish
+
+The rail card speaks human dates ("Last saved Oct 26, 9:03 AM" through the
+timeline's formatWhen) instead of the raw ISO timestamp, and the version
+detail panel shows the provencia marker the contract reserved (D15): the
+eyebrow reads "Version history · archived · origin user".
+
+### v0.4.3 window 2 (2026-10-27): the panel polish
+
+The rail card speaks human dates ("Last saved Oct 26, 9:03 AM" through the
+timeline's formatWhen) instead of the raw ISO timestamp, and the version
+detail panel carries the provenance marker the contract reserved (D15) on
+its own line once the detail is ready: "origin user".
