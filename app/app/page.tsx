@@ -11,6 +11,7 @@ import type { Profile } from '@/lib/schemas/profile';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
 import { ClampedText } from '@/components/clamped-text';
+import { Skeleton } from '@/components/skeleton';
 import { ProfileIcon, ShieldIcon, SignalIcon } from '@/components/icons';
 
 interface WorkspaceLoad {
@@ -94,10 +95,12 @@ export default function AppHomePage() {
     }
   }, [isHydrated, isAuthorized, accessToken, loadProfile]);
 
-  if (!isHydrated || !isAuthorized) {
+  // The waiting face: the session check and the profile fetch both hide
+  // the dashboard behind the skeleton screen — never a white page.
+  if (!isHydrated || !isAuthorized || load.status === 'loading') {
     return (
-      <main className="auth-page">
-        <p className="auth-subtitle loading-state">Checking session…</p>
+      <main className="workspace-page" aria-busy="true">
+        <WorkspaceSkeleton />
       </main>
     );
   }
@@ -117,10 +120,6 @@ export default function AppHomePage() {
         </div>
         <AccountMenu />
       </header>
-
-      {load.status === 'loading' ? (
-        <p className="auth-subtitle loading-state">Loading your profile…</p>
-      ) : null}
 
       {load.status === 'error' ? (
         <section className="profile-panel">
@@ -234,5 +233,45 @@ export default function AppHomePage() {
         </div>
       ) : null}
     </main>
+  );
+}
+
+// The dashboard skeleton: the same containers as the ready state (bar,
+// profile panel, coming-up rail) with the content replaced by soft
+// placeholder lines riding the blurred glow sweep.
+function WorkspaceSkeleton() {
+  return (
+    <>
+      <div className="skeleton-bar">
+        <div className="skeleton-screen">
+          <Skeleton width={110} height={11} />
+          <Skeleton width={280} height={28} />
+          <Skeleton width={210} height={14} />
+        </div>
+        <div className="workspace-actions">
+          <Skeleton width={40} height={40} />
+          <Skeleton width={92} height={36} />
+        </div>
+      </div>
+      <div className="dashboard-grid">
+        <div className="profile-panel">
+          <div className="skeleton-screen">
+            <Skeleton width={150} height={12} />
+            <Skeleton width="100%" height={16} />
+            <Skeleton width="70%" height={16} />
+            <Skeleton width="55%" height={16} />
+            <Skeleton width="85%" height={16} />
+          </div>
+        </div>
+        <div className="upcoming-panel">
+          <div className="skeleton-screen">
+            <Skeleton width={90} height={12} />
+            <Skeleton width="100%" height={44} />
+            <Skeleton width="100%" height={44} />
+            <Skeleton width="100%" height={44} />
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
