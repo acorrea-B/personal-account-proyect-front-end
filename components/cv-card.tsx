@@ -38,7 +38,7 @@ export function CvCard({ state }: { state: CvCardState }) {
             <span className="cv-preview">{cvPreview(state.cv.content)}</span>
             <span>Last saved {state.cv.updated_at}</span>
             <div className="cv-card-actions">
-              <Link className="button button-primary" href="/app/cv/">
+              <Link className="link" href="/app/cv/">
                 Edit CV
               </Link>
             </div>
@@ -47,7 +47,7 @@ export function CvCard({ state }: { state: CvCardState }) {
           <>
             <span>No cv yet — write yours in the editor.</span>
             <div className="cv-card-actions">
-              <Link className="button button-primary" href="/app/cv/">
+              <Link className="link" href="/app/cv/">
                 Write your CV
               </Link>
             </div>
