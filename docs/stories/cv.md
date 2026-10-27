@@ -36,3 +36,14 @@ review** (`v0.4.5`).
 - 2026-10-27: window 1 landed — contract mirror + text read/save client,
   13 unit tests (86 total), rate limit and size limits surfaced as typed
   `ProblemError`s.
+
+### Window 2 (2026-10-27): the cv card lives in the dashboard rail
+
+The "CV editor · Planned next" card left the rail: the dashboard fetches
+`GET /v1/cv/text` in parallel with the profile (the profile panel never
+waits on the cv) and `components/cv-card.tsx` renders the four states —
+loading (skeleton), ready (`ClampedText` at 3 lines + last-saved meta +
+"Live" chip), empty (404 = "No cv yet"), and error with its own retry
+button. The cv read keeps the read rule: it never destroys the session,
+429 explains the rate cap (10/min), 401 keeps the session framing. The
+editor entry point rides window 3 and turns this card into its hub.
