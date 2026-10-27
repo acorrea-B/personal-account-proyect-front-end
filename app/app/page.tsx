@@ -2,13 +2,15 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ProblemError } from '@/lib/api/client';
 import { fetchProfile, isProfileIncomplete, profileReadMessage } from '@/lib/api/profile';
-import { loadSession, refreshSession } from '@/lib/auth/session';
+import { loadSession, refreshSession, signOut } from '@/lib/auth/session';
 import type { Profile } from '@/lib/schemas/profile';
-import { useRequireAuth } from '../../lib/auth/useRequireAuth';
+import { useRequireAuth } from '@/lib/auth/useRequireAuth';
+import { ClampedText } from '@/components/clamped-text';
+import { ProfileIcon, ShieldIcon, SignalIcon } from '@/components/icons';
 
 interface WorkspaceLoad {
   status: 'loading' | 'ready' | 'error';
@@ -22,6 +24,32 @@ export default function AppHomePage() {
   const accessToken = session?.accessToken ?? null;
 
   const [load, setLoad] = useState<WorkspaceLoad>({ status: 'loading' });
+  // The account menu: Update profile and Sign out live here (the operator
+  // asked for a menu instead of scattered links).
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!menuOpen) {
+      return;
+    }
+    function onDocumentMouseDown(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onDocumentMouseDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onDocumentMouseDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [menuOpen]);
 
   const loadProfile = useCallback(
     async (token: string, viaRenewal = false) => {
@@ -99,24 +127,60 @@ export default function AppHomePage() {
     );
   }
 
+  const profile = load.profile;
+  const firstName = profile ? profile.full_name.trim().split(/\s+/)[0] : '';
+
   return (
-    <main className="auth-page">
-      <section className="auth-shell auth-card" aria-label="Your workspace">
-        <header className="workspace-header">
-          <div>
-            <h1 className="auth-heading">Your workspace</h1>
-            <p className="auth-subtitle">Signed in as {session?.user.email}</p>
-          </div>
-          <Link className="link" href="/logout/">
-            Sign out
-          </Link>
-        </header>
+    <main className="workspace-page">
+      <header className="workspace-bar">
+        <div className="workspace-identity">
+          <p className="eyebrow">Your workspace</p>
+          <h1 className="workspace-title">
+            {firstName ? `Hello, ${firstName}.` : 'Your workspace'}
+          </h1>
+          <p className="auth-subtitle">Signed in as {session?.user.email}</p>
+        </div>
+        <div className="account-menu" ref={menuRef}>
+          <button
+            type="button"
+            className="button button-ghost"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            Account
+          </button>
+          {menuOpen ? (
+            <ul className="account-menu-list" role="menu" aria-label="Account actions">
+              <li role="none">
+                <Link role="menuitem" className="account-menu-item" href="/app/profile/">
+                  Update profile
+                </Link>
+              </li>
+              <li role="none">
+                <button
+                  role="menuitem"
+                  type="button"
+                  className="account-menu-item"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    void signOut();
+                  }}
+                >
+                  Sign out
+                </button>
+              </li>
+            </ul>
+          ) : null}
+        </div>
+      </header>
 
-        {load.status === 'loading' ? (
-          <p className="auth-subtitle loading-state">Loading your profile…</p>
-        ) : null}
+      {load.status === 'loading' ? (
+        <p className="auth-subtitle loading-state">Loading your profile…</p>
+      ) : null}
 
-        {load.status === 'error' ? (
+      {load.status === 'error' ? (
+        <section className="profile-panel">
           <div role="alert" className="form-error">
             <p>{load.error}</p>
             <button
@@ -127,67 +191,105 @@ export default function AppHomePage() {
               Try again
             </button>
           </div>
-        ) : null}
+        </section>
+      ) : null}
 
-        {load.status === 'ready' && load.profile ? (
-          <div className="workspace-profile">
-            <p className="auth-kicker">
-              <span className="auth-kicker-icon">●</span>
-              Profile, live from the api
-            </p>
+      {load.status === 'ready' && profile ? (
+        <div className="dashboard-grid">
+          <section className="profile-panel" aria-label="Your profile">
+            <div className="panel-head">
+              <p className="eyebrow">Profile · live from the api</p>
+              <Link className="link" href="/app/profile/">
+                Edit profile
+              </Link>
+            </div>
 
             <dl className="profile-grid">
-              {load.profile.headline ? (
-                <div>
-                  <dt>Headline</dt>
-                  <dd className="profile-headline">{load.profile.headline}</dd>
-                </div>
-              ) : null}
               <div>
                 <dt>Full name</dt>
-                <dd>{load.profile.full_name}</dd>
+                <dd className="profile-headline">{profile.full_name}</dd>
               </div>
-              {load.profile.bio ? (
+              {profile.headline ? (
                 <div>
-                  <dt>Bio</dt>
-                  <dd>{load.profile.bio}</dd>
+                  <dt>Headline</dt>
+                  <dd>{profile.headline}</dd>
                 </div>
               ) : null}
-              {load.profile.location ? (
+              {profile.location ? (
                 <div>
                   <dt>Location</dt>
-                  <dd>{load.profile.location}</dd>
+                  <dd>{profile.location}</dd>
                 </div>
               ) : null}
             </dl>
 
-            {load.profile.skills ? (
-              <ul className="skill-chips" aria-label="Skills">
-                {load.profile.skills.map((skill) => (
-                  <li key={skill.toLowerCase()}>{skill}</li>
-                ))}
-              </ul>
+            {profile.bio ? (
+              <div>
+                <p className="eyebrow">Bio</p>
+                <ClampedText text={profile.bio} className="clamped-text" />
+              </div>
             ) : null}
 
-            {load.profile.links ? (
-              <ul className="profile-links" aria-label="Links">
-                {load.profile.links.map((link) => (
-                  <li key={link.url}>
-                    <a className="link" href={link.url} target="_blank" rel="noopener noreferrer">
-                      {link.type}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+            {profile.skills ? (
+              <div>
+                <p className="eyebrow">Skills</p>
+                <ul className="skill-chips" aria-label="Skills">
+                  {profile.skills.map((skill) => (
+                    <li key={skill.toLowerCase()}>{skill}</li>
+                  ))}
+                </ul>
+              </div>
             ) : null}
 
-            <p className="auth-form-note">
-              As the api holds it · Updated {load.profile.updated_at} · Created
-              {load.profile.created_at}
-            </p>
-          </div>
-        ) : null}
-      </section>
+            {profile.links ? (
+              <div>
+                <p className="eyebrow">Links</p>
+                <ul className="profile-links" aria-label="Links">
+                  {profile.links.map((link) => (
+                    <li key={link.url}>
+                      <a className="link" href={link.url} target="_blank" rel="noopener noreferrer">
+                        {link.type}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            <p className="auth-form-note">As the api holds it · Updated {profile.updated_at}</p>
+          </section>
+
+          <aside className="upcoming-panel" aria-label="Coming to your workspace">
+            <p className="eyebrow">Coming up</p>
+            <ul className="upcoming-list">
+              <li className="upcoming-item">
+                <ProfileIcon />
+                <div className="upcoming-copy">
+                  <strong>CV editor</strong>
+                  <span>Write and save your CV text, in place.</span>
+                  <span className="status-chip">Planned next</span>
+                </div>
+              </li>
+              <li className="upcoming-item">
+                <ShieldIcon />
+                <div className="upcoming-copy">
+                  <strong>Version history</strong>
+                  <span>At most 10 versions, newest first, ready to read.</span>
+                  <span className="status-chip">Planned</span>
+                </div>
+              </li>
+              <li className="upcoming-item">
+                <SignalIcon />
+                <div className="upcoming-copy">
+                  <strong>Skill suggestions</strong>
+                  <span>Inferred from what the api already knows about you.</span>
+                  <span className="status-chip">After beta 1</span>
+                </div>
+              </li>
+            </ul>
+          </aside>
+        </div>
+      ) : null}
     </main>
   );
 }
