@@ -18,6 +18,12 @@
      (5.12:1 on white, 4.90:1 on the canvas). */
   --color-cyan-text: #0f6fc5;
   --color-cyan-text-strong: #0d68b8;
+  /* History accent (teal): the only non-cyan feature hue, so the version
+     timeline contrasts against the blue-and-white dashboard. White on the
+     teal keeps AA for the icon (≈5.5:1, far above the 3:1 non-text bar). */
+  --color-teal-text: #0f766e;
+  --color-teal-strong: #0c5c52;
+  --color-teal-wash: rgba(15, 118, 110, 0.12);
   /* The validation alert: field errors and the invalid marking (the user
      asked for the real-time red while a condition is unmet). */
   --color-alert: #b91c1c;
@@ -1375,7 +1381,7 @@ textarea[aria-invalid='true'] {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--color-cyan-text);
+  background: var(--color-teal-text);
   flex-shrink: 0;
 }
 
@@ -1478,7 +1484,7 @@ textarea[aria-invalid='true'] {
   margin-left: auto;
   border: none;
   border-radius: var(--radius-full);
-  background: var(--color-cyan-text);
+  background: var(--color-teal-text);
   color: var(--color-pure-white);
   cursor: pointer;
   transition: 160ms ease;
@@ -1486,16 +1492,16 @@ textarea[aria-invalid='true'] {
 
 .cv-timeline-view svg {
   /* The rail scopes .upcoming-item svg to its cyan icons - that rule beats
-     the inherited color and left the eye invisible on the cyan circle. */
+     the inherited color, so the button pins its own svg draw. */
   color: var(--color-pure-white);
 }
 
 .cv-timeline-view:hover {
-  background: var(--color-cyan-text-strong);
+  background: var(--color-teal-strong);
 }
 
 .cv-timeline-view:focus-visible {
-  outline: 2px solid var(--color-cyan-text-strong);
+  outline: 2px solid var(--color-teal-strong);
   outline-offset: 2px;
 }
 

@@ -102,3 +102,14 @@ updated_at as the optimistic reference: 201 refreshes the dashboard (cv
 card and history reload), 412 (concurrent write) keeps the panel open with
 explicit instructions instead of guessing, 429 carries the rate-cap voice.
 Entries without a handler stay honest plain rows (the window-5 fallback).
+
+### History accent (2026-10-27, operator): teal as the only second hue
+
+The dashboard had drifted to blue-and-white everywhere and the eye glyph
+read wrong for "view a version". Two moves together: the action glyph is a
+history clock (rewind arc + hands, inline svg so the window file budget
+holds), and the palette gains a second feature accent - teal (#0f766e,
+white on it ≈5.5:1, above the 3:1 non-text bar) - scoped to the version
+timeline only: dots, the view circle and its hover/step stay teal while
+every other surface keeps the cyan identity. Token trio documented in
+:root (--color-teal-text/-strong/-wash).
