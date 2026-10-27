@@ -8,11 +8,8 @@ import { type Locale } from '@/lib/i18n';
 // es subtrees live under the /es prefix, the english tree at the root.
 // Pure on purpose - the dropdown navigation and the tests share it.
 export function swapLocalePath(path: string, from: Locale): string {
-  const bare = path.replace(/^\/es(?=\/$)/, '') || '/';
-  if (from === 'es') {
-    return bare === '/' ? '/es/' : `/es${bare}`;
-  }
-  return bare;
+  const bare = path.replace(/^\/es(?=\/|$)/, '') || '/';
+  return from === 'es' ? bare : bare === '/' ? '/es/' : `/es${bare}`;
 }
 
 // The language picker: a native select navigates between the locale
