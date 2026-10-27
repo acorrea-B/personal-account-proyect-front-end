@@ -40,3 +40,18 @@ versioned CV, the safety net), longer feature-card paragraphs in the same
 calm voice, a growth section with two full paragraphs and a closing that
 echoes the keywords. No stuffing — every sentence is a product sentence,
 per the refero voice.
+
+### i18n window 1 (2026-10-27, operator order): the es subtree starts
+
+Operator order: the language switch belongs in the product. The strategy
+for a static export (the operator's audience is Colombia): locale route
+subtrees, not a client-side switch (the exported html would stay english
+and the spanish content would never reach crawlers; hreflang needs
+separate urls). The first window lands `app/es/page.tsx` — the full
+landing translated (es-CO, the refero calm voice, all sections mirrored)
+with the EN|ES switch in both navigations (`hrefLang` links between the
+trees). Each following window translates a subtree and the dictionary
+centralizes the copy so the trees stay thin. Known limitation recorded:
+the root layout owns the html tag and stays en - the es pages patch
+`document lang` on the client until the [locale] restructure. hreflang
+pairs + the /es/ sitemap entries ride the metadata window.

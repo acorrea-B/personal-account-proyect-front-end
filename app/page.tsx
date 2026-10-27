@@ -75,6 +75,12 @@ export default function LandingPage() {
                 </Link>
               </>
             )}
+            <span className="nav-link nav-link--quiet" aria-current="true">
+              EN
+            </span>
+            <Link className="nav-link nav-link--quiet" href="/es/" lang="es" hrefLang="es">
+              ES
+            </Link>
           </nav>
         </div>
       </header>
