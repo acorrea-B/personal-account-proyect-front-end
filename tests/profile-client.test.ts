@@ -290,12 +290,15 @@ describe('updateProfile', () => {
 });
 
 describe('normalizeProfileLinkUrl', () => {
-  it('trims a deep github paste to the base, without query or fragment', () => {
+  it('trims a deep github paste to the owner profile, without query or fragment', () => {
     expect(
       normalizeProfileLinkUrl(
         'https://github.com/acorrea-B/personal-account-proyect-front-end/compare/feat/workspace-profile?expand=1',
       ),
-    ).toBe('https://github.com/acorrea-B/personal-account-proyect-front-end');
+    ).toBe('https://github.com/acorrea-B');
+    expect(
+      normalizeProfileLinkUrl('https://github.com/acorrea-B/personal-account-proyect-front-end'),
+    ).toBe('https://github.com/acorrea-B');
   });
 
   it('prepends https and keeps the profile path of the owner', () => {

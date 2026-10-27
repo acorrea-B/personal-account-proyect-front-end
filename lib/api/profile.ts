@@ -132,7 +132,10 @@ export function normalizeProfileLinkUrl(raw: string): string {
 
   let keep = segments.length;
   if (authority === 'github.com') {
-    keep = Math.min(segments.length, 2); // owner[/repo]
+    // The social github link is the owner profile: one segment, always
+    // (the operator ruled it - repos and compare views are content, not
+    // identity).
+    keep = Math.min(segments.length, 1);
   } else if (authority === 'linkedin.com') {
     keep = Math.min(segments.length, 2); // in|company/<slug>
   } else if (authority === 'x.com' || authority === 'twitter.com') {
