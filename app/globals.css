@@ -789,23 +789,59 @@ textarea[aria-invalid='true'] {
   padding-right: 34px;
 }
 
-.location-spinner {
-  position: absolute;
-  right: 10px;
-  top: 50%;
+/* The in-flight marker, shared: the location field rides it inside the
+   input; the save button shows it inline next to its label. */
+.spinner {
+  display: inline-block;
   width: 14px;
   height: 14px;
-  margin-top: -7px;
+  flex: none;
   border: 2px solid var(--color-stone-muted);
   border-top-color: var(--color-cyan-text);
   border-radius: 50%;
-  animation: location-spinner 700ms linear infinite;
+  animation: spinner-turn 700ms linear infinite;
 }
 
-@keyframes location-spinner {
+.location-input-wrap .spinner {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  margin-top: -7px;
+}
+
+.button .spinner {
+  margin-left: var(--space-8);
+}
+
+@keyframes spinner-turn {
   to {
     transform: rotate(1turn);
   }
+}
+
+.save-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  border-radius: var(--radius-lg);
+  padding: var(--space-12) var(--space-16);
+  background: var(--color-sky-wash-soft);
+  border: 1px solid var(--color-cyan-text);
+  color: var(--color-ink-black);
+  font-weight: 500;
+}
+
+.save-banner svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  color: var(--color-cyan-text);
+}
+
+/* The info notes (role=status): sky-wash tinted, distinct from alerts. */
+.form-error[role='status'] {
+  background: var(--color-sky-wash-soft);
+  border-color: var(--color-cyan-text);
 }
 
 .autocomplete-status {

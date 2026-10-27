@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { type SyntheticEvent, useCallback, useEffect, useState } from 'react';
+import { type SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 import { ProblemError } from '@/lib/api/client';
 import { searchCities } from '@/lib/api/geocoding';
@@ -12,10 +12,10 @@ import {
   profileReadMessage,
   updateProfile,
 } from '@/lib/api/profile';
-import { loadSession, signOut } from '@/lib/auth/session';
+import { signOut } from '@/lib/auth/session';
 import { updateProfileRequestSchema, type Profile } from '@/lib/schemas/profile';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
-import { MailIcon, ProfileIcon, UserIcon } from '@/components/icons';
+import { CheckIcon, MailIcon, ProfileIcon, UserIcon } from '@/components/icons';
 
 type SaveState = { status: 'idle' | 'saving' | 'saved'; note?: string };
 type LoadState = { status: 'loading' | 'ready' | 'error'; profile?: Profile; error?: string };
@@ -43,6 +43,30 @@ export default function ProfileSetupPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formNote, setFormNote] = useState<string | null>(null);
   const [save, setSave] = useState<SaveState>({ status: 'idle' });
+  // The save banner: the big, unmissable confirmation at the top of the
+  // card. It stays until the next save so the step is never missed.
+  const [showBanner, setShowBanner] = useState(false);
+  const bannerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (showBanner && bannerRef.current) {
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      bannerRef.current.scrollIntoView({
+        behavior: prefersReduced ? 'auto' : 'smooth',
+        block: 'nearest',
+      });
+    }
+  }, [showBanner]);
+
+  // The button flashes Saved briefly; the banner above keeps the
+  // confirmation sticky for the eyes that arrive later.
+  useEffect(() => {
+    if (save.status !== 'saved') {
+      return;
+    }
+    const timer = window.setTimeout(() => setSave({ status: 'idle' }), 3500);
+    return () => window.clearTimeout(timer);
+  }, [save.status]);
 
   const populate = useCallback((from: Profile) => {
     setFullName(from.full_name === 'User' ? '' : from.full_name);
@@ -179,15 +203,14 @@ export default function ProfileSetupPage() {
       try {
         const saved = await updateProfile(accessToken, parsed.data, profile.updated_at);
         setProfile(saved);
-        const refreshedSession = loadSession();
-        if (refreshedSession) {
-          void refreshedSession;
-        }
+        setShowBanner(true);
         setSave({ status: 'saved' });
         return;
       } catch (error) {
         if (error instanceof ProblemError && error.problem.status === 412) {
-          // The optimistic lock: reload the latest version and ask for a re-review.
+          // The optimistic lock: reload the latest version, drop the stale
+          // banner, and ask for a re-review.
+          setShowBanner(false);
           if (accessToken) {
             await loadProfile(accessToken);
           }
@@ -255,6 +278,13 @@ export default function ProfileSetupPage() {
             <ProfileIcon className="auth-step-icon" /> Profile
           </li>
         </ol>
+
+        {showBanner ? (
+          <div ref={bannerRef} role="status" className="save-banner">
+            <CheckIcon />
+            <p>Profile saved — it is live in the workspace.</p>
+          </div>
+        ) : null}
 
         <p className="auth-kicker">
           <span className="auth-kicker-icon">●</span>
@@ -395,7 +425,7 @@ export default function ProfileSetupPage() {
                     aria-invalid={Boolean(fieldErrors.location)}
                     aria-describedby={fieldErrors.location ? 'setup-location-error' : undefined}
                   />
-                  {isSearching ? <span className="location-spinner" aria-hidden="true" /> : null}
+                  {isSearching ? <span className="spinner" aria-hidden="true" /> : null}
                 </div>
               </label>
               {isSearching || (searched && !suggestions.length) ? (
@@ -562,21 +592,23 @@ export default function ProfileSetupPage() {
               </div>
             ) : null}
 
-            {save.status === 'saved' ? (
-              <div role="status" className="form-error">
-                <p>Profile saved — it is live in the workspace.</p>
-              </div>
-            ) : null}
-
             <div className="landing-actions">
               <button
                 type="submit"
                 className="button button-primary"
-                disabled={save.status === 'saving'}
+                disabled={save.status === 'saving' || save.status === 'saved'}
               >
-                {save.status === 'saving' ? 'Saving...' : 'Save profile'}
+                {save.status === 'saving' ? (
+                  <>
+                    <span className="spinner" aria-hidden="true" /> Saving…
+                  </>
+                ) : save.status === 'saved' ? (
+                  '✓ Saved'
+                ) : (
+                  'Save profile'
+                )}
               </button>
-              {save.status === 'saved' ? (
+              {showBanner ? (
                 <Link className="button button-ghost" href="/app/">
                   Open workspace
                 </Link>
