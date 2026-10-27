@@ -110,128 +110,135 @@ export default function AppHomePage() {
 
   return (
     <main className="workspace-page">
-      <header className="workspace-bar">
-        <div className="workspace-identity">
-          <p className="eyebrow">Your workspace</p>
-          <h1 className="workspace-title">
-            {firstName ? `Hello, ${firstName}.` : 'Your workspace'}
-          </h1>
-          <p className="auth-subtitle">Signed in as {session?.user.email}</p>
-        </div>
-        <AccountMenu />
-      </header>
-
-      {load.status === 'error' ? (
-        <section className="profile-panel">
-          <div role="alert" className="form-error">
-            <p>{load.error}</p>
-            <button
-              type="button"
-              className="button button-ghost"
-              onClick={() => accessToken && loadProfile(accessToken)}
-            >
-              Try again
-            </button>
+      <div className="content-resolve">
+        <header className="workspace-bar">
+          <div className="workspace-identity">
+            <p className="eyebrow">Your workspace</p>
+            <h1 className="workspace-title">
+              {firstName ? `Hello, ${firstName}.` : 'Your workspace'}
+            </h1>
+            <p className="auth-subtitle">Signed in as {session?.user.email}</p>
           </div>
-        </section>
-      ) : null}
+          <AccountMenu />
+        </header>
 
-      {load.status === 'ready' && profile ? (
-        <div className="dashboard-grid">
-          <section className="profile-panel" aria-label="Your profile">
-            <div className="panel-head">
-              <p className="eyebrow">Profile · live from the api</p>
-              <Link className="link" href="/app/profile/">
-                Update profile
-              </Link>
+        {load.status === 'error' ? (
+          <section className="profile-panel">
+            <div role="alert" className="form-error">
+              <p>{load.error}</p>
+              <button
+                type="button"
+                className="button button-ghost"
+                onClick={() => accessToken && loadProfile(accessToken)}
+              >
+                Try again
+              </button>
             </div>
-
-            <dl className="profile-grid">
-              <div>
-                <dt>Full name</dt>
-                <dd className="profile-headline">{profile.full_name}</dd>
-              </div>
-              {profile.headline ? (
-                <div>
-                  <dt>Headline</dt>
-                  <dd>{profile.headline}</dd>
-                </div>
-              ) : null}
-              {profile.location ? (
-                <div>
-                  <dt>Location</dt>
-                  <dd>{profile.location}</dd>
-                </div>
-              ) : null}
-            </dl>
-
-            {profile.bio ? (
-              <div>
-                <p className="eyebrow">Bio</p>
-                <ClampedText text={profile.bio} className="clamped-text" />
-              </div>
-            ) : null}
-
-            {profile.skills ? (
-              <div>
-                <p className="eyebrow">Skills</p>
-                <ul className="skill-chips" aria-label="Skills">
-                  {profile.skills.map((skill) => (
-                    <li key={skill.toLowerCase()}>{skill}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-
-            {profile.links ? (
-              <div>
-                <p className="eyebrow">Links</p>
-                <ul className="profile-links" aria-label="Links">
-                  {profile.links.map((link) => (
-                    <li key={link.url}>
-                      <a className="link" href={link.url} target="_blank" rel="noopener noreferrer">
-                        {link.type}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-
-            <p className="auth-form-note">As the api holds it · Updated {profile.updated_at}</p>
           </section>
+        ) : null}
 
-          <aside className="upcoming-panel" aria-label="Coming to your workspace">
-            <p className="eyebrow">Coming up</p>
-            <ul className="upcoming-list">
-              <li className="upcoming-item">
-                <ProfileIcon />
-                <div className="upcoming-copy">
-                  <strong>CV editor</strong>
-                  <span>Write and save your CV text, in place.</span>
-                  <span className="status-chip">Planned next</span>
+        {load.status === 'ready' && profile ? (
+          <div className="dashboard-grid">
+            <section className="profile-panel" aria-label="Your profile">
+              <div className="panel-head">
+                <p className="eyebrow">Profile · live from the api</p>
+                <Link className="link" href="/app/profile/">
+                  Update profile
+                </Link>
+              </div>
+
+              <dl className="profile-grid">
+                <div>
+                  <dt>Full name</dt>
+                  <dd className="profile-headline">{profile.full_name}</dd>
                 </div>
-              </li>
-              <li className="upcoming-item">
-                <ShieldIcon />
-                <div className="upcoming-copy">
-                  <strong>Version history</strong>
-                  <span>At most 10 versions, newest first, ready to read.</span>
-                  <span className="status-chip">Planned</span>
+                {profile.headline ? (
+                  <div>
+                    <dt>Headline</dt>
+                    <dd>{profile.headline}</dd>
+                  </div>
+                ) : null}
+                {profile.location ? (
+                  <div>
+                    <dt>Location</dt>
+                    <dd>{profile.location}</dd>
+                  </div>
+                ) : null}
+              </dl>
+
+              {profile.bio ? (
+                <div>
+                  <p className="eyebrow">Bio</p>
+                  <ClampedText text={profile.bio} className="clamped-text" />
                 </div>
-              </li>
-              <li className="upcoming-item">
-                <SignalIcon />
-                <div className="upcoming-copy">
-                  <strong>Skill suggestions</strong>
-                  <span>Inferred from what the api already knows about you.</span>
-                  <span className="status-chip">After beta 1</span>
+              ) : null}
+
+              {profile.skills ? (
+                <div>
+                  <p className="eyebrow">Skills</p>
+                  <ul className="skill-chips" aria-label="Skills">
+                    {profile.skills.map((skill) => (
+                      <li key={skill.toLowerCase()}>{skill}</li>
+                    ))}
+                  </ul>
                 </div>
-              </li>
-            </ul>
-          </aside>
-        </div>
-      ) : null}
+              ) : null}
+
+              {profile.links ? (
+                <div>
+                  <p className="eyebrow">Links</p>
+                  <ul className="profile-links" aria-label="Links">
+                    {profile.links.map((link) => (
+                      <li key={link.url}>
+                        <a
+                          className="link"
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {link.type}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              <p className="auth-form-note">As the api holds it · Updated {profile.updated_at}</p>
+            </section>
+
+            <aside className="upcoming-panel" aria-label="Coming to your workspace">
+              <p className="eyebrow">Coming up</p>
+              <ul className="upcoming-list">
+                <li className="upcoming-item">
+                  <ProfileIcon />
+                  <div className="upcoming-copy">
+                    <strong>CV editor</strong>
+                    <span>Write and save your CV text, in place.</span>
+                    <span className="status-chip">Planned next</span>
+                  </div>
+                </li>
+                <li className="upcoming-item">
+                  <ShieldIcon />
+                  <div className="upcoming-copy">
+                    <strong>Version history</strong>
+                    <span>At most 10 versions, newest first, ready to read.</span>
+                    <span className="status-chip">Planned</span>
+                  </div>
+                </li>
+                <li className="upcoming-item">
+                  <SignalIcon />
+                  <div className="upcoming-copy">
+                    <strong>Skill suggestions</strong>
+                    <span>Inferred from what the api already knows about you.</span>
+                    <span className="status-chip">After beta 1</span>
+                  </div>
+                </li>
+              </ul>
+            </aside>
+          </div>
+        ) : null}
+      </div>
     </main>
   );
 }

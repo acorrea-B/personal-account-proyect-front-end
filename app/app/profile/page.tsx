@@ -293,7 +293,7 @@ export default function ProfileSetupPage() {
   return (
     <main className={isUpdateFlow ? 'workspace-page' : 'auth-page'}>
       {load.status === 'ready' && profile && isUpdateFlow ? (
-        <header className="workspace-bar">
+        <header className="workspace-bar content-resolve">
           <div className="workspace-identity">
             <p className="eyebrow">Your workspace</p>
             <p className="workspace-title">
@@ -321,7 +321,7 @@ export default function ProfileSetupPage() {
       >
         {load.status === 'loading' ? <ProfileCardSkeleton /> : null}
         {load.status === 'ready' && profile ? (
-          <>
+          <div className="content-resolve">
             {flow === 'onboarding' ? (
               <header className="workspace-header">
                 <div>
@@ -382,7 +382,7 @@ export default function ProfileSetupPage() {
                 The api holds a placeholder profile until this is saved
               </p>
             ) : null}
-          </>
+          </div>
         ) : null}
 
         {load.status === 'error' ? (
@@ -399,325 +399,329 @@ export default function ProfileSetupPage() {
         ) : null}
 
         {load.status === 'ready' && profile ? (
-          <form
-            className="setup-form"
-            method="post"
-            onSubmit={handleSubmit}
-            noValidate
-            aria-label="Profile fields"
-          >
-            <label className="field" htmlFor="setup-full-name">
-              Full name
-              <input
-                id="setup-full-name"
-                name="full_name"
-                autoComplete="name"
-                maxLength={200}
-                value={fullName}
-                onChange={(event) => setFullName(event.target.value)}
-                aria-invalid={Boolean(fieldErrors.full_name || nameLiveProblem)}
-                aria-describedby={
-                  fieldErrors.full_name || nameLiveProblem ? 'setup-full-name-error' : undefined
-                }
-              />
-            </label>
-            {fieldErrors.full_name || nameLiveProblem ? (
-              <p id="setup-full-name-error" role="alert" className="field-error">
-                {fieldErrors.full_name ?? nameLiveProblem}
-              </p>
-            ) : null}
-
-            <label className="field" htmlFor="setup-headline">
-              Headline
-              <input
-                id="setup-headline"
-                name="headline"
-                placeholder="Backend engineer · Rust and TypeScript"
-                maxLength={120}
-                value={headline}
-                onChange={(event) => setHeadline(event.target.value)}
-                aria-invalid={Boolean(fieldErrors.headline)}
-                aria-describedby={fieldErrors.headline ? 'setup-headline-error' : undefined}
-              />
-            </label>
-            {fieldErrors.headline ? (
-              <p id="setup-headline-error" role="alert" className="field-error">
-                {fieldErrors.headline}
-              </p>
-            ) : null}
-
-            <label className="field" htmlFor="setup-bio">
-              Bio
-              <textarea
-                id="setup-bio"
-                name="bio"
-                rows={4}
-                maxLength={2000}
-                value={bio}
-                onChange={(event) => {
-                  // Newlines normalize on the way out; the limit is the
-                  // api contract (2000).
-                  setBio(event.target.value.replace(/\r\n?/g, '\n').slice(0, 2000));
-                }}
-                aria-invalid={Boolean(fieldErrors.bio)}
-                aria-describedby={fieldErrors.bio ? 'setup-bio-error' : undefined}
-              />
-            </label>
-            {fieldErrors.bio ? (
-              <p id="setup-bio-error" role="alert" className="field-error">
-                {fieldErrors.bio}
-              </p>
-            ) : null}
-            <p className="char-counter" aria-hidden="true">
-              {bio.length} / 2000
-            </p>
-
-            <div className="location-field">
-              <label className="field" htmlFor="setup-location">
-                Location
-                <div className="location-input-wrap">
-                  <input
-                    id="setup-location"
-                    name="location"
-                    role="combobox"
-                    autoComplete="off"
-                    aria-busy={isSearching}
-                    aria-expanded={showSuggestions && suggestions.length > 0}
-                    aria-controls="setup-location-suggestions"
-                    aria-autocomplete="list"
-                    maxLength={120}
-                    value={location}
-                    onChange={(event) => {
-                      setLocation(event.target.value);
-                      setLocationTouched(true);
-                      setShowSuggestions(true);
-                      setHighlight(-1);
-                    }}
-                    onKeyDown={(event) => {
-                      if (!suggestions.length) {
-                        return;
-                      }
-                      if (event.key === 'ArrowDown') {
-                        event.preventDefault();
-                        setHighlight((previous) => (previous + 1) % suggestions.length);
-                      } else if (event.key === 'ArrowUp') {
-                        event.preventDefault();
-                        setHighlight((previous) =>
-                          previous <= 0 ? suggestions.length - 1 : previous - 1,
-                        );
-                      } else if (event.key === 'Enter' && highlight >= 0) {
-                        event.preventDefault();
-                        pickSuggestion(highlight);
-                      } else if (event.key === 'Escape') {
-                        setShowSuggestions(false);
-                      }
-                    }}
-                    onBlur={() => {
-                      window.setTimeout(() => setShowSuggestions(false), 150);
-                    }}
-                    aria-invalid={Boolean(fieldErrors.location)}
-                    aria-describedby={fieldErrors.location ? 'setup-location-error' : undefined}
-                  />
-                  {isSearching ? <span className="spinner" aria-hidden="true" /> : null}
-                </div>
+          <div className="content-resolve">
+            <form
+              className="setup-form"
+              method="post"
+              onSubmit={handleSubmit}
+              noValidate
+              aria-label="Profile fields"
+            >
+              <label className="field" htmlFor="setup-full-name">
+                Full name
+                <input
+                  id="setup-full-name"
+                  name="full_name"
+                  autoComplete="name"
+                  maxLength={200}
+                  value={fullName}
+                  onChange={(event) => setFullName(event.target.value)}
+                  aria-invalid={Boolean(fieldErrors.full_name || nameLiveProblem)}
+                  aria-describedby={
+                    fieldErrors.full_name || nameLiveProblem ? 'setup-full-name-error' : undefined
+                  }
+                />
               </label>
-              {isSearching || (searched && !suggestions.length) ? (
-                <p role="status" className="autocomplete-status">
-                  {isSearching ? 'Searching places…' : 'No places found; keep typing the name.'}
+              {fieldErrors.full_name || nameLiveProblem ? (
+                <p id="setup-full-name-error" role="alert" className="field-error">
+                  {fieldErrors.full_name ?? nameLiveProblem}
                 </p>
               ) : null}
-              {showSuggestions && suggestions.length ? (
-                <ul id="setup-location-suggestions" className="suggestions" role="listbox">
-                  {suggestions.map((suggestion, index) => (
-                    <li
-                      key={`${suggestion}#${index}`}
-                      role="option"
-                      aria-selected={index === highlight}
-                    >
-                      <button
-                        type="button"
-                        className={index === highlight ? 'is-highlight' : undefined}
-                        onMouseDown={() => pickSuggestion(index)}
-                        onMouseEnter={() => setHighlight(index)}
+
+              <label className="field" htmlFor="setup-headline">
+                Headline
+                <input
+                  id="setup-headline"
+                  name="headline"
+                  placeholder="Backend engineer · Rust and TypeScript"
+                  maxLength={120}
+                  value={headline}
+                  onChange={(event) => setHeadline(event.target.value)}
+                  aria-invalid={Boolean(fieldErrors.headline)}
+                  aria-describedby={fieldErrors.headline ? 'setup-headline-error' : undefined}
+                />
+              </label>
+              {fieldErrors.headline ? (
+                <p id="setup-headline-error" role="alert" className="field-error">
+                  {fieldErrors.headline}
+                </p>
+              ) : null}
+
+              <label className="field" htmlFor="setup-bio">
+                Bio
+                <textarea
+                  id="setup-bio"
+                  name="bio"
+                  rows={4}
+                  maxLength={2000}
+                  value={bio}
+                  onChange={(event) => {
+                    // Newlines normalize on the way out; the limit is the
+                    // api contract (2000).
+                    setBio(event.target.value.replace(/\r\n?/g, '\n').slice(0, 2000));
+                  }}
+                  aria-invalid={Boolean(fieldErrors.bio)}
+                  aria-describedby={fieldErrors.bio ? 'setup-bio-error' : undefined}
+                />
+              </label>
+              {fieldErrors.bio ? (
+                <p id="setup-bio-error" role="alert" className="field-error">
+                  {fieldErrors.bio}
+                </p>
+              ) : null}
+              <p className="char-counter" aria-hidden="true">
+                {bio.length} / 2000
+              </p>
+
+              <div className="location-field">
+                <label className="field" htmlFor="setup-location">
+                  Location
+                  <div className="location-input-wrap">
+                    <input
+                      id="setup-location"
+                      name="location"
+                      role="combobox"
+                      autoComplete="off"
+                      aria-busy={isSearching}
+                      aria-expanded={showSuggestions && suggestions.length > 0}
+                      aria-controls="setup-location-suggestions"
+                      aria-autocomplete="list"
+                      maxLength={120}
+                      value={location}
+                      onChange={(event) => {
+                        setLocation(event.target.value);
+                        setLocationTouched(true);
+                        setShowSuggestions(true);
+                        setHighlight(-1);
+                      }}
+                      onKeyDown={(event) => {
+                        if (!suggestions.length) {
+                          return;
+                        }
+                        if (event.key === 'ArrowDown') {
+                          event.preventDefault();
+                          setHighlight((previous) => (previous + 1) % suggestions.length);
+                        } else if (event.key === 'ArrowUp') {
+                          event.preventDefault();
+                          setHighlight((previous) =>
+                            previous <= 0 ? suggestions.length - 1 : previous - 1,
+                          );
+                        } else if (event.key === 'Enter' && highlight >= 0) {
+                          event.preventDefault();
+                          pickSuggestion(highlight);
+                        } else if (event.key === 'Escape') {
+                          setShowSuggestions(false);
+                        }
+                      }}
+                      onBlur={() => {
+                        window.setTimeout(() => setShowSuggestions(false), 150);
+                      }}
+                      aria-invalid={Boolean(fieldErrors.location)}
+                      aria-describedby={fieldErrors.location ? 'setup-location-error' : undefined}
+                    />
+                    {isSearching ? <span className="spinner" aria-hidden="true" /> : null}
+                  </div>
+                </label>
+                {isSearching || (searched && !suggestions.length) ? (
+                  <p role="status" className="autocomplete-status">
+                    {isSearching ? 'Searching places…' : 'No places found; keep typing the name.'}
+                  </p>
+                ) : null}
+                {showSuggestions && suggestions.length ? (
+                  <ul id="setup-location-suggestions" className="suggestions" role="listbox">
+                    {suggestions.map((suggestion, index) => (
+                      <li
+                        key={`${suggestion}#${index}`}
+                        role="option"
+                        aria-selected={index === highlight}
                       >
-                        {suggestion}
-                      </button>
-                    </li>
+                        <button
+                          type="button"
+                          className={index === highlight ? 'is-highlight' : undefined}
+                          onMouseDown={() => pickSuggestion(index)}
+                          onMouseEnter={() => setHighlight(index)}
+                        >
+                          {suggestion}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+              {fieldErrors.location ? (
+                <p id="setup-location-error" role="alert" className="field-error">
+                  {fieldErrors.location}
+                </p>
+              ) : null}
+
+              <label className="field" htmlFor="setup-skills">
+                Skills
+                <input
+                  id="setup-skills"
+                  name="skills"
+                  placeholder="rust, typescript, sql"
+                  value={skillsText}
+                  onChange={(event) => setSkillsText(event.target.value)}
+                  aria-invalid={Boolean(fieldErrors.skills)}
+                  aria-describedby={fieldErrors.skills ? 'setup-skills-error' : undefined}
+                />
+              </label>
+              <p className="auth-form-note" aria-hidden="true">
+                Separated by commas, at most 30 · recovered as multiple values
+              </p>
+              {skillsDraft.length ? (
+                <ul className="skill-chips" aria-hidden="true">
+                  {skillsDraft.map((skill) => (
+                    <li key={skill.toLowerCase()}>{skill}</li>
                   ))}
                 </ul>
               ) : null}
-            </div>
-            {fieldErrors.location ? (
-              <p id="setup-location-error" role="alert" className="field-error">
-                {fieldErrors.location}
-              </p>
-            ) : null}
-
-            <label className="field" htmlFor="setup-skills">
-              Skills
-              <input
-                id="setup-skills"
-                name="skills"
-                placeholder="rust, typescript, sql"
-                value={skillsText}
-                onChange={(event) => setSkillsText(event.target.value)}
-                aria-invalid={Boolean(fieldErrors.skills)}
-                aria-describedby={fieldErrors.skills ? 'setup-skills-error' : undefined}
-              />
-            </label>
-            <p className="auth-form-note" aria-hidden="true">
-              Separated by commas, at most 30 · recovered as multiple values
-            </p>
-            {skillsDraft.length ? (
-              <ul className="skill-chips" aria-hidden="true">
-                {skillsDraft.map((skill) => (
-                  <li key={skill.toLowerCase()}>{skill}</li>
-                ))}
-              </ul>
-            ) : null}
-            {fieldErrors.skills ? (
-              <p id="setup-skills-error" role="alert" className="field-error">
-                {fieldErrors.skills}
-              </p>
-            ) : null}
-
-            <div className="link-editor">
-              <p className="auth-kicker">
-                <span className="auth-kicker-icon">●</span>
-                Social and repository links
-              </p>
-              <datalist id="link-types">
-                <option value="github" />
-                <option value="linkedin" />
-                <option value="x" />
-                <option value="website" />
-                <option value="blog" />
-              </datalist>
-              {linksDraft.map((row, index) => (
-                <div key={index} className="link-row-group">
-                  <div className="link-row">
-                    <input
-                      id={`link-type-${index}`}
-                      name={`link-type-${index}`}
-                      list="link-types"
-                      placeholder="github"
-                      maxLength={40}
-                      value={row.type}
-                      aria-label={`Link ${index + 1} type`}
-                      aria-invalid={Boolean(rowProblems[index])}
-                      onChange={(event) =>
-                        setLinksDraft((previous) =>
-                          previous.map((item, itemIndex) =>
-                            itemIndex === index ? { ...item, type: event.target.value } : item,
-                          ),
-                        )
-                      }
-                    />
-                    <input
-                      id={`link-url-${index}`}
-                      name={`link-url-${index}`}
-                      type="url"
-                      inputMode="url"
-                      placeholder="https://github.com/you"
-                      maxLength={2048}
-                      value={row.url}
-                      aria-label={`Link ${index + 1} url`}
-                      aria-invalid={Boolean(rowProblems[index])}
-                      onBlur={() =>
-                        setLinksDraft((previous) =>
-                          previous.map((item, itemIndex) =>
-                            itemIndex === index
-                              ? {
-                                  ...item,
-                                  url: normalizeProfileLinkUrl(item.url),
-                                }
-                              : item,
-                          ),
-                        )
-                      }
-                      onChange={(event) =>
-                        setLinksDraft((previous) =>
-                          previous.map((item, itemIndex) =>
-                            itemIndex === index ? { ...item, url: event.target.value } : item,
-                          ),
-                        )
-                      }
-                    />
-                    <button
-                      type="button"
-                      className="link"
-                      aria-label={`Remove link ${index + 1}`}
-                      onClick={() =>
-                        setLinksDraft((previous) =>
-                          previous.filter((_, itemIndex) => itemIndex !== index),
-                        )
-                      }
-                    >
-                      Remove
-                    </button>
-                  </div>
-                  {rowProblems[index] ? (
-                    <p role="alert" className="field-error">
-                      {rowProblems[index]}
-                    </p>
-                  ) : null}
-                </div>
-              ))}
-              {linksDraft.length < 10 ? (
-                <button
-                  type="button"
-                  className="button button-ghost"
-                  onClick={() => setLinksDraft((previous) => [...previous, { type: '', url: '' }])}
-                >
-                  Add link
-                </button>
-              ) : null}
-              {fieldErrors.links ? (
-                <p id="setup-links-error" role="alert" className="field-error">
-                  {fieldErrors.links}
+              {fieldErrors.skills ? (
+                <p id="setup-skills-error" role="alert" className="field-error">
+                  {fieldErrors.skills}
                 </p>
               ) : null}
-            </div>
 
-            {formNote ? (
-              <div role="status" className="form-error">
-                <p>{formNote}</p>
+              <div className="link-editor">
+                <p className="auth-kicker">
+                  <span className="auth-kicker-icon">●</span>
+                  Social and repository links
+                </p>
+                <datalist id="link-types">
+                  <option value="github" />
+                  <option value="linkedin" />
+                  <option value="x" />
+                  <option value="website" />
+                  <option value="blog" />
+                </datalist>
+                {linksDraft.map((row, index) => (
+                  <div key={index} className="link-row-group">
+                    <div className="link-row">
+                      <input
+                        id={`link-type-${index}`}
+                        name={`link-type-${index}`}
+                        list="link-types"
+                        placeholder="github"
+                        maxLength={40}
+                        value={row.type}
+                        aria-label={`Link ${index + 1} type`}
+                        aria-invalid={Boolean(rowProblems[index])}
+                        onChange={(event) =>
+                          setLinksDraft((previous) =>
+                            previous.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, type: event.target.value } : item,
+                            ),
+                          )
+                        }
+                      />
+                      <input
+                        id={`link-url-${index}`}
+                        name={`link-url-${index}`}
+                        type="url"
+                        inputMode="url"
+                        placeholder="https://github.com/you"
+                        maxLength={2048}
+                        value={row.url}
+                        aria-label={`Link ${index + 1} url`}
+                        aria-invalid={Boolean(rowProblems[index])}
+                        onBlur={() =>
+                          setLinksDraft((previous) =>
+                            previous.map((item, itemIndex) =>
+                              itemIndex === index
+                                ? {
+                                    ...item,
+                                    url: normalizeProfileLinkUrl(item.url),
+                                  }
+                                : item,
+                            ),
+                          )
+                        }
+                        onChange={(event) =>
+                          setLinksDraft((previous) =>
+                            previous.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, url: event.target.value } : item,
+                            ),
+                          )
+                        }
+                      />
+                      <button
+                        type="button"
+                        className="link"
+                        aria-label={`Remove link ${index + 1}`}
+                        onClick={() =>
+                          setLinksDraft((previous) =>
+                            previous.filter((_, itemIndex) => itemIndex !== index),
+                          )
+                        }
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    {rowProblems[index] ? (
+                      <p role="alert" className="field-error">
+                        {rowProblems[index]}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+                {linksDraft.length < 10 ? (
+                  <button
+                    type="button"
+                    className="button button-ghost"
+                    onClick={() =>
+                      setLinksDraft((previous) => [...previous, { type: '', url: '' }])
+                    }
+                  >
+                    Add link
+                  </button>
+                ) : null}
+                {fieldErrors.links ? (
+                  <p id="setup-links-error" role="alert" className="field-error">
+                    {fieldErrors.links}
+                  </p>
+                ) : null}
               </div>
-            ) : null}
 
-            <div className="landing-actions">
-              <button
-                type="submit"
-                className="button button-primary"
-                disabled={save.status === 'saving' || save.status === 'saved'}
-              >
-                {save.status === 'saving' ? (
-                  <>
-                    <span className="spinner" aria-hidden="true" /> Saving…
-                  </>
-                ) : save.status === 'saved' ? (
-                  '✓ Saved'
-                ) : flow === 'onboarding' ? (
-                  'Save profile'
+              {formNote ? (
+                <div role="status" className="form-error">
+                  <p>{formNote}</p>
+                </div>
+              ) : null}
+
+              <div className="landing-actions">
+                <button
+                  type="submit"
+                  className="button button-primary"
+                  disabled={save.status === 'saving' || save.status === 'saved'}
+                >
+                  {save.status === 'saving' ? (
+                    <>
+                      <span className="spinner" aria-hidden="true" /> Saving…
+                    </>
+                  ) : save.status === 'saved' ? (
+                    '✓ Saved'
+                  ) : flow === 'onboarding' ? (
+                    'Save profile'
+                  ) : (
+                    'Save changes'
+                  )}
+                </button>
+                {flow === 'onboarding' ? (
+                  showToast ? (
+                    <Link className="button button-ghost" href="/app/">
+                      Open workspace
+                    </Link>
+                  ) : null
                 ) : (
-                  'Save changes'
-                )}
-              </button>
-              {flow === 'onboarding' ? (
-                showToast ? (
+                  // The persistent way back: never tied to the toast's
+                  // five seconds, so the exit does not vanish with it.
                   <Link className="button button-ghost" href="/app/">
-                    Open workspace
+                    <HomeIcon /> Back to workspace
                   </Link>
-                ) : null
-              ) : (
-                // The persistent way back: never tied to the toast's
-                // five seconds, so the exit does not vanish with it.
-                <Link className="button button-ghost" href="/app/">
-                  <HomeIcon /> Back to workspace
-                </Link>
-              )}
-            </div>
-          </form>
+                )}
+              </div>
+            </form>
+          </div>
         ) : null}
       </section>
     </main>
