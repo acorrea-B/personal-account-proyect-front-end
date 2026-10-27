@@ -61,5 +61,26 @@
     "unexpected": "Error inesperado. Por favor inténtalo de nuevo.",
     "registerEntry": "Mejor crea una cuenta",
     "otherLanguage": "English"
+  },
+  "register": {
+    "kicker": "Configuración de cuenta verificada",
+    "heading": "Crea tu cuenta profesional",
+    "subtitle": "Tres pasos guiados hasta tu espacio de trabajo.",
+    "stepAccount": "Cuenta",
+    "stepVerify": "Verificar",
+    "stepProfile": "Perfil",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "submit": "Crear cuenta",
+    "submitting": "Creando cuenta…",
+    "conflict": "Ya existe una cuenta con este correo.",
+    "rateCappedWithSeconds": "Demasiados intentos; reintenta en {seconds} segundos.",
+    "rateCapped": "Demasiados intentos; por favor reintenta más tarde.",
+    "generic": "No se pudo completar el registro. Por favor inténtalo de nuevo.",
+    "timeout": "La petición agotó el tiempo de espera. Por favor inténtalo de nuevo.",
+    "unexpected": "Error inesperado. Por favor inténtalo de nuevo.",
+    "loginQuestion": "¿Ya tienes una cuenta?",
+    "loginEntry": "Inicia sesión",
+    "otherLanguage": "English"
   }
 }

@@ -75,6 +75,27 @@ export const labelsSchema = z.object({
     registerEntry: z.string(),
     otherLanguage: z.string(),
   }),
+  register: z.object({
+    kicker: z.string(),
+    heading: z.string(),
+    subtitle: z.string(),
+    stepAccount: z.string(),
+    stepVerify: z.string(),
+    stepProfile: z.string(),
+    email: z.string(),
+    password: z.string(),
+    submit: z.string(),
+    submitting: z.string(),
+    conflict: z.string(),
+    rateCappedWithSeconds: z.string(),
+    rateCapped: z.string(),
+    generic: z.string(),
+    timeout: z.string(),
+    unexpected: z.string(),
+    loginQuestion: z.string(),
+    loginEntry: z.string(),
+    otherLanguage: z.string(),
+  }),
 });
 
 export type Labels = z.infer<typeof labelsSchema>;

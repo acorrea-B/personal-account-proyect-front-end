@@ -61,5 +61,26 @@
     "unexpected": "Unexpected error. Please try again.",
     "registerEntry": "Create an account instead",
     "otherLanguage": "Español"
+  },
+  "register": {
+    "kicker": "Verified account setup",
+    "heading": "Create your professional account",
+    "subtitle": "Three guided steps to your workspace.",
+    "stepAccount": "Account",
+    "stepVerify": "Verify",
+    "stepProfile": "Profile",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Create account",
+    "submitting": "Creating account...",
+    "conflict": "An account with this email already exists.",
+    "rateCappedWithSeconds": "Too many attempts; try again in {seconds} seconds.",
+    "rateCapped": "Too many attempts; please try again later.",
+    "generic": "Registration could not be completed. Please try again.",
+    "timeout": "Request timed out. Please try again.",
+    "unexpected": "Unexpected error. Please try again.",
+    "loginQuestion": "Already have an account?",
+    "loginEntry": "Sign in instead",
+    "otherLanguage": "Español"
   }
 }
