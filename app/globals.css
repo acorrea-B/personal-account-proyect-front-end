@@ -778,6 +778,42 @@ textarea[aria-invalid='true'] {
   gap: var(--space-4);
 }
 
+/* The in-flight marker: the spinner rides inside the input from the first
+   keystroke, so the autocomplete action is always visible. */
+.location-input-wrap {
+  position: relative;
+  display: grid;
+}
+
+.location-input-wrap input {
+  padding-right: 34px;
+}
+
+.location-spinner {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border: 2px solid var(--color-stone-muted);
+  border-top-color: var(--color-cyan-text);
+  border-radius: 50%;
+  animation: location-spinner 700ms linear infinite;
+}
+
+@keyframes location-spinner {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.autocomplete-status {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--color-warm-gray);
+}
+
 /* Social and repository link rows: label first, url wide. */
 .link-editor {
   display: grid;

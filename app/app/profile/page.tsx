@@ -36,6 +36,10 @@ export default function ProfileSetupPage() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [highlight, setHighlight] = useState(-1);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  // The in-flight marker: from the first keystroke the field shows the
+  // searching action (the debounce plus the network ride behind it).
+  const [isSearching, setIsSearching] = useState(false);
+  const [searched, setSearched] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formNote, setFormNote] = useState<string | null>(null);
   const [save, setSave] = useState<SaveState>({ status: 'idle' });
@@ -103,18 +107,29 @@ export default function ProfileSetupPage() {
     .filter(Boolean);
 
   // Debounced location autocomplete against the geocoding api: the field
-  // ends with an exact place value, and every failure degrades to silence.
+  // ends with an exact place value, every failure degrades to silence, and
+  // the spinner runs from the keystroke so the action is always visible.
   useEffect(() => {
     const trimmed = location.trim();
     if (trimmed.length < 2) {
       setSuggestions([]);
+      setShowSuggestions(false);
+      setIsSearching(false);
+      setSearched(false);
       return;
     }
+    setIsSearching(true);
     const timer = window.setTimeout(async () => {
       const results = await searchCities(trimmed);
       setSuggestions(results.map((result) => result.label));
+      setIsSearching(false);
+      setSearched(true);
+      setShowSuggestions(true);
     }, 350);
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      setIsSearching(false);
+    };
   }, [location]);
 
   function pickSuggestion(index: number) {
@@ -338,47 +353,56 @@ export default function ProfileSetupPage() {
             <div className="location-field">
               <label className="field" htmlFor="setup-location">
                 Location
-                <input
-                  id="setup-location"
-                  name="location"
-                  role="combobox"
-                  autoComplete="off"
-                  aria-expanded={showSuggestions && suggestions.length > 0}
-                  aria-controls="setup-location-suggestions"
-                  aria-autocomplete="list"
-                  maxLength={120}
-                  value={location}
-                  onChange={(event) => {
-                    setLocation(event.target.value);
-                    setShowSuggestions(true);
-                    setHighlight(-1);
-                  }}
-                  onKeyDown={(event) => {
-                    if (!suggestions.length) {
-                      return;
-                    }
-                    if (event.key === 'ArrowDown') {
-                      event.preventDefault();
-                      setHighlight((previous) => (previous + 1) % suggestions.length);
-                    } else if (event.key === 'ArrowUp') {
-                      event.preventDefault();
-                      setHighlight((previous) =>
-                        previous <= 0 ? suggestions.length - 1 : previous - 1,
-                      );
-                    } else if (event.key === 'Enter' && highlight >= 0) {
-                      event.preventDefault();
-                      pickSuggestion(highlight);
-                    } else if (event.key === 'Escape') {
-                      setShowSuggestions(false);
-                    }
-                  }}
-                  onBlur={() => {
-                    window.setTimeout(() => setShowSuggestions(false), 150);
-                  }}
-                  aria-invalid={Boolean(fieldErrors.location)}
-                  aria-describedby={fieldErrors.location ? 'setup-location-error' : undefined}
-                />
+                <div className="location-input-wrap">
+                  <input
+                    id="setup-location"
+                    name="location"
+                    role="combobox"
+                    autoComplete="off"
+                    aria-busy={isSearching}
+                    aria-expanded={showSuggestions && suggestions.length > 0}
+                    aria-controls="setup-location-suggestions"
+                    aria-autocomplete="list"
+                    maxLength={120}
+                    value={location}
+                    onChange={(event) => {
+                      setLocation(event.target.value);
+                      setShowSuggestions(true);
+                      setHighlight(-1);
+                    }}
+                    onKeyDown={(event) => {
+                      if (!suggestions.length) {
+                        return;
+                      }
+                      if (event.key === 'ArrowDown') {
+                        event.preventDefault();
+                        setHighlight((previous) => (previous + 1) % suggestions.length);
+                      } else if (event.key === 'ArrowUp') {
+                        event.preventDefault();
+                        setHighlight((previous) =>
+                          previous <= 0 ? suggestions.length - 1 : previous - 1,
+                        );
+                      } else if (event.key === 'Enter' && highlight >= 0) {
+                        event.preventDefault();
+                        pickSuggestion(highlight);
+                      } else if (event.key === 'Escape') {
+                        setShowSuggestions(false);
+                      }
+                    }}
+                    onBlur={() => {
+                      window.setTimeout(() => setShowSuggestions(false), 150);
+                    }}
+                    aria-invalid={Boolean(fieldErrors.location)}
+                    aria-describedby={fieldErrors.location ? 'setup-location-error' : undefined}
+                  />
+                  {isSearching ? <span className="location-spinner" aria-hidden="true" /> : null}
+                </div>
               </label>
+              {isSearching || (searched && !suggestions.length) ? (
+                <p role="status" className="autocomplete-status">
+                  {isSearching ? 'Searching places…' : 'No places found; keep typing the name.'}
+                </p>
+              ) : null}
               {showSuggestions && suggestions.length ? (
                 <ul id="setup-location-suggestions" className="suggestions" role="listbox">
                   {suggestions.map((suggestion, index) => (
