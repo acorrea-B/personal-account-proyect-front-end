@@ -82,3 +82,21 @@ export async function saveCvText(
   const data: unknown = await response.json();
   return cvSaveResponseSchema.parse(data as z.infer<typeof cvSaveResponseSchema>);
 }
+
+// The cv read failure voice for the dashboard's cv card, mirroring the
+// profile read rule: a read failure never destroys the session; 429 gets its
+// own rate-limit line because the endpoint is capped at 10 writes per user
+// per minute on the save path.
+export function cvLoadMessage(status?: number, fallback?: string): string {
+  if (status === 429) {
+    return 'The cv endpoint is rate limited (at most twice a minute). Wait a few seconds and try again.';
+  }
+  if (status === 401) {
+    return 'The service did not accept the credential for now. Your session is kept; try again shortly.';
+  }
+  if (fallback) {
+    // The api writes its details lowercase; the card speaks capitalized.
+    return `${fallback.charAt(0).toUpperCase()}${fallback.slice(1)} — try again shortly.`;
+  }
+  return 'The cv failed to load. Please try again shortly.';
+}

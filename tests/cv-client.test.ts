@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { fetchCvText, saveCvText } from '../lib/api/cv';
+import { cvLoadMessage, fetchCvText, saveCvText } from '../lib/api/cv';
 import { cvSchema, maxCvContentBytes, cvSaveRequestSchema } from '../lib/schemas/cv';
 
 const cv = {
@@ -219,5 +219,22 @@ describe('saveCvText', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.unstubAllEnvs();
+  });
+});
+
+describe('cvLoadMessage', () => {
+  it('explains the rate limit on 429', () => {
+    expect(cvLoadMessage(429)).toMatch(/twice a minute|too quickly/i);
+  });
+
+  it('keeps the session framing on 401 read failures', () => {
+    expect(cvLoadMessage(401)).toMatch(/session is kept/i);
+  });
+
+  it('prefers the api detail for other problems', () => {
+    expect(cvLoadMessage(500, 'the cv storage hiccuped')).toBe(
+      'The cv storage hiccuped — try again shortly.',
+    );
+    expect(cvLoadMessage(500)).toMatch(/try again shortly/i);
   });
 });
