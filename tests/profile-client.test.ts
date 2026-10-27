@@ -290,4 +290,17 @@ describe('normalizeProfileLinkUrl', () => {
     expect(normalizeProfileLinkUrl('ftp://example.com')).toBe('ftp://example.com');
     expect(normalizeProfileLinkUrl('   ')).toBe('');
   });
+
+  it('never mints a url from garbage text', () => {
+    // The operator pasted "asdadadadadasdsa": without dots it is not a
+    // hostname, so it stays raw and the schema rejects it at save time.
+    expect(normalizeProfileLinkUrl('asdadadadadasdsa')).toBe('asdadadadadasdsa');
+    expect(normalizeProfileLinkUrl('asdas dasda.com')).toBe('asdas dasda.com');
+  });
+
+  it('still trusts dotted and localhost pastes', () => {
+    expect(normalizeProfileLinkUrl('localhost:8080/profile')).toBe(
+      'https://localhost:8080/profile',
+    );
+  });
 });

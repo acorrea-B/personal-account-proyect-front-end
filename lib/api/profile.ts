@@ -102,6 +102,16 @@ export function normalizeProfileLinkUrl(raw: string): string {
     return candidate;
   }
   if (!/^https?:\/\//i.test(candidate)) {
+    // Text without dots or with spaces is not a hostname (the operator
+    // pasted "asdadadadadasdsa"): keep it raw so the schema rejects it with
+    // its own message instead of minting an invented url. localhost:
+    // port/path pastes are the documented local exception.
+    const firstSegment = candidate.split('/')[0];
+    if (!candidate.includes('.') || /\s/.test(candidate)) {
+      if (!/^localhost(:\d+)?$/i.test(firstSegment)) {
+        return candidate;
+      }
+    }
     candidate = `https://${candidate}`;
   }
 
@@ -115,20 +125,22 @@ export function normalizeProfileLinkUrl(raw: string): string {
     return candidate;
   }
 
-  const host = parsed.hostname.replace(/^www\./i, '').toLowerCase();
+  const authority = `${parsed.hostname.replace(/^www\./i, '').toLowerCase()}${
+    parsed.port ? `:${parsed.port}` : ''
+  }`;
   const segments = parsed.pathname.split('/').filter(Boolean);
 
   let keep = segments.length;
-  if (host === 'github.com') {
+  if (authority === 'github.com') {
     keep = Math.min(segments.length, 2); // owner[/repo]
-  } else if (host === 'linkedin.com') {
+  } else if (authority === 'linkedin.com') {
     keep = Math.min(segments.length, 2); // in|company/<slug>
-  } else if (host === 'x.com' || host === 'twitter.com') {
+  } else if (authority === 'x.com' || authority === 'twitter.com') {
     keep = Math.min(segments.length, 1); // handle
   }
 
   const keptPath = segments.slice(0, keep).join('/');
-  return keptPath ? `${parsed.protocol}//${host}/${keptPath}` : `${parsed.protocol}//${host}`;
+  return `${parsed.protocol}//${authority}${keptPath ? `/${keptPath}` : ''}`;
 }
 
 // The workspace read message for a bearer problem. A 401 never reaches this
