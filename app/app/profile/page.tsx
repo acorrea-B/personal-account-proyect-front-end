@@ -311,7 +311,12 @@ export default function ProfileSetupPage() {
             </button>
           </header>
         ) : (
-          <h1 className="auth-heading">Update profile</h1>
+          <header className="workspace-header">
+            <h1 className="auth-heading">Update profile</h1>
+            <Link className="link" href="/app/">
+              Back to workspace
+            </Link>
+          </header>
         )}
 
         {flow === 'onboarding' ? (
