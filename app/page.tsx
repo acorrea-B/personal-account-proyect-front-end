@@ -83,8 +83,20 @@ export default function LandingPage() {
         <section className="landing-hero reveal" ref={heroRef} aria-labelledby="landing-title">
           <div className="landing-copy">
             <p className="eyebrow">Private professional profile workspace</p>
-            <h1 id="landing-title">Your career deserves a distinguished entrance.</h1>
-            <p>A calm, private workspace for your professional profile and CV.</p>
+            <h1 id="landing-title">
+              A professional profile and CV that carry your career forward.
+            </h1>
+            <p>
+              Professional Profile is a quiet, private workspace where your professional profile and
+              your CV live together, versioned and recoverable. You sign in, keep every field
+              current, and grow your CV at your own pace — nothing leaves your account and nothing
+              gets lost.
+            </p>
+            <p>
+              Every save quietly archives the previous version of your CV. When a change goes
+              sideways, the version history hands the earlier text back in one step — the safety net
+              that lets you write boldly.
+            </p>
           </div>
 
           <div className="hero-figure">
@@ -109,21 +121,26 @@ export default function LandingPage() {
               <UserIcon />
               <h2>One calm workspace</h2>
               <p className="auth-subtitle">
-                Your professional profile and CV live together in one private place.
+                Your profile fields, your CV and its version history share one private place — no
+                exports, no copies, no scattered documents. Open the workspace and everything you
+                have written is exactly where the account left it.
               </p>
             </article>
             <article className="feature-card">
               <ShieldIcon />
               <h2>Sessions that guard themselves</h2>
               <p className="auth-subtitle">
-                Sessions renew silently and never leave your current device.
+                Sessions renew silently while you are active and stay bound to your device. Sign out
+                whenever you want and the access ends everywhere the token did — your workspace
+                waits, your data does not walk.
               </p>
             </article>
             <article className="feature-card">
               <SignalIcon />
               <h2>Feedback that speaks plainly</h2>
               <p className="auth-subtitle">
-                Every message tells you what happened and what to do next.
+                Every save, lock or limit answers in plain words — what happened, why it happened,
+                and the exact next step, so no screen ever leaves you guessing.
               </p>
             </article>
           </div>
@@ -146,13 +163,30 @@ export default function LandingPage() {
           </ul>
         </section>
 
+        <section className="feature-section reveal" aria-label="How the workspace grows with you">
+          <div className="landing-copy">
+            <h2>Grown for the long career, not the first job.</h2>
+            <p>
+              A professional profile starts as one page and grows with you: the headline that opens
+              doors, the bio that reads like you sound, and the CV that keeps its whole history. On
+              a bad day you restore yesterday’s text and keep writing today’s — the account
+              remembers, so you can focus on the career.
+            </p>
+            <p>
+              Until you decide a profile is ready to be seen, everything stays between you and your
+              account. The workspace is private by construction: verified accounts, calm screens,
+              and your professional story exactly as you left it.
+            </p>
+          </div>
+        </section>
+
         <section className="final-action reveal" ref={finalRef} aria-labelledby="closing-title">
           <div className="final-action-panel">
             <h2 id="closing-title">Put your profile in motion.</h2>
             <p>
               {isSignedIn
                 ? 'Return to the app and continue where your work left off.'
-                : 'Open your account in minutes, in a workspace that stays private.'}
+                : 'Create an account in minutes and give your professional profile and CV the private, versioned workspace the career deserves.'}
             </p>
             <div className="landing-actions">
               {isSignedIn ? (
