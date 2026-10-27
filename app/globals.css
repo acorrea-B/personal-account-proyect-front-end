@@ -1553,4 +1553,47 @@ textarea[aria-invalid='true'] {
   .landing-actions .button {
     width: 100%;
   }
+
+  /* The dashboard bar on a phone: the identity takes the row and the
+     account menu drops under it full-width (its absolute panel used to
+     spill off the right edge on a 402px screen). */
+  .workspace-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .workspace-bar .account-menu {
+    width: 100%;
+  }
+
+  .workspace-bar .account-menu .button {
+    width: 100%;
+  }
+
+  .workspace-bar .account-menu-list {
+    position: static;
+    width: 100%;
+    min-width: 0;
+    margin-top: var(--space-8);
+    box-shadow: none;
+  }
+
+  .workspace-bar .workspace-identity {
+    width: 100%;
+  }
+
+  /* The timeline view taps grow to the touch bar as well. */
+  .cv-timeline-view {
+    width: 44px;
+    height: 44px;
+  }
+
+  .cv-timeline-view svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .cv-timeline-entry {
+    gap: var(--space-8);
+  }
 }
