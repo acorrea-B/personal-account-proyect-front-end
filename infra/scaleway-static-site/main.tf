@@ -30,10 +30,10 @@ resource "scaleway_object_bucket_policy" "web" {
         ]
       },
       {
-        Sid    = "TerraformUserAccess"
+        Sid    = "ProjectAccess"
         Effect = "Allow"
         Principal = {
-          SCW = "user_id:${var.iam_user_id}"
+          SCW = "project_id:${var.project_id}"
         }
 
         Action = [
@@ -48,9 +48,13 @@ resource "scaleway_object_bucket_policy" "web" {
     ]
   })
 
-  # Without this dependency the policy PUT runs in parallel with the bucket
-  # creation on a first deploy and fails with 404 NoSuchBucket (the v0.2.0
-  # deploy run proved it in the logs).
+  # The bucket policy governs bucket S3 access while it exists: a policy that
+  # does not cover the CI caller locks it out of every read and 403s the
+  # whole deploy (v0.2.1 rerun). The project principal grants the CI key
+  # regardless of whether the API key belongs to an IAM user or an
+  # application, and it survives key rotations. Without this dependency the
+  # policy PUT also ran in parallel with the bucket creation on a first
+  # deploy and failed with 404 NoSuchBucket.
   depends_on = [
     scaleway_object_bucket.web
   ]
