@@ -98,5 +98,9 @@
     "generic": "No se pudo reenviar el correo. Por favor inténtalo de nuevo.",
     "timeout": "La petición agotó el tiempo de espera. Por favor inténtalo de nuevo.",
     "unexpected": "Error inesperado. Por favor inténtalo de nuevo."
+  },
+  "logout": {
+    "heading": "Cerrando sesión",
+    "subtitle": "Terminando tu sesión en este dispositivo."
   }
 }

@@ -112,6 +112,10 @@ export const labelsSchema = z.object({
     timeout: z.string(),
     unexpected: z.string(),
   }),
+  logout: z.object({
+    heading: z.string(),
+    subtitle: z.string(),
+  }),
 });
 
 export type Labels = z.infer<typeof labelsSchema>;

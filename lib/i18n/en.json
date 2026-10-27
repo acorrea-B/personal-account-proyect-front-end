@@ -98,5 +98,9 @@
     "generic": "Resend could not be completed. Please try again.",
     "timeout": "Request timed out. Please try again.",
     "unexpected": "Unexpected error. Please try again."
+  },
+  "logout": {
+    "heading": "Signing out",
+    "subtitle": "Ending your session on this device."
   }
 }
