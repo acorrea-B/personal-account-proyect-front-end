@@ -1,9 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-
-import { signOut } from '@/lib/auth/session';
 
 // The Account menu: the dashboard actions (Update profile, Sign out) in
 // one dropdown, closed by an outside click or Escape. Shared by the
@@ -12,6 +11,7 @@ import { signOut } from '@/lib/auth/session';
 export function AccountMenu() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (!menuOpen) {
@@ -60,7 +60,11 @@ export function AccountMenu() {
               className="account-menu-item"
               onClick={() => {
                 setMenuOpen(false);
-                void signOut();
+                // Navigate, do NOT mutate the session in place: the mounted
+                // page keeps its in-memory session and would look signed in
+                // after a storage-only clear. The /logout/ route owns the
+                // revoke + clear + redirect flow.
+                router.replace('/logout/');
               }}
             >
               Sign out
