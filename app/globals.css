@@ -1281,6 +1281,12 @@ textarea[aria-invalid='true'] {
 }
 
 .cv-editor-card textarea {
+  /* Fill the card: a textarea defaults to its intrinsic cols width (~20
+     characters) and looks tiny against an 880px card — and with the
+     vertical-only resize (the bio lesson: horizontal resize breaks the
+     card track) the user could never widen it by hand. */
+  display: block;
+  width: 100%;
   resize: vertical;
   max-width: 100%;
   min-height: 340px;
