@@ -47,6 +47,13 @@ resource "scaleway_object_bucket_policy" "web" {
       }
     ]
   })
+
+  # Without this dependency the policy PUT runs in parallel with the bucket
+  # creation on a first deploy and fails with 404 NoSuchBucket (the v0.2.0
+  # deploy run proved it in the logs).
+  depends_on = [
+    scaleway_object_bucket.web
+  ]
 }
 
 resource "scaleway_object_bucket_website_configuration" "web" {
