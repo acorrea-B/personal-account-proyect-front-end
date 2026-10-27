@@ -113,3 +113,14 @@ white on it ≈5.5:1, above the 3:1 non-text bar) - scoped to the version
 timeline only: dots, the view circle and its hover/step stay teal while
 every other surface keeps the cyan identity. Token trio documented in
 :root (--color-teal-text/-strong/-wash).
+
+### v0.4.3 window 1 (2026-10-27): the sign-out wiring, caught by the first component test
+
+Operator report: sign out did nothing. Not the lib - the wiring: the
+AccountMenu called `signOut()` in place, which clears storage but leaves
+the mounted dashboard holding its in-memory session (looking signed in,
+with a revoked token behind it). The menu now navigates to `/logout/`,
+which owns revoke + clear + redirect. The fix is guarded by the repo's
+first component test (jsdom + esbuild automatic jsx + act environment +
+the @ alias map) - the harness pieces the component suite needed all
+along.
