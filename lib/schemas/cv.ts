@@ -43,3 +43,24 @@ export const cvSaveResponseSchema = z.object({
 export type Cv = z.infer<typeof cvSchema>;
 export type CvMeta = z.infer<typeof cvMetaSchema>;
 export type CvSaveResponse = z.infer<typeof cvSaveResponseSchema>;
+
+// Version history (FR-018, ADR 0013): at most 10 archived versions, newest
+// first; origin is reserved by D15 and carries 'user' in beta.
+export const versionSummarySchema = z.object({
+  id: z.uuid(),
+  origin: z.enum(['user']),
+  archived_at: z.string(),
+});
+
+export const cvVersionsEnvelopeSchema = z.object({
+  versions: z.array(versionSummarySchema).max(10),
+});
+
+export const versionDetailSchema = versionSummarySchema.extend({
+  content: z.string(),
+});
+
+export type VersionSummary = z.infer<typeof versionSummarySchema>;
+export type VersionDetail = z.infer<typeof versionDetailSchema>;
+
+export const cvVersionEnvelopeSchema = z.object({ version: versionDetailSchema });

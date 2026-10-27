@@ -5,8 +5,12 @@ import {
   cvSaveRequestSchema,
   cvSaveResponseSchema,
   cvEnvelopeSchema,
+  cvVersionsEnvelopeSchema,
+  cvVersionEnvelopeSchema,
   type Cv,
   type CvSaveResponse,
+  type VersionSummary,
+  type VersionDetail,
 } from '../schemas/cv';
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
@@ -99,4 +103,38 @@ export function cvLoadMessage(status?: number, fallback?: string): string {
     return `${fallback.charAt(0).toUpperCase()}${fallback.slice(1)} — try again shortly.`;
   }
   return 'The cv failed to load. Please try again shortly.';
+}
+
+// GET /v1/cv/versions (FR-018): the archived cv versions, at most 10,
+// newest first; an empty list answers a first-time saver.
+export async function getVersions(accessToken: string): Promise<VersionSummary[]> {
+  const response = await fetchCvResource(`${apiBaseUrl}/v1/cv/versions`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!response.ok) {
+    throw await readProblem(response);
+  }
+
+  const data: unknown = await response.json();
+  return cvVersionsEnvelopeSchema.parse(data as z.infer<typeof cvVersionsEnvelopeSchema>).versions;
+}
+
+// GET /v1/cv/versions/{id} (FR-018): one archived version with its content.
+// The api answers 404 for a missing id AND for an id owned by another user
+// (anti BOLA) - the client stays dumb and the 404 keeps its "not found"
+// meaning for both cases.
+export async function getVersionDetail(accessToken: string, id: string): Promise<VersionDetail> {
+  const response = await fetchCvResource(`${apiBaseUrl}/v1/cv/versions/${id}`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!response.ok) {
+    throw await readProblem(response);
+  }
+
+  const data: unknown = await response.json();
+  return cvVersionEnvelopeSchema.parse(data as z.infer<typeof cvVersionEnvelopeSchema>).version;
 }

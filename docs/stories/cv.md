@@ -71,3 +71,10 @@ Planned evolution: the api will eventually serve the cv structured (html or
 equivalent) so the front can mount a full dynamic cv page; the rail stays
 a compact hub and the page becomes the reader. That api evolution rides the
 backend backlog, not this front stack.
+
+### Window 4 (2026-10-27): the versions client
+
+`lib/api/cv.ts` gains `getVersions` (the ≤10 summaries, newest first) and
+`getVersionDetail` (summary + content) with their envelope schemas; 6 new
+tests (94 total) cover the empty first-time list, the id path segment and
+the anti-BOLA 404 that the api uses to mask other users' versions.
