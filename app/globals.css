@@ -18,6 +18,9 @@
      (5.12:1 on white, 4.90:1 on the canvas). */
   --color-cyan-text: #0f6fc5;
   --color-cyan-text-strong: #0d68b8;
+  /* The validation alert: field errors and the invalid marking (the user
+     asked for the real-time red while a condition is unmet). */
+  --color-alert: #b91c1c;
 
   /* next/font defines --font-tight-loaded and --font-inter-loaded on <html>;
      the quoted families are the fallbacks and match the DESIGN.md
@@ -127,6 +130,26 @@ body {
   margin: 0;
 }
 
+/* Textareas resize by height only: the default both-directions resize
+   widens the single grid track and stretches every input of the card
+   with it - the visual break reported with the bio field. The 100% cap
+   is the belt over the dragged inline width. */
+.auth-card textarea {
+  resize: vertical;
+  max-width: 100%;
+  min-height: 96px;
+}
+
+.auth-card textarea:focus-visible {
+  outline: none;
+  border-color: var(--color-cyan-text);
+  box-shadow: 0 0 0 3px var(--color-sky-wash);
+}
+
+.auth-card textarea[aria-invalid='true'] {
+  border-color: var(--color-alert);
+}
+
 .auth-heading {
   margin: 0;
   color: var(--color-ink-black);
@@ -171,9 +194,16 @@ body {
 }
 
 .field-error {
-  color: var(--color-cyan-text);
+  color: var(--color-alert);
   font-size: 12px;
   line-height: 1.5;
+}
+
+/* Any input carrying a validation problem marks red - the email field and
+   every link row included, evaluated in real time while it is typed. */
+input[aria-invalid='true'],
+textarea[aria-invalid='true'] {
+  border-color: var(--color-alert);
 }
 
 .form-error,
@@ -748,10 +778,51 @@ body {
   gap: var(--space-4);
 }
 
+/* The in-flight marker: the spinner rides inside the input from the first
+   keystroke, so the autocomplete action is always visible. */
+.location-input-wrap {
+  position: relative;
+  display: grid;
+}
+
+.location-input-wrap input {
+  padding-right: 34px;
+}
+
+.location-spinner {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border: 2px solid var(--color-stone-muted);
+  border-top-color: var(--color-cyan-text);
+  border-radius: 50%;
+  animation: location-spinner 700ms linear infinite;
+}
+
+@keyframes location-spinner {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.autocomplete-status {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--color-warm-gray);
+}
+
 /* Social and repository link rows: label first, url wide. */
 .link-editor {
   display: grid;
   gap: var(--space-8);
+}
+
+.link-row-group {
+  display: grid;
+  gap: var(--space-4);
 }
 
 .link-row {

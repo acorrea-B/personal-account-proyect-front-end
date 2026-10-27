@@ -87,6 +87,87 @@ export async function updateProfile(
   return profileSchema.parse(data as z.infer<typeof profileSchema>);
 }
 
+// The pasted urls from github/linkedin/x carry deep paths and query cruft
+// (a compare view, a blob, a status, tracking params): the profile wants
+// the BASE. Known hosts truncate at their natural profile depth; anything
+// else only loses query/hash/trailing slash.
+export function normalizeProfileLinkUrl(raw: string): string {
+  let candidate = raw.trim();
+  if (!candidate) {
+    return '';
+  }
+  // A paste with another scheme (ftp:, mailto:) returns untouched: the
+  // schema rejects it later with its http(s) message.
+  if (/^[a-z][a-z0-9+.\-]*:\/\//i.test(candidate) && !/^https?:\/\//i.test(candidate)) {
+    return candidate;
+  }
+  if (!/^https?:\/\//i.test(candidate)) {
+    // Text without dots or with spaces is not a hostname (the operator
+    // pasted "asdadadadadasdsa"): keep it raw so the schema rejects it with
+    // its own message instead of minting an invented url. localhost:
+    // port/path pastes are the documented local exception.
+    const firstSegment = candidate.split('/')[0];
+    if (!candidate.includes('.') || /\s/.test(candidate)) {
+      if (!/^localhost(:\d+)?$/i.test(firstSegment)) {
+        return candidate;
+      }
+    }
+    candidate = `https://${candidate}`;
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(candidate);
+  } catch {
+    return candidate;
+  }
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+    return candidate;
+  }
+
+  const authority = `${parsed.hostname.replace(/^www\./i, '').toLowerCase()}${
+    parsed.port ? `:${parsed.port}` : ''
+  }`;
+  const segments = parsed.pathname.split('/').filter(Boolean);
+
+  let keep = segments.length;
+  if (authority === 'github.com') {
+    // The social github link is the owner profile: one segment, always
+    // (the operator ruled it - repos and compare views are content, not
+    // identity).
+    keep = Math.min(segments.length, 1);
+  } else if (authority === 'linkedin.com') {
+    keep = Math.min(segments.length, 2); // in|company/<slug>
+  } else if (authority === 'x.com' || authority === 'twitter.com') {
+    keep = Math.min(segments.length, 1); // handle
+  }
+
+  const keptPath = segments.slice(0, keep).join('/');
+  return `${parsed.protocol}//${authority}${keptPath ? `/${keptPath}` : ''}`;
+}
+
+// The live evaluator of one link row (evaluated while it is typed, like the
+// email field): neutral when the row is empty, otherwise it names exactly
+// what is expected - including the shape of the address - before the save
+// even happens.
+export function linkRowProblem(row: { type: string; url: string }): string | null {
+  const type = row.type.trim();
+  const url = normalizeProfileLinkUrl(row.url.trim());
+  if (!type && !url) {
+    return null;
+  }
+  if (!url) {
+    return 'Add the link address, like https://example.com';
+  }
+  if (!type) {
+    return 'Add the site name, like github, linkedin or x';
+  }
+  if (!/^https?:\/\//i.test(url)) {
+    return 'An https address is expected, like https://example.com';
+  }
+  return null;
+}
+
 // The workspace read message for a bearer problem. A 401 never reaches this
 // helper: the page treats it as a session event (clear and go to login).
 export function profileReadMessage(status: number, detail?: string): string {

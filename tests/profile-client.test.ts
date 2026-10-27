@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   fetchProfile,
   isProfileIncomplete,
+  linkRowProblem,
+  normalizeProfileLinkUrl,
   profileReadMessage,
   updateProfile,
 } from '../lib/api/profile';
@@ -165,6 +167,39 @@ describe('profileReadMessage', () => {
   });
 });
 
+describe('linkRowProblem', () => {
+  it('stays neutral for an unused row', () => {
+    expect(linkRowProblem({ type: '', url: '' })).toBeNull();
+  });
+
+  it('names the missing half of a partial row', () => {
+    expect(linkRowProblem({ type: 'github', url: '' })).toBe(
+      'Add the link address, like https://example.com',
+    );
+    expect(linkRowProblem({ type: '', url: 'https://github.com/you' })).toBe(
+      'Add the site name, like github, linkedin or x',
+    );
+  });
+
+  it('marks garbage text and foreign schemes with the expected address shape', () => {
+    expect(linkRowProblem({ type: 'github', url: 'asdadadadadasdsa' })).toBe(
+      'An https address is expected, like https://example.com',
+    );
+    expect(linkRowProblem({ type: 'github', url: 'ftp://example.com' })).toBe(
+      'An https address is expected, like https://example.com',
+    );
+  });
+
+  it('accepts a base url, even deep-paste trimmed', () => {
+    expect(
+      linkRowProblem({
+        type: 'github',
+        url: 'https://github.com/example-org/example-repo/compare/main?expand=1',
+      }),
+    ).toBeNull();
+  });
+});
+
 describe('isProfileIncomplete', () => {
   function profile(fullName: string) {
     return {
@@ -251,5 +286,60 @@ describe('updateProfile', () => {
       name: 'ProblemError',
       problem: { status: 412, current_updated_at: '2026-10-27T12:19:19Z' },
     });
+  });
+});
+
+describe('normalizeProfileLinkUrl', () => {
+  it('trims a deep github paste to the owner profile, without query or fragment', () => {
+    expect(
+      normalizeProfileLinkUrl(
+        'https://github.com/example-org/example-repo/compare/feat/workspace-profile?expand=1',
+      ),
+    ).toBe('https://github.com/example-org');
+    expect(normalizeProfileLinkUrl('https://github.com/example-org/example-repo')).toBe(
+      'https://github.com/example-org',
+    );
+  });
+
+  it('prepends https and keeps the profile path of the owner', () => {
+    expect(normalizeProfileLinkUrl('github.com/example-org')).toBe(
+      'https://github.com/example-org',
+    );
+    expect(normalizeProfileLinkUrl('https://github.com/example-org?tab=repositories')).toBe(
+      'https://github.com/example-org',
+    );
+  });
+
+  it('trims linkedin to the identity slug and x to the handle', () => {
+    expect(
+      normalizeProfileLinkUrl('https://www.linkedin.com/in/juan-perez/?originalSubdomain=es'),
+    ).toBe('https://linkedin.com/in/juan-perez');
+    expect(normalizeProfileLinkUrl('https://x.com/juan/status/1234567890?s=20')).toBe(
+      'https://x.com/juan',
+    );
+  });
+
+  it('only strips query, hash and trailing slash on other hosts', () => {
+    expect(
+      normalizeProfileLinkUrl('https://blog.juan.dev/posts/2026/why-rust/?utm_source=x#top'),
+    ).toBe('https://blog.juan.dev/posts/2026/why-rust');
+  });
+
+  it('leaves untouched the paste it cannot repair', () => {
+    expect(normalizeProfileLinkUrl('ftp://example.com')).toBe('ftp://example.com');
+    expect(normalizeProfileLinkUrl('   ')).toBe('');
+  });
+
+  it('never mints a url from garbage text', () => {
+    // The operator pasted "asdadadadadasdsa": without dots it is not a
+    // hostname, so it stays raw and the schema rejects it at save time.
+    expect(normalizeProfileLinkUrl('asdadadadadasdsa')).toBe('asdadadadadasdsa');
+    expect(normalizeProfileLinkUrl('asdas dasda.com')).toBe('asdas dasda.com');
+  });
+
+  it('still trusts dotted and localhost pastes', () => {
+    expect(normalizeProfileLinkUrl('localhost:8080/profile')).toBe(
+      'https://localhost:8080/profile',
+    );
   });
 });
