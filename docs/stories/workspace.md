@@ -145,3 +145,19 @@ only (never over the dev server). Cross-origin requests are
 untouched: the api and the geocoding service never get cached -
 profile reads and auth stay live data. Measurements behind the
 decision are in `docs/task-metrics.md`.
+
+## Skeleton screens for the waiting states (2026-10-27)
+
+The waiting faces hide the layout behind placeholders instead of white
+pages and premature claims:
+
+- the dashboard waits as its own shape (identity bar, profile panel,
+  coming-up rail in their real containers)
+- the profile card waits as itself: the flow face (heading, stepper,
+  kicker) stays hidden until the profile arrives - no flow is
+  announced before its data, which removes the onboarding flash when
+  an already-complete user enters the update flow
+- the skeleton block (components/skeleton.tsx) carries the blurred
+  white glow sweep over the sky-wash blocks; reduced motion keeps the
+  static block; busy regions carry aria-busy and placeholders are
+  aria-hidden

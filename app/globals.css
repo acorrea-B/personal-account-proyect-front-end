@@ -436,6 +436,46 @@ textarea[aria-invalid='true'] {
   }
 }
 
+/* Skeleton screens: content hides behind a soft placeholder instead of
+   a blank canvas. A blurred white glow sweeps the block while the real
+   data rides the network; reduced motion keeps the static block. */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--color-sky-wash-soft);
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+  filter: blur(6px);
+  animation: skeleton-glow 1400ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes skeleton-glow {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-16);
+  padding-bottom: var(--space-24);
+  border-bottom: 1px solid var(--color-stone-border);
+}
+
+.skeleton-screen {
+  display: grid;
+  gap: var(--space-12);
+}
+
 /* Scroll reveal. Sections stay visible by default; the hidden state applies
    only once `js` is set on <html> (app/template.tsx), so content never
    depends on JavaScript to be readable. */

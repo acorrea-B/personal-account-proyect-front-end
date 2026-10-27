@@ -19,6 +19,7 @@ import { signOut } from '@/lib/auth/session';
 import { updateProfileRequestSchema, type Profile } from '@/lib/schemas/profile';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
+import { Skeleton } from '@/components/skeleton';
 import { CheckIcon, HomeIcon, MailIcon, ProfileIcon, UserIcon } from '@/components/icons';
 
 type SaveState = { status: 'idle' | 'saving' | 'saved'; note?: string };
@@ -281,15 +282,17 @@ export default function ProfileSetupPage() {
 
   if (!isHydrated || !isAuthorized) {
     return (
-      <main className="auth-page">
-        <p className="auth-subtitle loading-state">Checking session…</p>
+      <main className="auth-page" aria-busy="true">
+        <section className="auth-shell auth-card" aria-label="Loading your profile">
+          <ProfileCardSkeleton />
+        </section>
       </main>
     );
   }
 
   return (
     <main className={isUpdateFlow ? 'workspace-page' : 'auth-page'}>
-      {isUpdateFlow ? (
+      {load.status === 'ready' && profile && isUpdateFlow ? (
         <header className="workspace-bar">
           <div className="workspace-identity">
             <p className="eyebrow">Your workspace</p>
@@ -308,71 +311,78 @@ export default function ProfileSetupPage() {
       ) : null}
       <section
         className="auth-shell auth-card"
-        aria-label={flow === 'onboarding' ? 'Complete your profile' : 'Update profile'}
+        aria-label={
+          load.status === 'ready' && profile
+            ? flow === 'onboarding'
+              ? 'Complete your profile'
+              : 'Update profile'
+            : 'Loading your profile'
+        }
       >
-        {flow === 'onboarding' ? (
-          <header className="workspace-header">
-            <div>
-              <h1 className="auth-heading">Complete your profile</h1>
-              <p className="auth-subtitle">
-                Signed in as {session?.user.email} — one short pass and the workspace is yours.
+        {load.status === 'loading' ? <ProfileCardSkeleton /> : null}
+        {load.status === 'ready' && profile ? (
+          <>
+            {flow === 'onboarding' ? (
+              <header className="workspace-header">
+                <div>
+                  <h1 className="auth-heading">Complete your profile</h1>
+                  <p className="auth-subtitle">
+                    Signed in as {session?.user.email} — one short pass and the workspace is yours.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="link"
+                  onClick={() => void signOut()}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit' }}
+                >
+                  Sign out
+                </button>
+              </header>
+            ) : (
+              <h1 className="auth-heading">Update profile</h1>
+            )}
+
+            {flow === 'onboarding' ? (
+              <ol className="auth-steps" aria-label="Registration phases">
+                <li className="auth-step">
+                  <UserIcon className="auth-step-icon" /> Account
+                </li>
+                <li className="auth-step">
+                  <MailIcon className="auth-step-icon" /> Verify
+                </li>
+                <li className="auth-step is-active">
+                  <ProfileIcon className="auth-step-icon" /> Profile
+                </li>
+              </ol>
+            ) : null}
+
+            {showToast ? (
+              <div role="status" className="save-toast">
+                <CheckIcon />
+                <p>
+                  {flow === 'onboarding'
+                    ? 'Profile saved — it is live in the workspace.'
+                    : 'Profile updated — saved exactly as edited.'}
+                </p>
+                <button
+                  type="button"
+                  className="save-toast-dismiss"
+                  aria-label="Dismiss the saved confirmation"
+                  onClick={() => setShowToast(false)}
+                >
+                  ✕
+                </button>
+              </div>
+            ) : null}
+
+            {flow === 'onboarding' ? (
+              <p className="auth-kicker">
+                <span className="auth-kicker-icon">●</span>
+                The api holds a placeholder profile until this is saved
               </p>
-            </div>
-            <button
-              type="button"
-              className="link"
-              onClick={() => void signOut()}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit' }}
-            >
-              Sign out
-            </button>
-          </header>
-        ) : (
-          <h1 className="auth-heading">Update profile</h1>
-        )}
-
-        {flow === 'onboarding' ? (
-          <ol className="auth-steps" aria-label="Registration phases">
-            <li className="auth-step">
-              <UserIcon className="auth-step-icon" /> Account
-            </li>
-            <li className="auth-step">
-              <MailIcon className="auth-step-icon" /> Verify
-            </li>
-            <li className="auth-step is-active">
-              <ProfileIcon className="auth-step-icon" /> Profile
-            </li>
-          </ol>
-        ) : null}
-
-        {showToast ? (
-          <div role="status" className="save-toast">
-            <CheckIcon />
-            <p>
-              {flow === 'onboarding'
-                ? 'Profile saved — it is live in the workspace.'
-                : 'Profile updated — saved exactly as edited.'}
-            </p>
-            <button
-              type="button"
-              className="save-toast-dismiss"
-              aria-label="Dismiss the saved confirmation"
-              onClick={() => setShowToast(false)}
-            >
-              ✕
-            </button>
-          </div>
-        ) : null}
-
-        {flow === 'onboarding' ? (
-          <p className="auth-kicker">
-            <span className="auth-kicker-icon">●</span>
-            The api holds a placeholder profile until this is saved
-          </p>
-        ) : null}
-
-        {load.status === 'loading' ? (
-          <p className="auth-subtitle loading-state">Loading your profile…</p>
+            ) : null}
+          </>
         ) : null}
 
         {load.status === 'error' ? (
@@ -711,5 +721,24 @@ export default function ProfileSetupPage() {
         ) : null}
       </section>
     </main>
+  );
+}
+
+// The profile card skeleton: heading, description and field rows as soft
+// blocks in the same geometry as the ready state — the flow's face
+// (heading, stepper, kicker) stays hidden until the profile arrives, so
+// no flow is announced before its data exists.
+function ProfileCardSkeleton() {
+  return (
+    <div className="skeleton-screen">
+      <Skeleton width={190} height={28} />
+      <Skeleton width={280} height={14} />
+      <Skeleton width="100%" height={52} />
+      <Skeleton width="100%" height={52} />
+      <Skeleton width="100%" height={84} />
+      <Skeleton width="100%" height={52} />
+      <Skeleton width="100%" height={52} />
+      <Skeleton width={140} height={40} />
+    </div>
   );
 }
