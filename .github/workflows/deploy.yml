@@ -158,7 +158,12 @@ jobs:
 
       - name: Inspect Terraform state
         working-directory: infra/scaleway-static-site
-        run: terraform state list
+        run: |
+          set -euo pipefail
+          terraform state list || {
+            echo "El estado todavía no contiene recursos."
+            echo "No ejecutar apply hasta importar los recursos existentes."
+          }
 
       - name: Plan infrastructure and website deployment
         working-directory: infra/scaleway-static-site
