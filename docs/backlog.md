@@ -24,6 +24,16 @@ Expensive decisions: none beyond the already-decided client-side i18n (en/es).
 
 ## Deferred improvements (post beta 1)
 
+- **Real end-to-end testing service (v2 decision).** The operator ruled out
+  manual smoke passes for phase 2; v2 will evaluate an E2E testing service
+  driving real flows against production (register → verify → login →
+  workspace → profile edit). Until then CI smoke coverage stays where it
+  is: unit suite (73 tests) + the deploy pipeline's endpoint smoke.
+- **Monitoring and user tracking (v2 decision).** Statistics for the public
+  pages: the operator will evaluate monitoring and user-tracking tooling
+  (candidate: Google's tools) with privacy-conscious setup. Deliberately not
+  this phase; when it lands the export picks the script per the
+  secure-typescript-nextjs rules (no secrets client-side).
 - **Skills suggestion endpoint (api side).** An api endpoint that suggests
   skills for the signed-in user from what the system already knows: the
   profile's own skills, the CV text corpus and its version history, and the
