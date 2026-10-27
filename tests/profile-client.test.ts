@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   fetchProfile,
@@ -341,5 +341,41 @@ describe('normalizeProfileLinkUrl', () => {
     expect(normalizeProfileLinkUrl('localhost:8080/profile')).toBe(
       'https://localhost:8080/profile',
     );
+  });
+});
+
+describe('configured api base url', () => {
+  it('prefixes the configured base url (mocked fetch, fake domain)', async () => {
+    // The deploy validate job exports NEXT_PUBLIC_API_BASE_URL; the client
+    // builds the absolute URL from it. Cover that branch hermetically: a fake
+    // domain with fetch mocked, never a real endpoint.
+    vi.resetModules();
+    vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.example.test');
+    const { fetchProfile: fetchProfileWithBase } = await import('../lib/api/profile');
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: '11111111-1111-4111-8111-111111111111',
+          email: 'juan@example.com',
+          full_name: 'Juan Pérez',
+          created_at: '2026-10-27T00:00:00.000Z',
+          updated_at: '2026-10-27T00:00:00.000Z',
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await fetchProfileWithBase('access-token');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.test/v1/profile',
+      expect.objectContaining({ method: 'GET' }),
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
   });
 });
