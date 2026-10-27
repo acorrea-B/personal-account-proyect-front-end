@@ -58,13 +58,18 @@ export default function LandingPage() {
           </Link>
           <nav className="site-nav" aria-label="Main">
             {isSignedIn ? (
-              <Link className="link" href="/app/">
+              <Link className="button button-primary" href="/app/">
                 Open profile
               </Link>
             ) : (
-              <Link className="link" href="/login/">
-                Sign in
-              </Link>
+              <>
+                <Link className="button button-ghost" href="/login/">
+                  Sign in
+                </Link>
+                <Link className="button button-primary" href="/register/">
+                  Create account
+                </Link>
+              </>
             )}
           </nav>
         </div>
@@ -76,22 +81,6 @@ export default function LandingPage() {
             <p className="eyebrow">Private professional profile workspace</p>
             <h1 id="landing-title">Your career deserves a distinguished entrance.</h1>
             <p>A calm, private workspace for your professional profile and CV.</p>
-            <div className="landing-actions">
-              {isSignedIn ? (
-                <Link className="button button-primary" href="/app/">
-                  Open profile
-                </Link>
-              ) : (
-                <>
-                  <Link className="button button-primary" href="/login/">
-                    Sign in
-                  </Link>
-                  <Link className="button button-ghost" href="/register/">
-                    Create an account
-                  </Link>
-                </>
-              )}
-            </div>
           </div>
         </section>
 
