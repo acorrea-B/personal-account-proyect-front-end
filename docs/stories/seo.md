@@ -28,3 +28,15 @@ as x-amz-meta-* user metadata, not as the Cache-Control header. Cache
 policies therefore join gzip, the www/apex 301s and the https redirect in
 the custom-domain + CDN decision (v2 queue), evaluated with the captured
 baseline.
+
+### Window 2 (2026-10-27): the landing copy (the checker's 3-in-1 fix)
+
+The landing carried ~70 words and an h1 whose words never reappeared in
+the content — three seobility findings in one screen. The copy rewrite
+puts ~369 visible words in real paragraphs: an h1 anchored on the product
+keywords ("A professional profile and CV that carry your career
+forward."), a hero that names what the account holds (profile fields, the
+versioned CV, the safety net), longer feature-card paragraphs in the same
+calm voice, a growth section with two full paragraphs and a closing that
+echoes the keywords. No stuffing — every sentence is a product sentence,
+per the refero voice.
