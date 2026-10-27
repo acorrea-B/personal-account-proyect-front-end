@@ -19,6 +19,9 @@ jobs:
     if: >-
       github.event.repository.fork == false &&
       github.event.pull_request.head.repo.full_name == github.repository
+    # Auxiliary bookkeeping job: its own failure must never block a window
+    # merge; the failure stays visible on the run.
+    continue-on-error: true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout full history
@@ -31,11 +34,15 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           REPO: ${{ github.repository }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          range="origin/${BASE_BRANCH}..${HEAD_BRANCH}"
+          # The runner knows no local branch names (detached checkout of the
+          # merge ref); the range must resolve through the base's remote ref
+          # and the head SHA the event itself carries.
+          range="origin/${BASE_BRANCH}..${HEAD_SHA}"
           subjects=$(git log --format='- %s (%h)' "${range}" || true)
           if [[ -z "${subjects}" ]]; then
             subjects='- *No window commits in this range (the branch is up to date with its base).*'
