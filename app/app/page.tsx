@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { ProblemError } from '@/lib/api/client';
 import { fetchProfile, isProfileIncomplete, profileReadMessage } from '@/lib/api/profile';
-import { loadSession, refreshSession, signOut } from '@/lib/auth/session';
+import { loadSession, refreshSession } from '@/lib/auth/session';
 import type { Profile } from '@/lib/schemas/profile';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
+import { AccountMenu } from '@/components/account-menu';
 import { ClampedText } from '@/components/clamped-text';
 import { ProfileIcon, ShieldIcon, SignalIcon } from '@/components/icons';
 
@@ -24,32 +25,6 @@ export default function AppHomePage() {
   const accessToken = session?.accessToken ?? null;
 
   const [load, setLoad] = useState<WorkspaceLoad>({ status: 'loading' });
-  // The account menu: Update profile and Sign out live here (the operator
-  // asked for a menu instead of scattered links).
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!menuOpen) {
-      return;
-    }
-    function onDocumentMouseDown(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', onDocumentMouseDown);
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', onDocumentMouseDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [menuOpen]);
 
   const loadProfile = useCallback(
     async (token: string, viaRenewal = false) => {
@@ -140,39 +115,7 @@ export default function AppHomePage() {
           </h1>
           <p className="auth-subtitle">Signed in as {session?.user.email}</p>
         </div>
-        <div className="account-menu" ref={menuRef}>
-          <button
-            type="button"
-            className="button button-ghost"
-            aria-haspopup="menu"
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            Account
-          </button>
-          {menuOpen ? (
-            <ul className="account-menu-list" role="menu" aria-label="Account actions">
-              <li role="none">
-                <Link role="menuitem" className="account-menu-item" href="/app/profile/">
-                  Update profile
-                </Link>
-              </li>
-              <li role="none">
-                <button
-                  role="menuitem"
-                  type="button"
-                  className="account-menu-item"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    void signOut();
-                  }}
-                >
-                  Sign out
-                </button>
-              </li>
-            </ul>
-          ) : null}
-        </div>
+        <AccountMenu />
       </header>
 
       {load.status === 'loading' ? (

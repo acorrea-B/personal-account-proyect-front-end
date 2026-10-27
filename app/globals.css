@@ -1060,6 +1060,14 @@ textarea[aria-invalid='true'] {
   background: var(--color-pure-white);
 }
 
+/* The update-profile flow opens inside the dashboard shell: the edit
+   card keeps the form width instead of stretching to the 1200px rail. */
+.workspace-page .auth-shell.auth-card {
+  justify-self: start;
+  width: 100%;
+  max-width: 720px;
+}
+
 .panel-head {
   display: flex;
   align-items: center;
