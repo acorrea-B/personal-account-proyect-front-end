@@ -54,8 +54,11 @@ export default function LandingPage() {
     <div className="landing-page">
       <header className="site-header">
         <div className="site-header-inner">
-          <Link className="site-brand" href="/">
-            Professional Profile
+          <Link className="site-brand" href="/" aria-label="Professional Profile home">
+            <span className="site-brand-mark" aria-hidden="true">
+              <SignalIcon />
+            </span>
+            <span className="site-brand-word">Professional Profile</span>
           </Link>
           <nav className="site-nav" aria-label="Main">
             {isSignedIn ? (
