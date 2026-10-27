@@ -4,12 +4,12 @@ import { useRouter } from 'next/navigation';
 
 import { type Locale } from '@/lib/i18n';
 
-// Maps a path from one locale tree to its equivalent in the other: the
-// es subtrees live under the /es prefix, the english tree at the root.
-// Pure on purpose - the dropdown navigation and the tests share it.
-export function swapLocalePath(path: string, from: Locale): string {
+// Toggles a path between the locale subtrees: an es-prefixed path strips
+// to its english equivalent, anything else prefixes /es. Pure on purpose -
+// the dropdown navigation and the tests share it.
+export function swapLocalePath(path: string): string {
   const bare = path.replace(/^\/es(?=\/|$)/, '') || '/';
-  return from === 'es' ? bare : bare === '/' ? '/es/' : `/es${bare}`;
+  return path.startsWith('/es/') || path === '/es' ? bare : bare === '/' ? '/es/' : `/es${bare}`;
 }
 
 // The language picker: a native select navigates between the locale
@@ -27,7 +27,7 @@ export function LanguageSelect({ current, path }: { current: Locale; path: strin
       onChange={(event) => {
         const next = event.target.value as Locale;
         if (next !== current) {
-          router.push(swapLocalePath(path, next));
+          router.push(swapLocalePath(path));
         }
       }}
     >
