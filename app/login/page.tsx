@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import { ProblemError, login } from '@/lib/api/client';
 import { loginRequestSchema } from '@/lib/schemas/auth';
-import { saveSession } from '@/lib/auth/session';
+import { savePendingVerificationEmail, saveSession } from '@/lib/auth/session';
 
 interface FieldErrors {
   email?: string;
@@ -49,7 +49,11 @@ export default function LoginPage() {
         if (error.problem.status === 401) {
           setFormError('Email or password is invalid.');
         } else if (error.problem.status === 403) {
-          setFormError('Your email is not verified yet. Verify it before signing in.');
+          // The api reports an unverified email: hand the account to the
+          // verification view directly instead of leaving the user to find it.
+          savePendingVerificationEmail(email);
+          router.push('/register/confirm/');
+          return;
         } else if (error.problem.status === 429) {
           const seconds = error.problem.retry_after_seconds;
           setFormError(
@@ -81,13 +85,6 @@ export default function LoginPage() {
         {formError ? (
           <div role="alert" className="form-error">
             <p>{formError}</p>
-            {formError.includes('not verified') ? (
-              <p>
-                <a className="link" href="/register/confirm/">
-                  Resend verification email
-                </a>
-              </p>
-            ) : null}
           </div>
         ) : null}
 

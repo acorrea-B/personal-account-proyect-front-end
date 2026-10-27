@@ -46,22 +46,41 @@ export function clearSession(): void {
   window.sessionStorage.removeItem(USER_KEY);
 }
 
+// Single-flight guard: gotrue rotates the refresh token with reuse-kill, so
+// parallel callers sharing one token would invalidate the whole session
+// family. Every caller of refreshSession awaits the same in-flight promise.
+let inFlightRefresh: Promise<AuthSession | null> | null = null;
+
 export async function refreshSession(
   session: AuthSession | null = loadSession(),
 ): Promise<AuthSession | null> {
-  if (!session) {
-    return null;
+  if (inFlightRefresh) {
+    return inFlightRefresh;
   }
 
-  try {
-    const tokenPair = await refresh({ refresh_token: session.refreshToken });
-    return saveSession(tokenPair);
-  } catch (error) {
-    if (error instanceof ProblemError && error.problem.status === 401) {
-      clearSession();
+  const run = (async () => {
+    const current = session ?? loadSession();
+    if (!current) {
       return null;
     }
-    throw error;
+
+    try {
+      const tokenPair = await refresh({ refresh_token: current.refreshToken });
+      return saveSession(tokenPair);
+    } catch (error) {
+      if (error instanceof ProblemError && error.problem.status === 401) {
+        clearSession();
+        return null;
+      }
+      throw error;
+    }
+  })();
+
+  inFlightRefresh = run;
+  try {
+    return await run;
+  } finally {
+    inFlightRefresh = null;
   }
 }
 
@@ -75,4 +94,24 @@ export async function signOut(): Promise<void> {
     }
   }
   clearSession();
+}
+
+// Cross-view handoff for the unverified-email flow (static export: pages
+// communicate through sessionStorage, never through query params). The
+// helpers are SSR-safe: during prerendering there is no window and they
+// degrade to no-ops so pages can still render.
+export const PENDING_VERIFICATION_EMAIL_KEY = 'auth.pendingVerificationEmail';
+
+export function savePendingVerificationEmail(email: string): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  window.sessionStorage.setItem(PENDING_VERIFICATION_EMAIL_KEY, email);
+}
+
+export function readPendingVerificationEmail(): string {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+  return window.sessionStorage.getItem(PENDING_VERIFICATION_EMAIL_KEY) ?? '';
 }
