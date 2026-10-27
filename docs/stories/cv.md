@@ -47,3 +47,17 @@ loading (skeleton), ready (`ClampedText` at 3 lines + last-saved meta +
 button. The cv read keeps the read rule: it never destroys the session,
 429 explains the rate cap (10/min), 401 keeps the session framing. The
 editor entry point rides window 3 and turns this card into its hub.
+
+### Window 3 (2026-10-27): the editor opens under the dashboard bar
+
+`app/app/cv/` gets the real editor: the dashboard shell (identity bar +
+Account menu) wraps an `auth-card` with the tall textarea (auth-card input
+rules inherited), the tabular byte counter (alert past the contract limit,
+submit disabled while over) and the save flow with every contract answer —
+201 refreshes the meta and flashes the viewport toast ("the previous
+version moved to the history when there was one"), 412 keeps the user's
+draft untouched (no silent replacement) and hands the explicit "reload the
+latest version" button, 413 names the byte ceiling, 429 explains the rate
+cap. The persistent way back (Back to workspace, never tied to the toast)
+rides the actions row. On the rail, the cv card gains its visible entry
+buttons: "Edit CV" when a cv exists, "Write your CV" on the empty state.
