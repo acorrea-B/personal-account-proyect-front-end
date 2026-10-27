@@ -46,22 +46,41 @@ export function clearSession(): void {
   window.sessionStorage.removeItem(USER_KEY);
 }
 
+// Single-flight guard: gotrue rotates the refresh token with reuse-kill, so
+// parallel callers sharing one token would invalidate the whole session
+// family. Every caller of refreshSession awaits the same in-flight promise.
+let inFlightRefresh: Promise<AuthSession | null> | null = null;
+
 export async function refreshSession(
   session: AuthSession | null = loadSession(),
 ): Promise<AuthSession | null> {
-  if (!session) {
-    return null;
+  if (inFlightRefresh) {
+    return inFlightRefresh;
   }
 
-  try {
-    const tokenPair = await refresh({ refresh_token: session.refreshToken });
-    return saveSession(tokenPair);
-  } catch (error) {
-    if (error instanceof ProblemError && error.problem.status === 401) {
-      clearSession();
+  const run = (async () => {
+    const current = session ?? loadSession();
+    if (!current) {
       return null;
     }
-    throw error;
+
+    try {
+      const tokenPair = await refresh({ refresh_token: current.refreshToken });
+      return saveSession(tokenPair);
+    } catch (error) {
+      if (error instanceof ProblemError && error.problem.status === 401) {
+        clearSession();
+        return null;
+      }
+      throw error;
+    }
+  })();
+
+  inFlightRefresh = run;
+  try {
+    return await run;
+  } finally {
+    inFlightRefresh = null;
   }
 }
 

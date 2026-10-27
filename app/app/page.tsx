@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
-import { ProblemError, refresh } from '@/lib/api/client';
+import { ProblemError } from '@/lib/api/client';
 import { fetchProfile, profileReadMessage } from '@/lib/api/profile';
-import { loadSession } from '@/lib/auth/session';
+import { loadSession, refreshSession } from '@/lib/auth/session';
 import type { Profile } from '@/lib/schemas/profile';
 import { useRequireAuth } from '../../lib/auth/useRequireAuth';
 
@@ -35,12 +35,10 @@ export default function AppHomePage() {
         const kept = loadSession();
         if (kept?.refreshToken) {
           try {
-            const renewed = await refresh({ refresh_token: kept.refreshToken });
-            const next = loadSession();
+            const next = await refreshSession();
             if (next) {
               return loadProfile(next.accessToken, true);
             }
-            return loadProfile(renewed.access_token, true);
           } catch {
             // fall through: keep the session, report the failure below
           }
