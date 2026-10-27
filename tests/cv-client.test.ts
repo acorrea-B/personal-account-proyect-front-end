@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { cvLoadMessage, fetchCvText, saveCvText } from '../lib/api/cv';
+import {
+  cvLoadMessage,
+  fetchCvText,
+  getVersionDetail,
+  getVersions,
+  saveCvText,
+} from '../lib/api/cv';
 import { cvSchema, maxCvContentBytes, cvSaveRequestSchema } from '../lib/schemas/cv';
 
 const cv = {
@@ -236,5 +242,101 @@ describe('cvLoadMessage', () => {
       'The cv storage hiccuped — try again shortly.',
     );
     expect(cvLoadMessage(500)).toMatch(/try again shortly/i);
+  });
+});
+
+describe('cv versions client', () => {
+  const summary = {
+    id: '33333333-3333-3333-8333-333333333333',
+    origin: 'user',
+    archived_at: '2026-10-26T09:00:00.000Z',
+  };
+
+  it('GETs /v1/cv/versions and returns the summaries newest first', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ versions: [summary] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const versions = await getVersions('access-token');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/v1/cv/versions',
+      expect.objectContaining({ method: 'GET', headers: { Authorization: 'Bearer access-token' } }),
+    );
+    expect(versions).toEqual([summary]);
+  });
+
+  it('returns an empty array for a first-time saver (empty envelope)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ versions: [] }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    );
+    expect(await getVersions('access-token')).toEqual([]);
+  });
+
+  it('GETs one version detail through its id path segment', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ version: { ...summary, content: 'old cv text' } }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const version = await getVersionDetail('access-token', summary.id);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      `/v1/cv/versions/${summary.id}`,
+      expect.objectContaining({ method: 'GET' }),
+    );
+    expect(version).toEqual({ ...summary, content: 'old cv text' });
+  });
+
+  it('surfaces the 404 that masks other users ids (anti BOLA)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            type: 'https://api.example.com/errors/not-found',
+            title: 'Not Found',
+            status: 404,
+          }),
+          { status: 404, headers: { 'Content-Type': 'application/problem+json' } },
+        ),
+      ),
+    );
+    await expect(getVersionDetail('access-token', summary.id)).rejects.toMatchObject({
+      name: 'ProblemError',
+      problem: { status: 404 },
+    });
+  });
+
+  it('throws a ProblemError without json body fallbacks on 401/429', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response('{}', { status: 401, headers: { 'Content-Type': 'application/json' } }),
+        ),
+    );
+    await expect(getVersions('access-token')).rejects.toMatchObject({
+      name: 'ProblemError',
+      problem: { status: 401 },
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 });
