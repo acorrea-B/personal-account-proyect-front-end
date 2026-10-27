@@ -1466,14 +1466,14 @@ textarea[aria-invalid='true'] {
 }
 
 .cv-timeline-view {
-  /* A solid cyan circle: the eye reads as a first-class action, centered
-     against the row and unmistakable at a glance. */
+  /* A solid cyan circle hugging the text line: the eye reads as a
+     first-class action without shouting. */
   display: inline-flex;
   align-self: center;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
   margin-left: auto;
   border: none;
@@ -1482,6 +1482,12 @@ textarea[aria-invalid='true'] {
   color: var(--color-pure-white);
   cursor: pointer;
   transition: 160ms ease;
+}
+
+.cv-timeline-view svg {
+  /* The rail scopes .upcoming-item svg to its cyan icons - that rule beats
+     the inherited color and left the eye invisible on the cyan circle. */
+  color: var(--color-pure-white);
 }
 
 .cv-timeline-view:hover {
