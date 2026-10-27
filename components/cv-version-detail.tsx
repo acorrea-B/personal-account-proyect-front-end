@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ProblemError } from '@/lib/api/client';
 import { cvLoadMessage, getVersionDetail, saveCvText } from '@/lib/api/cv';
 import { type CvSaveResponse, type VersionDetail } from '@/lib/schemas/cv';
+import { labels, tr, type Locale } from '@/lib/i18n';
 
 import { formatWhen } from './cv-timeline';
 import { CheckIcon } from './icons';
@@ -25,13 +26,16 @@ export function CvVersionDetail({
   currentUpdatedAt,
   onClose,
   onRestored,
+  locale = 'en',
 }: {
   id: string;
   accessToken: string;
   currentUpdatedAt: string | undefined;
   onClose: () => void;
   onRestored: (saved: CvSaveResponse) => void;
+  locale?: Locale;
 }) {
+  const labelsT = labels(locale);
   const [detail, setDetail] = useState<DetailState>({ status: 'loading' });
   const [saving, setSaving] = useState(false);
   const [restoredSaved, setRestoredSaved] = useState(false);
@@ -126,21 +130,23 @@ export function CvVersionDetail({
       >
         <div className="cv-version-head">
           <div>
-            <p className="eyebrow">Version history · archived</p>
+            <p className="eyebrow">{labelsT.versionDetail.eyebrow}</p>
             <h2 id="cv-version-title" className="cv-version-heading">
               {detail.status === 'ready'
                 ? `Version from ${formatWhen(detail.detail.archived_at)}`
                 : 'Version'}
             </h2>
             {detail.status === 'ready' ? (
-              <p className="eyebrow">origin {detail.detail.origin}</p>
+              <p className="eyebrow">
+                {tr(labelsT.versionDetail.origin, { origin: detail.detail.origin })}
+              </p>
             ) : null}
           </div>
           <button
             ref={closeRef}
             type="button"
             className="save-toast-dismiss"
-            aria-label="Close the version detail"
+            aria-label={labelsT.versionDetail.close}
             onClick={onClose}
           >
             ✕
@@ -178,7 +184,7 @@ export function CvVersionDetail({
             <div className="cv-version-actions">
               {restoredSaved ? (
                 <span role="status" className="cv-restored-note">
-                  <CheckIcon /> <span>Version restored — it is now the current cv.</span>
+                  <CheckIcon /> <span>{labelsT.versionDetail.restored}</span>
                 </span>
               ) : null}
               {note ? (
@@ -193,9 +199,13 @@ export function CvVersionDetail({
                   disabled={saving || restoredSaved}
                   onClick={() => detail.status === 'ready' && void restore(detail.detail)}
                 >
-                  {saving ? 'Restoring…' : restoredSaved ? 'Restored' : 'Restore this version'}
+                  {saving
+                    ? 'Restoring…'
+                    : restoredSaved
+                      ? labelsT.versionDetail.restored
+                      : labelsT.versionDetail.restore}
                 </button>
-                <CloseButton onClose={onClose} />
+                <CloseButton onClose={onClose} label={labelsT.versionDetail.close} />
               </div>
             </div>
           </>
@@ -207,10 +217,10 @@ export function CvVersionDetail({
 
 // The close affordance stays a plain ghost button labeled for screen
 // readers; it rides the actions row together with the restore action.
-function CloseButton({ onClose }: { onClose: () => void }) {
+function CloseButton({ onClose, label }: { onClose: () => void; label: string }) {
   return (
     <button type="button" className="button button-ghost" onClick={onClose}>
-      Close
+      {label}
     </button>
   );
 }
