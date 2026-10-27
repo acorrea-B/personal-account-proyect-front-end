@@ -43,8 +43,14 @@ export async function searchCities(query: string): Promise<CitySuggestion[]> {
     if (!parsed.success) {
       return [];
     }
-    return (parsed.data.results ?? []).map((result) => ({
-      label: [result.name, result.admin1, result.country].filter(Boolean).join(', '),
+    // The api can return several results with the exact same joined label
+    // (two villages sharing a name inside one region): identical labels
+    // collapse to one suggestion.
+    const labels = (parsed.data.results ?? []).map((result) =>
+      [result.name, result.admin1, result.country].filter(Boolean).join(', '),
+    );
+    return [...new Set(labels)].map((label) => ({
+      label,
     }));
   } catch {
     return [];

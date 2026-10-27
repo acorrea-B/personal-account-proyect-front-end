@@ -369,7 +369,11 @@ export default function ProfileSetupPage() {
               {showSuggestions && suggestions.length ? (
                 <ul id="setup-location-suggestions" className="suggestions" role="listbox">
                   {suggestions.map((suggestion, index) => (
-                    <li key={suggestion} role="option" aria-selected={index === highlight}>
+                    <li
+                      key={`${suggestion}#${index}`}
+                      role="option"
+                      aria-selected={index === highlight}
+                    >
                       <button
                         type="button"
                         className={index === highlight ? 'is-highlight' : undefined}

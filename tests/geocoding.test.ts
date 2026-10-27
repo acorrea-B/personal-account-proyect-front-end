@@ -37,6 +37,29 @@ describe('searchCities', () => {
     expect(suggestions).toEqual([{ label: 'Bogotá, Bogotá D.C., Colombia' }]);
   });
 
+  it('collapses identical place labels into one suggestion', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          results: [
+            { name: 'Ja', admin1: 'Southern Darfur', country: 'Sudan' },
+            { name: 'Ja', admin1: 'Southern Darfur', country: 'Sudan' },
+            { name: 'Jāmunda', admin1: 'Odisha', country: 'India' },
+          ],
+        }),
+        { status: 200 },
+      ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const suggestions = await searchCities('ja');
+
+    expect(suggestions).toEqual([
+      { label: 'Ja, Southern Darfur, Sudan' },
+      { label: 'Jāmunda, Odisha, India' },
+    ]);
+  });
+
   it('answers empty when the api carries no results', async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({}), { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
