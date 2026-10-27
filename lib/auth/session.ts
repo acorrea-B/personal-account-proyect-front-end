@@ -78,13 +78,21 @@ export async function signOut(): Promise<void> {
 }
 
 // Cross-view handoff for the unverified-email flow (static export: pages
-// communicate through sessionStorage, never through query params).
+// communicate through sessionStorage, never through query params). The
+// helpers are SSR-safe: during prerendering there is no window and they
+// degrade to no-ops so pages can still render.
 export const PENDING_VERIFICATION_EMAIL_KEY = 'auth.pendingVerificationEmail';
 
 export function savePendingVerificationEmail(email: string): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
   window.sessionStorage.setItem(PENDING_VERIFICATION_EMAIL_KEY, email);
 }
 
 export function readPendingVerificationEmail(): string {
+  if (typeof window === 'undefined') {
+    return '';
+  }
   return window.sessionStorage.getItem(PENDING_VERIFICATION_EMAIL_KEY) ?? '';
 }
