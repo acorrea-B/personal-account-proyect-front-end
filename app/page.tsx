@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useRef } from 'react';
 
 import { ShieldIcon, SignalIcon, UserIcon } from '../components/icons';
@@ -58,15 +59,15 @@ export default function LandingPage() {
           </Link>
           <nav className="site-nav" aria-label="Main">
             {isSignedIn ? (
-              <Link className="button button-primary" href="/app/">
+              <Link className="nav-link" href="/app/">
                 Open profile
               </Link>
             ) : (
               <>
-                <Link className="button button-ghost" href="/login/">
+                <Link className="nav-link nav-link--quiet" href="/login/">
                   Sign in
                 </Link>
-                <Link className="button button-primary" href="/register/">
+                <Link className="nav-link" href="/register/">
                   Create account
                 </Link>
               </>
@@ -81,6 +82,17 @@ export default function LandingPage() {
             <p className="eyebrow">Private professional profile workspace</p>
             <h1 id="landing-title">Your career deserves a distinguished entrance.</h1>
             <p>A calm, private workspace for your professional profile and CV.</p>
+          </div>
+
+          <div className="hero-figure">
+            <Image
+              className="hero-image"
+              src="https://images.pexels.com/photos/3931641/pexels-photo-3931641.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&dpr=1"
+              alt="A focused team gathered around a table, reviewing documents together"
+              width={1200}
+              height={800}
+              priority
+            />
           </div>
         </section>
 

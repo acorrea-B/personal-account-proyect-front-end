@@ -250,11 +250,33 @@ body {
 
 .landing-hero {
   width: 100%;
-  max-width: 760px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: var(--space-64) var(--space-24);
   display: grid;
-  gap: var(--space-16);
+  gap: var(--space-48);
+  grid-template-areas: 'copy panel';
+  grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr);
+  align-items: center;
+}
+
+.landing-copy {
+  grid-area: copy;
+}
+
+.hero-figure {
+  grid-area: panel;
+}
+
+.hero-image {
+  width: 100%;
+  max-height: 440px;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--color-stone-border);
+  box-shadow: var(--shadow-md);
+  display: block;
 }
 
 .landing-copy h1 {
@@ -320,6 +342,12 @@ body {
 }
 
 @media (max-width: 860px) {
+  .landing-hero {
+    grid-template-areas: 'copy' 'panel';
+    grid-template-columns: 1fr;
+    gap: var(--space-32);
+  }
+
   .landing-copy h1 {
     font-size: var(--text-heading-sm);
     letter-spacing: -0.8px;
@@ -406,6 +434,26 @@ body {
 
 .site-nav {
   display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+/* Text-only entry links: the pill pair read as merged in the header. */
+.nav-link {
+  padding: var(--space-8) var(--space-8);
+  font-size: 14px;
+  color: var(--color-ink-black);
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  color: var(--color-ink-black);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.nav-link--quiet {
+  color: var(--color-warm-gray);
 }
 
 .trust-strip {
