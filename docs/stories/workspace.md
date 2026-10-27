@@ -38,8 +38,22 @@ it, so that I always see real data before editing.
 - The dev stack's verification email links do not verify: the token inside the
   sent link does not hash to the stored `confirmation_token` (gotrue answers
   `access_denied: Email link is invalid or has expired`). Escalated to the api
-  repository; while unresolved, dev-stack test accounts get verified by SQL.
-- The api rejected every Bearer credential: the `.env` carried no
-  `SUPABASE_JWT_SECRET`, so the api verified against a fallback secret while
-  gotrue signs with the compose one. Fixed by adding it; the api process needs
-  a restart to pick it up.
+  repository; while unresolved, dev-stack test accounts get verified by SQL —
+  although the api's own `DEV_PRINT_CONFIRMATION_LINK=true` works: the printed
+  link verified an account end to end (register 201 -> verify 200 -> login).
+  Mixed local/cloud stacks explain most of the earlier noise: the `.env` of the
+  api pointed to the cloud beta project while gotrue ran locally.
+- The `.env` of the api pointed `SUPABASE_URL`/`JWKS`/`DATABASE_URL` to the
+  cloud beta project, so `probe-e2e` (born in local gotrue) answered
+  invalid-credentials and the register flow hit the cloud email quota (429).
+  Fixed by restoring the coherent local stack of `.env.example` (the cloud
+  values stay commented as `# beta:` lines); the browser flow now works:
+  register 201, allow-origin on every response, login with tokens.
+- The bearer endpoints (`/v1/profile`, `/v1/cv/*`) still answer 401 against
+  the local gotrue raw because it serves an EMPTY jwks (`keys: []`, symmetric
+  keys never publish) and the api verifies exclusively through the
+  `JwksVerifier`. This is the documented local limitation of the api
+  (its `docs/learned.md`): locally the protected flows run with the HS256
+  verifier of `AppState::for_tests()`, and CI uses the cloud JWKS. The api
+  repository must decide: an env-driven verifier for local development or
+  run the E2E against the cloud beta (cap: ~2 registration emails per hour).
