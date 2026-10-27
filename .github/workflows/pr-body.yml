@@ -53,6 +53,8 @@ jobs:
             chore/pr-description-automation) label='batch 6, window 1 (repo tooling)' ;;
             feat/workspace-skeletons) label='batch 6, window 2' ;;
             feat/workspace-resolve-fold) label='batch 6, window 3 (final integration)' ;;
+            feat/cv-contract) label='batch v0.4.0, window 1 (cv contract)' ;;
+            feat/cv-*) label='batch v0.4 (cv stack)' ;;
             *) label='stacked deploy window' ;;
           esac
           {
