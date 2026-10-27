@@ -40,7 +40,6 @@ export function CvCard({ state }: { state: CvCardState }) {
             <Link className="button button-primary" href="/app/cv/">
               Edit CV
             </Link>
-            <span className="status-chip">Live</span>
           </>
         ) : state.kind === 'empty' ? (
           <>
@@ -48,7 +47,6 @@ export function CvCard({ state }: { state: CvCardState }) {
             <Link className="button button-primary" href="/app/cv/">
               Write your CV
             </Link>
-            <span className="status-chip">Empty</span>
           </>
         ) : (
           <>
