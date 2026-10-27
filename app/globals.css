@@ -130,6 +130,26 @@ body {
   margin: 0;
 }
 
+/* Textareas resize by height only: the default both-directions resize
+   widens the single grid track and stretches every input of the card
+   with it - the visual break reported with the bio field. The 100% cap
+   is the belt over the dragged inline width. */
+.auth-card textarea {
+  resize: vertical;
+  max-width: 100%;
+  min-height: 96px;
+}
+
+.auth-card textarea:focus-visible {
+  outline: none;
+  border-color: var(--color-cyan-text);
+  box-shadow: 0 0 0 3px var(--color-sky-wash);
+}
+
+.auth-card textarea[aria-invalid='true'] {
+  border-color: var(--color-alert);
+}
+
 .auth-heading {
   margin: 0;
   color: var(--color-ink-black);
