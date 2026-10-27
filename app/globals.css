@@ -819,23 +819,71 @@ textarea[aria-invalid='true'] {
   }
 }
 
-.save-banner {
+/* The save confirmation: a floating toast pinned to the bottom of the
+   viewport, visible wherever the user is in the form. The page timer
+   auto-dismisses it after 5 seconds; the ✕ dismisses it by hand. */
+.save-toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--space-24);
+  z-index: 30;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: var(--space-8);
   border-radius: var(--radius-lg);
   padding: var(--space-12) var(--space-16);
-  background: var(--color-sky-wash-soft);
+  background: var(--color-pure-white);
   border: 1px solid var(--color-cyan-text);
   color: var(--color-ink-black);
   font-weight: 500;
+  box-shadow: var(--shadow-xl);
+  animation: toast-rise 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.save-banner svg {
+.save-toast svg {
   width: 16px;
   height: 16px;
   flex: none;
   color: var(--color-cyan-text);
+}
+
+.save-toast p {
+  margin: 0;
+}
+
+.save-toast-dismiss {
+  background: none;
+  border: none;
+  color: var(--color-warm-gray);
+  font: inherit;
+  cursor: pointer;
+  padding: 0 0 0 var(--space-8);
+  line-height: 1;
+}
+
+.save-toast-dismiss:hover {
+  color: var(--color-ink-black);
+}
+
+@keyframes toast-rise {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* The reduced-motion voice keeps the toast static: only the entrance
+   animation is dropped; the centering transform must survive. */
+@media (prefers-reduced-motion: reduce) {
+  .save-toast {
+    animation: none;
+    transform: translateX(-50%);
+  }
 }
 
 /* The info notes (role=status): sky-wash tinted, distinct from alerts. */
@@ -922,4 +970,173 @@ textarea[aria-invalid='true'] {
 .suggestions button:hover {
   background: var(--color-sky-wash);
   color: var(--color-ink-black);
+}
+
+/* The workspace dashboard: one identity bar with the account menu, the
+   profile panel and the coming-up rail. */
+.workspace-page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: grid;
+  gap: var(--space-32);
+  align-content: start;
+  padding: var(--space-24);
+}
+
+.workspace-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-16);
+  padding-bottom: var(--space-24);
+  border-bottom: 1px solid var(--color-stone-border);
+}
+
+.workspace-title {
+  margin: var(--space-4) 0 var(--space-8);
+  font-family: var(--font-display);
+  font-size: var(--text-heading-sm);
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -0.8px;
+  color: var(--color-ink-black);
+}
+
+.account-menu {
+  position: relative;
+}
+
+.account-menu-list {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--space-8));
+  z-index: 20;
+  min-width: 200px;
+  margin: 0;
+  padding: var(--space-4);
+  list-style: none;
+  background: var(--color-pure-white);
+  border: 1px solid var(--color-stone-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.account-menu-item {
+  display: block;
+  width: 100%;
+  padding: var(--space-8) var(--space-12);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  text-decoration: none;
+  color: var(--color-ink-black);
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.account-menu-item:hover {
+  background: var(--color-sky-wash-soft);
+}
+
+.dashboard-grid {
+  display: grid;
+  gap: var(--space-16);
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
+  align-items: start;
+}
+
+.workspace-page .profile-panel,
+.workspace-page .upcoming-panel {
+  display: grid;
+  gap: var(--space-16);
+  padding: var(--space-24) var(--space-32);
+  border: 1px solid var(--color-stone-border);
+  border-radius: var(--radius-2xl);
+  background: var(--color-pure-white);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+}
+
+.clamped-text {
+  margin: 0;
+  color: var(--color-ink-black);
+}
+
+.upcoming-list {
+  display: grid;
+  gap: var(--space-12);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.upcoming-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-12);
+  padding: var(--space-16);
+  border: 1px solid var(--color-stone-border);
+  border-radius: var(--radius-lg);
+}
+
+.upcoming-item svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin-top: var(--space-4);
+  color: var(--color-cyan-text);
+}
+
+.upcoming-copy {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.upcoming-copy strong {
+  color: var(--color-ink-black);
+  font-weight: 500;
+}
+
+.upcoming-copy span {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-warm-gray);
+}
+
+.status-chip {
+  justify-self: start;
+  padding: var(--space-4) var(--space-12);
+  border-radius: var(--radius-full);
+  font-size: var(--text-caption);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-warm-gray);
+  background: var(--color-stone-canvas);
+}
+
+/* The skills render as badges: the tinted chip is now the badge. */
+.skill-chips li {
+  padding: var(--space-4) var(--space-12);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-cyan-text-strong);
+  background: var(--color-sky-wash-soft);
+}
+
+@media (max-width: 860px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
 }
