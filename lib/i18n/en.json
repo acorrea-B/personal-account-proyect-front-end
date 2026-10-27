@@ -1,0 +1,49 @@
+{
+  "account": "Account",
+  "updateProfile": "Update profile",
+  "signOut": "Sign out",
+  "language": "Language",
+  "cvCard": {
+    "title": "CV",
+    "live": "Live",
+    "lastSaved": "Last saved {date}",
+    "edit": "Edit CV",
+    "empty": "No cv yet — write yours in the editor.",
+    "write": "Write your CV",
+    "retry": "Try again"
+  },
+  "history": {
+    "title": "Version history",
+    "empty": "No archived versions yet — save the cv to start the history.",
+    "retry": "Try again",
+    "viewLabel": "View the version archived {date}"
+  },
+  "versionDetail": {
+    "eyebrow": "Version history · archived",
+    "viewHeading": "Version from {date}",
+    "viewFallback": "Version",
+    "origin": "origin {origin}",
+    "restore": "Restore this version",
+    "restored": "Version restored — it is now the current cv.",
+    "restoredNote": "Cv saved — the previous version moved to the history when there was one.",
+    "close": "Close",
+    "dismiss": "Dismiss the saved confirmation"
+  },
+  "panel": {
+    "eyebrow": "Profile",
+    "fullName": "Full name",
+    "headline": "Headline",
+    "bio": "Bio",
+    "location": "Location",
+    "skills": "Skills",
+    "links": "Links",
+    "updatedNote": "Updated {date}",
+    "updateLink": "Update profile",
+    "comingUp": "Coming up",
+    "liveCard": "Profile"
+  },
+  "clampedText": {
+    "showMore": "Show more",
+    "showLess": "Show less"
+  }
+}

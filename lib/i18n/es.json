@@ -1,0 +1,49 @@
+{
+  "account": "Cuenta",
+  "updateProfile": "Actualizar perfil",
+  "signOut": "Cerrar sesión",
+  "language": "Idioma",
+  "cvCard": {
+    "title": "CV",
+    "live": "En vivo",
+    "lastSaved": "Guardado el {date}",
+    "edit": "Editar CV",
+    "empty": "Aún no hay CV — escríbelo en el editor.",
+    "write": "Escribe tu CV",
+    "retry": "Intentar de nuevo"
+  },
+  "history": {
+    "title": "Historial de versiones",
+    "empty": "Aún no hay versiones archivadas — guarda el CV para empezar el historial.",
+    "retry": "Intentar de nuevo",
+    "viewLabel": "Ver la versión archivada el {date}"
+  },
+  "versionDetail": {
+    "eyebrow": "Historial de versiones · archivada",
+    "viewHeading": "Versión del {date}",
+    "viewFallback": "Versión",
+    "origin": "origen {origin}",
+    "restore": "Restaurar esta versión",
+    "restored": "Versión restaurada — ahora es la vigente.",
+    "restoredNote": "CV guardado — la versión anterior pasó al historial.",
+    "close": "Cerrar",
+    "dismiss": "Descartar la confirmación de guardado"
+  },
+  "panel": {
+    "eyebrow": "Perfil",
+    "fullName": "Nombre",
+    "headline": "Titular",
+    "bio": "Bio",
+    "location": "Ubicación",
+    "skills": "Habilidades",
+    "links": "Enlaces",
+    "updatedNote": "Actualizado el {date}",
+    "updateLink": "Actualizar perfil",
+    "comingUp": "Lo que viene",
+    "liveCard": "Perfil"
+  },
+  "clampedText": {
+    "showMore": "Mostrar más",
+    "showLess": "Mostrar menos"
+  }
+}
