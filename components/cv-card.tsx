@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/skeleton';
 import { ProfileIcon } from '@/components/icons';
 import { type Cv } from '@/lib/schemas/cv';
 import { formatWhen } from './cv-timeline';
+import { labels, tr, type Locale } from '@/lib/i18n';
 
 export type CvCardState =
   | { kind: 'loading' }
@@ -24,12 +25,13 @@ function cvPreview(content: string): string {
   return trimmed.length > previewLimit ? `${trimmed.slice(0, previewLimit).trimEnd()}…` : trimmed;
 }
 
-export function CvCard({ state }: { state: CvCardState }) {
+export function CvCard({ state, locale = 'en' }: { state: CvCardState; locale?: Locale }) {
+  const labelsT = labels(locale);
   return (
     <li className="upcoming-item">
       <ProfileIcon />
       <div className="upcoming-copy">
-        <strong>CV</strong>
+        <strong>{labelsT.cvCard.title}</strong>
         {state.kind === 'loading' ? (
           <span>
             <Skeleton width={150} height={12} />
@@ -37,19 +39,19 @@ export function CvCard({ state }: { state: CvCardState }) {
         ) : state.kind === 'ready' ? (
           <>
             <span className="cv-preview">{cvPreview(state.cv.content)}</span>
-            <span>Last saved {formatWhen(state.cv.updated_at)}</span>
+            <span>{tr(labelsT.cvCard.lastSaved, { date: formatWhen(state.cv.updated_at) })}</span>
             <div className="cv-card-actions">
               <Link className="link" href="/app/cv/">
-                Edit CV
+                {labelsT.cvCard.edit}
               </Link>
             </div>
           </>
         ) : state.kind === 'empty' ? (
           <>
-            <span>No cv yet — write yours in the editor.</span>
+            <span>{labelsT.cvCard.empty}</span>
             <div className="cv-card-actions">
               <Link className="link" href="/app/cv/">
-                Write your CV
+                {labelsT.cvCard.write}
               </Link>
             </div>
           </>
