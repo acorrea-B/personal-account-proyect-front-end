@@ -82,5 +82,21 @@
     "loginQuestion": "Already have an account?",
     "loginEntry": "Sign in instead",
     "otherLanguage": "Español"
+  },
+  "confirm": {
+    "heading": "Confirm your email",
+    "pendingPrefix": "The sign-in with",
+    "pendingSuffix": "needs a verified email. Check your inbox and follow the verification link to continue.",
+    "pendingNote": "After verifying, return here and sign in again.",
+    "freshCopy": "We created your account. Check your inbox and follow the verification link to continue with registration.",
+    "freshNote": "After verifying your email, return here and sign in.",
+    "email": "Email",
+    "resendIn": "Resend in {label}",
+    "sending": "Sending...",
+    "resend": "Resend verification email",
+    "rateCapped": "Too many requests. Redirecting to registration.",
+    "generic": "Resend could not be completed. Please try again.",
+    "timeout": "Request timed out. Please try again.",
+    "unexpected": "Unexpected error. Please try again."
   }
 }

@@ -96,6 +96,22 @@ export const labelsSchema = z.object({
     loginEntry: z.string(),
     otherLanguage: z.string(),
   }),
+  confirm: z.object({
+    heading: z.string(),
+    pendingPrefix: z.string(),
+    pendingSuffix: z.string(),
+    pendingNote: z.string(),
+    freshCopy: z.string(),
+    freshNote: z.string(),
+    email: z.string(),
+    resendIn: z.string(),
+    sending: z.string(),
+    resend: z.string(),
+    rateCapped: z.string(),
+    generic: z.string(),
+    timeout: z.string(),
+    unexpected: z.string(),
+  }),
 });
 
 export type Labels = z.infer<typeof labelsSchema>;

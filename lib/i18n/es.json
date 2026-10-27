@@ -82,5 +82,21 @@
     "loginQuestion": "¿Ya tienes una cuenta?",
     "loginEntry": "Inicia sesión",
     "otherLanguage": "English"
+  },
+  "confirm": {
+    "heading": "Confirma tu correo",
+    "pendingPrefix": "El inicio de sesión con",
+    "pendingSuffix": "necesita un correo verificado. Revisa tu bandeja de entrada y sigue el enlace de verificación para continuar.",
+    "pendingNote": "Después de verificar, vuelve aquí e inicia sesión otra vez.",
+    "freshCopy": "Creamos tu cuenta. Revisa tu bandeja de entrada y sigue el enlace de verificación para continuar con el registro.",
+    "freshNote": "Después de verificar tu correo, vuelve aquí e inicia sesión.",
+    "email": "Correo electrónico",
+    "resendIn": "Reenviar en {label}",
+    "sending": "Enviando…",
+    "resend": "Reenviar correo de verificación",
+    "rateCapped": "Demasiadas peticiones. Redirigiendo al registro.",
+    "generic": "No se pudo reenviar el correo. Por favor inténtalo de nuevo.",
+    "timeout": "La petición agotó el tiempo de espera. Por favor inténtalo de nuevo.",
+    "unexpected": "Error inesperado. Por favor inténtalo de nuevo."
   }
 }
