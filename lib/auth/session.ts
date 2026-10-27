@@ -76,3 +76,15 @@ export async function signOut(): Promise<void> {
   }
   clearSession();
 }
+
+// Cross-view handoff for the unverified-email flow (static export: pages
+// communicate through sessionStorage, never through query params).
+export const PENDING_VERIFICATION_EMAIL_KEY = 'auth.pendingVerificationEmail';
+
+export function savePendingVerificationEmail(email: string): void {
+  window.sessionStorage.setItem(PENDING_VERIFICATION_EMAIL_KEY, email);
+}
+
+export function readPendingVerificationEmail(): string {
+  return window.sessionStorage.getItem(PENDING_VERIFICATION_EMAIL_KEY) ?? '';
+}

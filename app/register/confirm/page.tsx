@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import { ProblemError, resendVerification } from '@/lib/api/client';
 import { resendVerificationRequestSchema } from '@/lib/schemas/auth';
+import { readPendingVerificationEmail } from '@/lib/auth/session';
 
 const THREE_MINUTES_MS = 3 * 60 * 1000;
 const RESEND_AVAILABLE_AT_KEY = 'verificationResendAvailableAt';
@@ -16,7 +17,11 @@ interface FieldErrors {
 
 export default function RegisterConfirmPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  // The login view hands over the account behind a 403 email-not-verified;
+  // this page prefills it and explains the next step (static export: the
+  // handoff travels through sessionStorage).
+  const [pendingEmail] = useState(() => readPendingVerificationEmail());
+  const [email, setEmail] = useState(() => readPendingVerificationEmail());
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -113,11 +118,23 @@ export default function RegisterConfirmPage() {
     <main className="auth-page">
       <section className="auth-shell auth-card">
         <h1 className="auth-heading">Confirm your email</h1>
-        <p>
-          We created your account. Check your inbox and follow the verification link to continue
-          with registration.
-        </p>
-        <p className="auth-subtitle">After verifying your email, return here and sign in.</p>
+        {pendingEmail ? (
+          <>
+            <p>
+              The sign-in with <strong>{pendingEmail}</strong> needs a verified email. Check your
+              inbox and follow the verification link to continue.
+            </p>
+            <p className="auth-subtitle">After verifying, return here and sign in again.</p>
+          </>
+        ) : (
+          <>
+            <p>
+              We created your account. Check your inbox and follow the verification link to continue
+              with registration.
+            </p>
+            <p className="auth-subtitle">After verifying your email, return here and sign in.</p>
+          </>
+        )}
 
         <form method="post" onSubmit={handleSubmit} noValidate>
           <label className="field" htmlFor="email">
