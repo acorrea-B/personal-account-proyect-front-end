@@ -85,3 +85,25 @@ it, so that I always see real data before editing.
   verifier of `AppState::for_tests()`, and CI uses the cloud JWKS. The api
   repository must decide: an env-driven verifier for local development or
   run the E2E against the cloud beta (cap: ~2 registration emails per hour).
+
+## Two write flows share the endpoint (2026-10-27)
+
+`PUT /v1/profile` is one endpoint (a complete PUT with the optimistic
+header), but the two flows that call it are not the same flow:
+
+- **Complete your profile** (onboarding): the workspace redirects the
+  seeded `User` placeholder here. It demands only a real name; every
+  optional field is allowed to stay empty. The registration stepper and
+  the placeholder kicker belong to this flow alone; after the save the
+  handoff is the toast plus "Open workspace".
+- **Update profile** (maintenance): reached from the workspace menu. Its
+  background validations keep the profile valid for the dashboard: the
+  name can neither be emptied nor be the placeholder (a 200 that
+  reinstalls 'User' would silently re-qualify the profile as incomplete
+  and re-gate the workspace), and the name field marks live while its
+  condition is unmet. No stepper, no placeholder talk; the button reads
+  "Save changes" and the copy names the complete-PUT semantics.
+
+The flow derives once from the loaded profile (`profileWriteFlow`), is
+frozen for the page's lifetime and both rules are unit-covered in
+`tests/profile-flows.test.ts` (`fullNameProblem` per flow).
