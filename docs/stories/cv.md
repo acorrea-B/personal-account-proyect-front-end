@@ -89,3 +89,16 @@ answering the first-time saver, error with its own retry. The entries stay
 plain rows until the detail dialog turns them interactive (window 6).
 The vitest harness gained the `@` alias map and a TZ=UTC pin, so
 component tests share the app vocabulary and dates stay deterministic.
+
+### Window 6 (2026-10-27): the version detail dialog and restore
+
+The timeline rows turn interactive: each entry opens a reading panel over
+the dashboard (`components/cv-version-detail.tsx`) — backdrop with blur,
+Escape/backdrop-click/✕ close, initial focus on the close button, body
+scroll locked while open. The content reads like the document the cv is
+(pre-wrap, its own scroll on a stone-canvas paper). "Restore this version"
+performs a contract save of the archived content with the current
+updated_at as the optimistic reference: 201 refreshes the dashboard (cv
+card and history reload), 412 (concurrent write) keeps the panel open with
+explicit instructions instead of guessing, 429 carries the rate-cap voice.
+Entries without a handler stay honest plain rows (the window-5 fallback).
