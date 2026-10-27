@@ -61,3 +61,13 @@ latest version" button, 413 names the byte ceiling, 429 explains the rate
 cap. The persistent way back (Back to workspace, never tied to the toast)
 rides the actions row. On the rail, the cv card gains its visible entry
 buttons: "Edit CV" when a cv exists, "Write your CV" on the empty state.
+
+### Rail decision (2026-10-27, operator): no document reader in the rail
+
+The unfolded "Show more" over a 51KB cv broke the rail visually. The card
+now shows a hard 280-char truncation (paragraph breaks preserved, ellipsis,
+no unfold control) - the full text lives one click away in the editor.
+Planned evolution: the api will eventually serve the cv structured (html or
+equivalent) so the front can mount a full dynamic cv page; the rail stays
+a compact hub and the page becomes the reader. That api evolution rides the
+backend backlog, not this front stack.

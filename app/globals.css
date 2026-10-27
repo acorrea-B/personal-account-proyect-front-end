@@ -1318,3 +1318,12 @@ textarea[aria-invalid='true'] {
     min-height: 260px;
   }
 }
+
+/* The cv card preview: block text with its paragraph breaks preserved
+   (pre-line), capped by a js truncation at 280 chars - the full document
+   lives in the editor, not in the rail. */
+.cv-preview {
+  display: block;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
