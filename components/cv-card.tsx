@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Skeleton } from '@/components/skeleton';
 import { ProfileIcon } from '@/components/icons';
 import { type Cv } from '@/lib/schemas/cv';
+import { formatWhen } from './cv-timeline';
 
 export type CvCardState =
   | { kind: 'loading' }
@@ -36,7 +37,7 @@ export function CvCard({ state }: { state: CvCardState }) {
         ) : state.kind === 'ready' ? (
           <>
             <span className="cv-preview">{cvPreview(state.cv.content)}</span>
-            <span>Last saved {state.cv.updated_at}</span>
+            <span>Last saved {formatWhen(state.cv.updated_at)}</span>
             <div className="cv-card-actions">
               <Link className="link" href="/app/cv/">
                 Edit CV
