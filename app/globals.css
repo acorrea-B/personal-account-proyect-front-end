@@ -819,18 +819,18 @@ textarea[aria-invalid='true'] {
   }
 }
 
-/* The save confirmation: a floating toast pinned to the bottom of the
-   viewport, visible wherever the user is in the form. The page timer
-   auto-dismisses it after 5 seconds; the ✕ dismisses it by hand. */
+/* The save confirmation: a floating toast pinned to the bottom-right
+   corner, so it never rides over the centered actions row. The page
+   timer auto-dismisses it after 5 seconds; the ✕ dismisses it by hand. */
 .save-toast {
   position: fixed;
-  left: 50%;
+  right: var(--space-24);
   bottom: var(--space-24);
   z-index: 30;
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: var(--space-8);
+  max-width: min(480px, calc(100% - 2 * var(--space-24)));
   border-radius: var(--radius-lg);
   padding: var(--space-12) var(--space-16);
   background: var(--color-pure-white);
@@ -869,20 +869,19 @@ textarea[aria-invalid='true'] {
 @keyframes toast-rise {
   from {
     opacity: 0;
-    transform: translate(-50%, 12px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: translateY(0);
   }
 }
 
 /* The reduced-motion voice keeps the toast static: only the entrance
-   animation is dropped; the centering transform must survive. */
+   animation is dropped. */
 @media (prefers-reduced-motion: reduce) {
   .save-toast {
     animation: none;
-    transform: translateX(-50%);
   }
 }
 
@@ -1003,6 +1002,40 @@ textarea[aria-invalid='true'] {
   line-height: 1.25;
   letter-spacing: -0.8px;
   color: var(--color-ink-black);
+}
+
+/* The actions cluster of the dashboard bar: the home action rides
+   beside the Account menu (an icon link per the navigation contract:
+   <a> for navigation, visible focus, the shared stroke icon style). */
+.workspace-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.workspace-home {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-stone-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-pure-white);
+  color: var(--color-ink-black);
+}
+
+.workspace-home:hover {
+  background: var(--color-sky-wash-soft);
+}
+
+.workspace-home:focus-visible {
+  box-shadow: 0 0 0 3px var(--color-sky-wash);
+}
+
+.workspace-home svg {
+  width: 18px;
+  height: 18px;
 }
 
 .account-menu {
