@@ -45,6 +45,22 @@ it, so that I always see real data before editing.
 - Defer the PUT flow, the CV text editor and version history to stories
   9 and 10 of the backlog.
 
+## Story 9 progress (complete-your-profile, in flight)
+
+- The live contract of the PUT was proven against the local api before the
+  schema landed: a complete write answers **200 with the refreshed profile**,
+  and a stale write answers **412 with `current_updated_at`**.
+- `updateProfile` + `isProfileIncomplete` landed in `lib/api/profile.ts`
+  (unit-covered).
+- `/app` now gates the seeded `User` placeholder into `/app/profile/`, the
+  setup form (full_name, headline, bio, location); the PUT travels complete,
+  so the enrichments the api holds (links/skills) are sent back preserved
+  until their editors land in a followup.
+- The setup flow loads real data, saves with the optimistic header (200 ->
+  saved + Open workspace), reloads the latest on 412 with an explanatory
+  note, and surfaces 429/503/timeout as retryable messages. Live criteria
+  now run GREEN against the local stack (`JWT_VERIFY_MODE=hs256`).
+
 ## Findings recorded while starting this story (live api, 2026-10-27)
 
 - The dev stack's verification email links do not verify: the token inside the
