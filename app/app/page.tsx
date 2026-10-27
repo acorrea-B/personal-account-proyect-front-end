@@ -200,7 +200,7 @@ export default function AppHomePage() {
             <div className="panel-head">
               <p className="eyebrow">Profile · live from the api</p>
               <Link className="link" href="/app/profile/">
-                Edit profile
+                Update profile
               </Link>
             </div>
 

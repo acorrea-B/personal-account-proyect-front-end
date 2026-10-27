@@ -7,10 +7,13 @@ import { ProblemError } from '@/lib/api/client';
 import { searchCities } from '@/lib/api/geocoding';
 import {
   fetchProfile,
+  fullNameProblem,
   linkRowProblem,
   normalizeProfileLinkUrl,
   profileReadMessage,
+  profileWriteFlow,
   updateProfile,
+  type ProfileFlow,
 } from '@/lib/api/profile';
 import { signOut } from '@/lib/auth/session';
 import { updateProfileRequestSchema, type Profile } from '@/lib/schemas/profile';
@@ -43,6 +46,11 @@ export default function ProfileSetupPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formNote, setFormNote] = useState<string | null>(null);
   const [save, setSave] = useState<SaveState>({ status: 'idle' });
+  // The write flow: derived once from the profile the api returned at
+  // load, then frozen. Both flows share PUT /v1/profile, but onboarding
+  // replaces the placeholder while update keeps a live profile — their
+  // background rules differ.
+  const [flow, setFlow] = useState<ProfileFlow>('onboarding');
   // The save toast: pinned to the bottom of the viewport, so the
   // confirmation is visible wherever the user is in the form. It
   // auto-dismisses after 5 seconds and stays dismissible by hand.
@@ -84,6 +92,7 @@ export default function ProfileSetupPage() {
         const fetched = await fetchProfile(token);
         setProfile(fetched);
         populate(fetched);
+        setFlow(profileWriteFlow(fetched));
         setLoad({ status: 'ready', profile: fetched });
       } catch (error) {
         // Same read semantics as the workspace: a 401 never destroys the
@@ -124,6 +133,10 @@ export default function ProfileSetupPage() {
   // Real-time evaluation of every link row, exactly like the email field:
   // the row marks red while its condition is unmet.
   const rowProblems = linksDraft.map((row) => linkRowProblem(row));
+
+  // The update flow marks the name field live too: a profile in
+  // maintenance cannot quietly lose its name.
+  const nameLiveProblem = flow === 'update' ? fullNameProblem(fullName, flow) : null;
 
   const skillsDraft = skillsText
     .split(',')
@@ -168,6 +181,15 @@ export default function ProfileSetupPage() {
     setFieldErrors({});
 
     if (profile && accessToken) {
+      // The flow's own name rule runs before the schema: the update flow
+      // also blocks the placeholder (a 200 that reinstalls 'User' would
+      // silently re-qualify the profile as incomplete and re-gate the
+      // workspace).
+      const nameProblem = fullNameProblem(fullName, flow);
+      if (nameProblem) {
+        setFieldErrors({ full_name: nameProblem });
+        return;
+      }
       const normalizedBio = bio.replace(/\r\n?/g, '\n');
       // The links editor owns the list: rows left completely empty are
       // discarded, and an empty list empties it server-side (complete PUT).
@@ -249,12 +271,19 @@ export default function ProfileSetupPage() {
 
   return (
     <main className="auth-page">
-      <section className="auth-shell auth-card" aria-label="Complete your profile">
+      <section
+        className="auth-shell auth-card"
+        aria-label={flow === 'onboarding' ? 'Complete your profile' : 'Update profile'}
+      >
         <header className="workspace-header">
           <div>
-            <h1 className="auth-heading">Complete your profile</h1>
+            <h1 className="auth-heading">
+              {flow === 'onboarding' ? 'Complete your profile' : 'Update profile'}
+            </h1>
             <p className="auth-subtitle">
-              Signed in as {session?.user.email} — one short pass and the workspace is yours.
+              {flow === 'onboarding'
+                ? `Signed in as ${session?.user.email} — one short pass and the workspace is yours.`
+                : `Signed in as ${session?.user.email} — this save travels complete; a cleared field empties it.`}
             </p>
           </div>
           <button
@@ -267,22 +296,28 @@ export default function ProfileSetupPage() {
           </button>
         </header>
 
-        <ol className="auth-steps" aria-label="Registration phases">
-          <li className="auth-step">
-            <UserIcon className="auth-step-icon" /> Account
-          </li>
-          <li className="auth-step">
-            <MailIcon className="auth-step-icon" /> Verify
-          </li>
-          <li className="auth-step is-active">
-            <ProfileIcon className="auth-step-icon" /> Profile
-          </li>
-        </ol>
+        {flow === 'onboarding' ? (
+          <ol className="auth-steps" aria-label="Registration phases">
+            <li className="auth-step">
+              <UserIcon className="auth-step-icon" /> Account
+            </li>
+            <li className="auth-step">
+              <MailIcon className="auth-step-icon" /> Verify
+            </li>
+            <li className="auth-step is-active">
+              <ProfileIcon className="auth-step-icon" /> Profile
+            </li>
+          </ol>
+        ) : null}
 
         {showToast ? (
           <div role="status" className="save-toast">
             <CheckIcon />
-            <p>Profile saved — it is live in the workspace.</p>
+            <p>
+              {flow === 'onboarding'
+                ? 'Profile saved — it is live in the workspace.'
+                : 'Profile updated — saved exactly as edited.'}
+            </p>
             <button
               type="button"
               className="save-toast-dismiss"
@@ -294,10 +329,12 @@ export default function ProfileSetupPage() {
           </div>
         ) : null}
 
-        <p className="auth-kicker">
-          <span className="auth-kicker-icon">●</span>
-          The api holds a placeholder profile until this is saved
-        </p>
+        {flow === 'onboarding' ? (
+          <p className="auth-kicker">
+            <span className="auth-kicker-icon">●</span>
+            The api holds a placeholder profile until this is saved
+          </p>
+        ) : null}
 
         {load.status === 'loading' ? (
           <p className="auth-subtitle loading-state">Loading your profile…</p>
@@ -333,13 +370,15 @@ export default function ProfileSetupPage() {
                 maxLength={200}
                 value={fullName}
                 onChange={(event) => setFullName(event.target.value)}
-                aria-invalid={Boolean(fieldErrors.full_name)}
-                aria-describedby={fieldErrors.full_name ? 'setup-full-name-error' : undefined}
+                aria-invalid={Boolean(fieldErrors.full_name || nameLiveProblem)}
+                aria-describedby={
+                  fieldErrors.full_name || nameLiveProblem ? 'setup-full-name-error' : undefined
+                }
               />
             </label>
-            {fieldErrors.full_name ? (
+            {fieldErrors.full_name || nameLiveProblem ? (
               <p id="setup-full-name-error" role="alert" className="field-error">
-                {fieldErrors.full_name}
+                {fieldErrors.full_name ?? nameLiveProblem}
               </p>
             ) : null}
 
@@ -612,8 +651,10 @@ export default function ProfileSetupPage() {
                   </>
                 ) : save.status === 'saved' ? (
                   '✓ Saved'
-                ) : (
+                ) : flow === 'onboarding' ? (
                   'Save profile'
+                ) : (
+                  'Save changes'
                 )}
               </button>
               {showToast ? (

@@ -59,6 +59,37 @@ export function isProfileIncomplete(profile: Profile): boolean {
   return fullName.length === 0 || fullName.toLowerCase() === 'user';
 }
 
+// The two write flows share PUT /v1/profile (a complete PUT with the
+// optimistic header) but not their background rules, so each carries its
+// own validation voice:
+//
+// - onboarding replaces the seeded placeholder: only a real name is
+//   demanded, every optional field is allowed to stay empty.
+// - update keeps a live profile: the name can neither be emptied nor be
+//   the placeholder — a 200 that reinstalls 'User' would silently
+//   re-qualify the profile as incomplete and re-gate the workspace.
+export type ProfileFlow = 'onboarding' | 'update';
+
+// Derives the flow from the profile the api returned at page load.
+export function profileWriteFlow(profile: Profile): ProfileFlow {
+  return isProfileIncomplete(profile) ? 'onboarding' : 'update';
+}
+
+// The full-name rule of each flow, shared by the submit validation and the
+// real-time marking of the field.
+export function fullNameProblem(value: string, flow: ProfileFlow): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return flow === 'onboarding'
+      ? 'Full name is required'
+      : 'The profile cannot lose its name; write it again before saving';
+  }
+  if (flow === 'update' && trimmed.toLowerCase() === 'user') {
+    return '"User" is the placeholder; write your real name instead';
+  }
+  return null;
+}
+
 // PUT /v1/profile (FR-014): the update travels COMPLETE (omitted fields are
 // emptied server-side) with the optimistic If-Unmodified-Since of the last
 // read - a 412 problem carries current_updated_at for the conflict flow.
