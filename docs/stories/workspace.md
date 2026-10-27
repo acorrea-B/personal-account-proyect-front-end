@@ -133,3 +133,15 @@ update flow now carries its exits permanently:
   menu (the navigation contract: an `<a>`, aria-label, focus-visible)
 - the toast anchors to the bottom-right corner, off the centered
   actions row; the onboarding handoff still opens with the toast
+
+## Browser precache for the MPA shell (2026-10-27)
+
+The export navigates like an MPA: every route change re-fetches the
+document plus the build assets. `public/sw.js` keeps that weight in
+the browser: `/_next/static/` is cache-first (content-hashed, hit
+implies correct bytes), documents are network-first with the cache as
+the offline fallback, and registration runs on production exports
+only (never over the dev server). Cross-origin requests are
+untouched: the api and the geocoding service never get cached -
+profile reads and auth stay live data. Measurements behind the
+decision are in `docs/task-metrics.md`.
