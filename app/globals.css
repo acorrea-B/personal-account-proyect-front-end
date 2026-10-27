@@ -18,6 +18,12 @@
      (5.12:1 on white, 4.90:1 on the canvas). */
   --color-cyan-text: #0f6fc5;
   --color-cyan-text-strong: #0d68b8;
+  /* History accent (teal): the only non-cyan feature hue, so the version
+     timeline contrasts against the blue-and-white dashboard. White on the
+     teal keeps AA for the icon (≈5.5:1, far above the 3:1 non-text bar). */
+  --color-teal-text: #0f766e;
+  --color-teal-strong: #0c5c52;
+  --color-teal-wash: rgba(15, 118, 110, 0.12);
   /* The validation alert: field errors and the invalid marking (the user
      asked for the real-time red while a condition is unmet). */
   --color-alert: #b91c1c;
@@ -1375,7 +1381,7 @@ textarea[aria-invalid='true'] {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--color-cyan-text);
+  background: var(--color-teal-text);
   flex-shrink: 0;
 }
 
@@ -1383,4 +1389,127 @@ textarea[aria-invalid='true'] {
   font-variant-numeric: tabular-nums;
   font-size: var(--text-body-sm);
   color: var(--color-ink-black);
+}
+
+/* The version detail panel (window 6): a reading surface over the
+   dashboard. The content area reads like the document the cv is —
+   pre-wrap, generous rhythm, its own scroll — and the actions row keeps
+   the restore contract answer with the user. */
+.cv-version-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: var(--space-16);
+  background: rgb(15 23 42 / 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.cv-version-panel {
+  width: min(720px, 100%);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  background: var(--color-pure-white);
+  border: 1px solid var(--color-stone-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  padding: var(--space-24);
+}
+
+.cv-version-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.cv-version-heading {
+  margin: 0;
+  color: var(--color-ink-black);
+  font-family: var(--font-display);
+  font-size: var(--text-heading-sm);
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -0.8px;
+}
+
+.cv-version-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: var(--space-16);
+  border: 1px solid var(--color-stone-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-stone-canvas);
+  font-size: var(--text-body-sm);
+  line-height: 1.7;
+  color: var(--color-ink-black);
+}
+
+.cv-version-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.cv-version-row {
+  display: flex;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.cv-restored-note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  color: var(--color-ink-black);
+  font-size: var(--text-body-sm);
+}
+
+.cv-timeline-view {
+  /* A solid cyan circle hugging the text line: the eye reads as a
+     first-class action without shouting. */
+  display: inline-flex;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  margin-left: auto;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--color-teal-text);
+  color: var(--color-pure-white);
+  cursor: pointer;
+  transition: 160ms ease;
+}
+
+.cv-timeline-view svg {
+  /* The rail scopes .upcoming-item svg (20px, cyan, 4px top margin) — that
+     rule beats inheritance and both centered AND grew the glyph: pin the
+     whole set so the icon centers inside the circle as drawn. */
+  width: 15px;
+  height: 15px;
+  margin-top: 0;
+  color: var(--color-pure-white);
+}
+
+.cv-timeline-view:hover {
+  background: var(--color-teal-strong);
+}
+
+.cv-timeline-view:focus-visible {
+  outline: 2px solid var(--color-teal-strong);
+  outline-offset: 2px;
+}
+
+.cv-timeline-view:disabled {
+  opacity: 0.4;
+  cursor: default;
 }

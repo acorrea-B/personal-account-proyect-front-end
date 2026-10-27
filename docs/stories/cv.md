@@ -89,3 +89,27 @@ answering the first-time saver, error with its own retry. The entries stay
 plain rows until the detail dialog turns them interactive (window 6).
 The vitest harness gained the `@` alias map and a TZ=UTC pin, so
 component tests share the app vocabulary and dates stay deterministic.
+
+### Window 6 (2026-10-27): the version detail dialog and restore
+
+The timeline rows turn interactive: each entry opens a reading panel over
+the dashboard (`components/cv-version-detail.tsx`) — backdrop with blur,
+Escape/backdrop-click/✕ close, initial focus on the close button, body
+scroll locked while open. The content reads like the document the cv is
+(pre-wrap, its own scroll on a stone-canvas paper). "Restore this version"
+performs a contract save of the archived content with the current
+updated_at as the optimistic reference: 201 refreshes the dashboard (cv
+card and history reload), 412 (concurrent write) keeps the panel open with
+explicit instructions instead of guessing, 429 carries the rate-cap voice.
+Entries without a handler stay honest plain rows (the window-5 fallback).
+
+### History accent (2026-10-27, operator): teal as the only second hue
+
+The dashboard had drifted to blue-and-white everywhere and the eye glyph
+read wrong for "view a version". Two moves together: the action glyph is a
+history clock (rewind arc + hands, inline svg so the window file budget
+holds), and the palette gains a second feature accent - teal (#0f766e,
+white on it ≈5.5:1, above the 3:1 non-text bar) - scoped to the version
+timeline only: dots, the view circle and its hover/step stay teal while
+every other surface keeps the cyan identity. Token trio documented in
+:root (--color-teal-text/-strong/-wash).

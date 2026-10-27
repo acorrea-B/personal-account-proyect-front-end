@@ -20,9 +20,16 @@ export function formatWhen(archivedAt: string): string {
 }
 
 // The version history card of the dashboard rail (window 5): a timeline
-// with the archived versions newest first. The entries stay plain rows
-// here - the detail dialog turns them interactive in its own window.
-export function CvHistoryCard({ state }: { state: CvHistoryState }) {
+// with the archived versions newest first. With an onSelect handler the
+// entries turn interactive and open the detail dialog (window 6); without
+// one they stay honest plain rows.
+export function CvHistoryCard({
+  state,
+  onSelect,
+}: {
+  state: CvHistoryState;
+  onSelect?: (id: string) => void;
+}) {
   return (
     <li className="upcoming-item">
       <ShieldIcon />
@@ -43,6 +50,34 @@ export function CvHistoryCard({ state }: { state: CvHistoryState }) {
                   <time className="cv-timeline-date" dateTime={version.archived_at}>
                     {formatWhen(version.archived_at)}
                   </time>
+                  {/* The view action is icon-only (the eye always means view
+                      detail), separated from the timeline text row so the
+                      spine stays clean. */}
+                  <button
+                    type="button"
+                    className="cv-timeline-view"
+                    aria-label={`View the version archived ${formatWhen(version.archived_at)}`}
+                    disabled={!onSelect}
+                    onClick={() => onSelect?.(version.id)}
+                  >
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      {/* A history glyph: the rewind arc plus the clock hands
+                          - each dot is a moment, the action opens it. */}
+                      <path d="M3 12a9 9 0 1 0 9-9-9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                      <path d="M3 3v5h5" />
+                      <path d="M12 7v5l4 2" />
+                    </svg>
+                  </button>
                 </li>
               ))}
             </ol>
