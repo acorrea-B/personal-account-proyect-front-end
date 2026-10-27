@@ -468,6 +468,12 @@ textarea[aria-invalid='true'] {
   animation: content-resolve 500ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* The clamped fold: the Show more panel travels on max-height with the
+   house curve, so the text unfolds fluidly instead of snapping. */
+.clamped-fold {
+  transition: max-height 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 @keyframes content-resolve {
   from {
     opacity: 0;
@@ -490,13 +496,18 @@ textarea[aria-invalid='true'] {
     transform: none;
     transition: none;
   }
-  /* The skeleton sweep and the resolve both drop to the static state. */
+  /* The skeleton sweep and the resolve both drop to the static state;
+     the clamped fold becomes instant (no transitionend fires, so the
+     component lifts the clamp without waiting). */
   .skeleton::after,
   .content-resolve {
     animation: none;
     opacity: 1;
     transform: none;
     filter: none;
+  }
+  .clamped-fold {
+    transition: none;
   }
 }
 
