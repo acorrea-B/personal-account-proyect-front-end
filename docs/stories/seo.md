@@ -54,3 +54,14 @@ follows), and raises controls to touch targets: buttons 44px min with
 15px text, menu items 44px, inputs 44px with 16px (no iOS focus zoom), and
 the trailing actions stack full-width on phones. The viewport meta was
 already correct.
+
+### Panel copy + mobile scale round 2 (2026-10-27, operator)
+
+The dashboard stopped speaking api ("Profile · live from the api" is
+just "Profile"; the updated note reads "Updated Oct 27, 9:03 AM" with a
+human stamp), the Update profile link stacks below the panel head at
+full card width with a 44px tap row on phones, and the mobile scale
+stepped up a rung (body 17, small 16, caption 13, buttons 16) — the
+literal-px rules that the token re-declaration could not reach were
+overridden in the same 640px block. The update-card header keeps "Your
+workspace" (it already was plain).

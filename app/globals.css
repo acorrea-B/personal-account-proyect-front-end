@@ -1532,17 +1532,48 @@ textarea[aria-invalid='true'] {
    buttons at 402px. */
 @media (max-width: 640px) {
   :root {
-    --text-display: 34px;
-    --text-heading-sm: 24px;
-    --text-subheading: 18px;
-    --text-body: 16px;
-    --text-body-sm: 15px;
-    --text-caption: 12px;
+    --text-display: 38px;
+    --text-heading-sm: 27px;
+    --text-subheading: 20px;
+    --text-body: 17px;
+    --text-body-sm: 16px;
+    --text-caption: 13px;
   }
 
   .button {
     width: auto;
     padding: 11px 16px;
+    font-size: 16px;
+  }
+
+  .account-menu-item {
+    font-size: 16px;
+  }
+
+  .auth-form-note {
+    font-size: 14px;
+  }
+
+  .upcoming-copy span {
+    font-size: 15px;
+  }
+
+  /* The profile panel head stacks: the Update profile link drops below
+     and takes the card width, tappable at the touch bar. */
+  .panel-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-8);
+  }
+
+  .panel-head .link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    background: var(--color-sky-wash);
+    border-radius: var(--radius-full);
+    font-size: 16px;
   }
 
   .landing-actions {
