@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - 'v*'
+  # Manual redeploy (also production); the two jobs rebuild the artifact and
+  # deploy with no extra configuration.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -17,6 +20,8 @@ jobs:
     name: Validate production build
     runs-on: ubuntu-latest
     environment: production
+    # Forks never run production deploys.
+    if: ${{ github.event.repository.fork == false }}
 
     env:
       NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
@@ -93,6 +98,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate
     environment: production
+    # Forks never deploy.
+    if: ${{ github.event.repository.fork == false }}
 
     env:
       SCW_ACCESS_KEY: ${{ secrets.SCALEWAY_ACCESS_KEY }}
@@ -143,12 +150,12 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: '1.9.0'
+          terraform_version: '1.10.5'
           terraform_wrapper: false
 
       - name: Initialize Terraform
         working-directory: infra/scaleway-static-site
-        run: terraform init -input=false
+        run: terraform init -input=false -no-color
 
       - name: Validate Terraform configuration
         working-directory: infra/scaleway-static-site
@@ -166,37 +173,70 @@ jobs:
           PROJECT="${TF_VAR_project_id}"
           REGION="${TF_VAR_region}"
 
-          # Importar el bucket existente.
-          if ! terraform state show scaleway_object_bucket.web >/dev/null 2>&1; then
-            terraform import \
+          # Imports are discovery, not a gate: when the resource is absent from
+          # the state and does not exist remotely yet, apply creates it. The
+          # import failure is tolerated, never hard-fails the deploy.
+          if ! terraform state show -no-color scaleway_object_bucket.web >/dev/null 2>&1; then
+            terraform import -no-color \
               scaleway_object_bucket.web \
-              "${REGION}/${BUCKET}@${PROJECT}"
+              "${REGION}/${BUCKET}@${PROJECT}" \
+              || echo "::warning::scaleway_object_bucket.web could not be imported; apply will create it"
           fi
 
-          # Importar la política existente, si existe.
-          if ! terraform state show scaleway_object_bucket_policy.web >/dev/null 2>&1; then
-            terraform import \
+          if ! terraform state show -no-color scaleway_object_bucket_policy.web >/dev/null 2>&1; then
+            terraform import -no-color \
               scaleway_object_bucket_policy.web \
-              "${REGION}/${BUCKET}@${PROJECT}"
+              "${REGION}/${BUCKET}@${PROJECT}" \
+              || echo "::warning::scaleway_object_bucket_policy.web could not be imported; apply will create it"
           fi
 
-          # Importar la configuración de website existente.
-          if ! terraform state show scaleway_object_bucket_website_configuration.web >/dev/null 2>&1; then
-            terraform import \
+          if ! terraform state show -no-color scaleway_object_bucket_website_configuration.web >/dev/null 2>&1; then
+            terraform import -no-color \
               scaleway_object_bucket_website_configuration.web \
-              "${REGION}/${BUCKET}@${PROJECT}"
+              "${REGION}/${BUCKET}@${PROJECT}" \
+              || echo "::warning::scaleway_object_bucket_website_configuration.web could not be imported; apply will create it"
           fi
 
-          terraform state list
+          terraform state list -no-color
 
       - name: Plan infrastructure and website deployment
         working-directory: infra/scaleway-static-site
-        run: terraform plan -input=false -out=tfplan
+        run: terraform plan -no-color -input=false -out=tfplan
 
       - name: Apply infrastructure and website deployment
         working-directory: infra/scaleway-static-site
-        run: terraform apply -input=false -auto-approve tfplan
+        run: terraform apply -no-color -input=false -auto-approve tfplan
 
-      - name: Show website endpoint
+      - name: Smoke test the static site
         working-directory: infra/scaleway-static-site
-        run: terraform output website_endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="$(terraform output -raw website_endpoint)"
+          [[ "$URL" == http* ]] || URL="https://${URL}"
+
+          # A deploy is only sound when the public endpoint answers, not
+          # when Terraform reports success.
+          for attempt in $(seq 1 8); do
+            code="$(curl --silent --max-time 10 -o /dev/null --write-out '%{http_code}' "$URL/" || true)"
+            if [ "$code" = "200" ]; then
+              echo "The website answers 200 at $URL/"
+              exit 0
+            fi
+            echo "Attempt $attempt: $URL/ returned '$code'"
+            sleep 5
+          done
+          echo "::error::the smoke test failed at $URL/ (the bucket and the files were deployed)"
+          exit 1
+
+      - name: Record the deployed version
+        working-directory: infra/scaleway-static-site
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="$(terraform output -raw website_endpoint)"
+          {
+            echo "Deployed \`${GITHUB_SHA}\` to production."
+            echo ""
+            echo "Website endpoint: ${URL}"
+          } >> "$GITHUB_STEP_SUMMARY"

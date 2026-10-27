@@ -1,6 +1,6 @@
 
 terraform {
-  required_version = ">= 1.5.0"
+  required_version = ">= 1.10"
 
   backend "s3" {
     bucket = "perfil-api-terraform-state"
