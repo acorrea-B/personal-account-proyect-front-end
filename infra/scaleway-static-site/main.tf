@@ -13,7 +13,13 @@ resource "scaleway_object_bucket_policy" "web" {
   project_id = var.project_id
 
   policy = jsonencode({
-    Version = "2023-04-17"
+    # The project_id principal is only supported in the bucket-policy version
+    # 2012-10-17 (Scaleway API: "MalformedPolicy: project_id Principal is
+    # deprecated and only supported in the bucket-policy version
+    # 2012-10-17" — v0.2.2 run). The 2023-04-17 recommended version accepts
+    # user_id and application_id principals only, which would need per-identity
+    # configuration that breaks on key rotations.
+    Version = "2012-10-17"
 
     Statement = [
       {
