@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ProblemError } from '@/lib/api/client';
-import { cvLoadMessage, getVersionDetail, saveCvText } from '@/lib/api/cv';
+import { getVersionDetail, saveCvText } from '@/lib/api/cv';
 import { type CvSaveResponse, type VersionDetail } from '@/lib/schemas/cv';
+import { labels, tr, type Locale } from '@/lib/i18n';
 
 import { formatWhen } from './cv-timeline';
 import { CheckIcon } from './icons';
@@ -25,18 +26,45 @@ export function CvVersionDetail({
   currentUpdatedAt,
   onClose,
   onRestored,
+  locale = 'en',
 }: {
   id: string;
   accessToken: string;
   currentUpdatedAt: string | undefined;
   onClose: () => void;
   onRestored: (saved: CvSaveResponse) => void;
+  locale?: Locale;
 }) {
+  const labelsT = labels(locale);
   const [detail, setDetail] = useState<DetailState>({ status: 'loading' });
   const [saving, setSaving] = useState(false);
   const [restoredSaved, setRestoredSaved] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
+
+  // The detail's read/save failures speak the tree through the dictionary:
+  // the api problem details ride the detail suffix composition (the
+  // contract's english voice), every cap and fallback owns a label.
+  const problemNote = useCallback(
+    (error: unknown, fallback: string): string => {
+      if (error instanceof ProblemError) {
+        if (error.problem.status === 429) {
+          return labelsT.workspace.cvRateCapped;
+        }
+        if (error.problem.status === 401) {
+          return labelsT.workspace.serviceDeclined;
+        }
+        const detail =
+          error.problem.detail ?? error.problem.title ?? labelsT.versionDetail.viewFallback;
+        return `${detail}${labelsT.workspace.detailSuffix}`;
+      }
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return labelsT.workspace.cvTimeout;
+      }
+      return fallback;
+    },
+    [labelsT],
+  );
 
   const loadDetail = useCallback(async () => {
     setDetail({ status: 'loading' });
@@ -47,13 +75,10 @@ export function CvVersionDetail({
     } catch (error) {
       setDetail({
         status: 'error',
-        message:
-          error instanceof ProblemError
-            ? cvLoadMessage(error.problem.status, error.problem.detail ?? error.problem.title)
-            : 'The version failed to load. Please try again shortly.',
+        message: problemNote(error, labelsT.versionDetail.loadFallback),
       });
     }
-  }, [accessToken, id]);
+  }, [accessToken, id, problemNote, labelsT.versionDetail]);
 
   useEffect(() => {
     void loadDetail();
@@ -91,21 +116,21 @@ export function CvVersionDetail({
       } catch (error) {
         setSaving(false);
         if (error instanceof ProblemError && error.problem.status === 412) {
-          setNote(
-            'The current cv changed while restoring — close the panel, reload the dashboard and try again.',
-          );
+          setNote(labelsT.versionDetail.conflictNote);
           return;
         }
-        if (error instanceof ProblemError) {
-          setNote(cvLoadMessage(error.problem.status, error.problem.detail ?? error.problem.title));
-        } else if (error instanceof DOMException && error.name === 'AbortError') {
-          setNote('Request timed out. Please try again.');
-        } else {
-          setNote('The restore could not be completed. Please try again.');
-        }
+        setNote(problemNote(error, labelsT.versionDetail.restoreFallback));
       }
     },
-    [accessToken, currentUpdatedAt, onRestored, restoredSaved, saving],
+    [
+      accessToken,
+      currentUpdatedAt,
+      onRestored,
+      restoredSaved,
+      saving,
+      problemNote,
+      labelsT.versionDetail,
+    ],
   );
 
   return (
@@ -126,21 +151,25 @@ export function CvVersionDetail({
       >
         <div className="cv-version-head">
           <div>
-            <p className="eyebrow">Version history · archived</p>
+            <p className="eyebrow">{labelsT.versionDetail.eyebrow}</p>
             <h2 id="cv-version-title" className="cv-version-heading">
               {detail.status === 'ready'
-                ? `Version from ${formatWhen(detail.detail.archived_at)}`
-                : 'Version'}
+                ? tr(labelsT.versionDetail.viewHeading, {
+                    date: formatWhen(detail.detail.archived_at),
+                  })
+                : labelsT.versionDetail.viewFallback}
             </h2>
             {detail.status === 'ready' ? (
-              <p className="eyebrow">origin {detail.detail.origin}</p>
+              <p className="eyebrow">
+                {tr(labelsT.versionDetail.origin, { origin: detail.detail.origin })}
+              </p>
             ) : null}
           </div>
           <button
             ref={closeRef}
             type="button"
             className="save-toast-dismiss"
-            aria-label="Close the version detail"
+            aria-label={labelsT.versionDetail.close}
             onClick={onClose}
           >
             ✕
@@ -148,7 +177,7 @@ export function CvVersionDetail({
         </div>
 
         {detail.status === 'loading' ? (
-          <div className="cv-version-content" aria-label="Loading the version">
+          <div className="cv-version-content" aria-label={labelsT.versionDetail.loadingAria}>
             <div className="skeleton-screen">
               <Skeleton width={140} height={12} />
               <Skeleton width="100%" height={12} />
@@ -166,7 +195,7 @@ export function CvVersionDetail({
                 className="button button-ghost"
                 onClick={() => void loadDetail()}
               >
-                Try again
+                {labelsT.cvCard.retry}
               </button>
             </div>
           </div>
@@ -178,7 +207,7 @@ export function CvVersionDetail({
             <div className="cv-version-actions">
               {restoredSaved ? (
                 <span role="status" className="cv-restored-note">
-                  <CheckIcon /> <span>Version restored — it is now the current cv.</span>
+                  <CheckIcon /> <span>{labelsT.versionDetail.restored}</span>
                 </span>
               ) : null}
               {note ? (
@@ -193,9 +222,13 @@ export function CvVersionDetail({
                   disabled={saving || restoredSaved}
                   onClick={() => detail.status === 'ready' && void restore(detail.detail)}
                 >
-                  {saving ? 'Restoring…' : restoredSaved ? 'Restored' : 'Restore this version'}
+                  {saving
+                    ? labelsT.versionDetail.restoring
+                    : restoredSaved
+                      ? labelsT.versionDetail.restored
+                      : labelsT.versionDetail.restore}
                 </button>
-                <CloseButton onClose={onClose} />
+                <CloseButton onClose={onClose} label={labelsT.versionDetail.close} />
               </div>
             </div>
           </>
@@ -207,10 +240,10 @@ export function CvVersionDetail({
 
 // The close affordance stays a plain ghost button labeled for screen
 // readers; it rides the actions row together with the restore action.
-function CloseButton({ onClose }: { onClose: () => void }) {
+function CloseButton({ onClose, label }: { onClose: () => void; label: string }) {
   return (
     <button type="button" className="button button-ghost" onClick={onClose}>
-      Close
+      {label}
     </button>
   );
 }

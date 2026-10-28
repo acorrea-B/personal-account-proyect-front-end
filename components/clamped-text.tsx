@@ -2,6 +2,8 @@
 
 import { type TransitionEvent, useEffect, useRef, useState } from 'react';
 
+import { labels, type Locale } from '@/lib/i18n';
+
 // Long text renders clamped (a few lines) with a Show more / Show less
 // toggle that only appears when the text truly overflows its clamped box.
 // The measure runs on mount, on resize and after the fonts load, because
@@ -16,11 +18,14 @@ export function ClampedText({
   text,
   lines = 3,
   className,
+  locale = 'en',
 }: {
   text: string;
   lines?: number;
   className?: string;
+  locale?: Locale;
 }) {
+  const labelsT = labels(locale);
   const ref = useRef<HTMLParagraphElement | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [overflows, setOverflows] = useState(false);
@@ -118,7 +123,7 @@ export function ClampedText({
       </p>
       {overflows ? (
         <button type="button" className="link" onClick={toggleFold} aria-expanded={expanded}>
-          {expanded ? 'Show less' : 'Show more'}
+          {expanded ? labelsT.clampedText.showLess : labelsT.clampedText.showMore}
         </button>
       ) : null}
     </div>

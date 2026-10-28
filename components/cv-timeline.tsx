@@ -1,6 +1,7 @@
 import { Skeleton } from '@/components/skeleton';
 import { ShieldIcon } from '@/components/icons';
 import { type VersionSummary } from '@/lib/schemas/cv';
+import { labels, tr, type Locale } from '@/lib/i18n';
 
 export type CvHistoryState =
   | { kind: 'loading' }
@@ -26,24 +27,27 @@ export function formatWhen(archivedAt: string): string {
 export function CvHistoryCard({
   state,
   onSelect,
+  locale = 'en',
 }: {
   state: CvHistoryState;
   onSelect?: (id: string) => void;
+  locale?: Locale;
 }) {
+  const labelsT = labels(locale);
   return (
     <li className="upcoming-item">
       <ShieldIcon />
       <div className="upcoming-copy">
-        <strong>Version history</strong>
+        <strong>{labelsT.history.title}</strong>
         {state.kind === 'loading' ? (
           <span>
             <Skeleton width={160} height={12} />
           </span>
         ) : state.kind === 'ready' ? (
           state.versions.length === 0 ? (
-            <span>No archived versions yet — save the cv to start the history.</span>
+            <span>{labelsT.history.empty}</span>
           ) : (
-            <ol className="cv-timeline" aria-label="Archived versions, newest first">
+            <ol className="cv-timeline" aria-label={labelsT.history.listAria}>
               {state.versions.map((version) => (
                 <li key={version.id} className="cv-timeline-entry">
                   <span className="cv-timeline-dot" aria-hidden="true" />
@@ -56,7 +60,9 @@ export function CvHistoryCard({
                   <button
                     type="button"
                     className="cv-timeline-view"
-                    aria-label={`View the version archived ${formatWhen(version.archived_at)}`}
+                    aria-label={tr(labelsT.history.viewLabel, {
+                      date: formatWhen(version.archived_at),
+                    })}
                     disabled={!onSelect}
                     onClick={() => onSelect?.(version.id)}
                   >

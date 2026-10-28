@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/skeleton';
 import { ProfileIcon } from '@/components/icons';
 import { type Cv } from '@/lib/schemas/cv';
 import { formatWhen } from './cv-timeline';
+import { labels, tr, type Locale } from '@/lib/i18n';
 
 export type CvCardState =
   | { kind: 'loading' }
@@ -16,7 +17,9 @@ export type CvCardState =
 // bytes, so the rail carries a hard truncation instead of an unfolding
 // clamp (a document reader does not belong in a rail) - the full text is
 // one click away in the editor, and a future structured (html) api answer
-// will power a proper full page.
+// will power a proper full page. Both editor actions hang from the tree's
+// base prefix: they were pinned to /app/cv and the es tree's taps landed
+// on the english editor - the language switched under the user's finger.
 const previewLimit = 280;
 
 function cvPreview(content: string): string {
@@ -24,12 +27,14 @@ function cvPreview(content: string): string {
   return trimmed.length > previewLimit ? `${trimmed.slice(0, previewLimit).trimEnd()}…` : trimmed;
 }
 
-export function CvCard({ state }: { state: CvCardState }) {
+export function CvCard({ state, locale = 'en' }: { state: CvCardState; locale?: Locale }) {
+  const labelsT = labels(locale);
+  const editorHref = `${locale === 'es' ? '/es' : ''}/app/cv/`;
   return (
     <li className="upcoming-item">
       <ProfileIcon />
       <div className="upcoming-copy">
-        <strong>CV</strong>
+        <strong>{labelsT.cvCard.title}</strong>
         {state.kind === 'loading' ? (
           <span>
             <Skeleton width={150} height={12} />
@@ -37,19 +42,19 @@ export function CvCard({ state }: { state: CvCardState }) {
         ) : state.kind === 'ready' ? (
           <>
             <span className="cv-preview">{cvPreview(state.cv.content)}</span>
-            <span>Last saved {formatWhen(state.cv.updated_at)}</span>
+            <span>{tr(labelsT.cvCard.lastSaved, { date: formatWhen(state.cv.updated_at) })}</span>
             <div className="cv-card-actions">
-              <Link className="link" href="/app/cv/">
-                Edit CV
+              <Link className="link" href={editorHref}>
+                {labelsT.cvCard.edit}
               </Link>
             </div>
           </>
         ) : state.kind === 'empty' ? (
           <>
-            <span>No cv yet — write yours in the editor.</span>
+            <span>{labelsT.cvCard.empty}</span>
             <div className="cv-card-actions">
-              <Link className="link" href="/app/cv/">
-                Write your CV
+              <Link className="link" href={editorHref}>
+                {labelsT.cvCard.write}
               </Link>
             </div>
           </>
@@ -58,7 +63,7 @@ export function CvCard({ state }: { state: CvCardState }) {
             <span role="alert">{state.message}</span>
             {state.onRetry ? (
               <button type="button" className="button button-ghost" onClick={state.onRetry}>
-                Try again
+                {labelsT.cvCard.retry}
               </button>
             ) : null}
           </>

@@ -75,17 +75,34 @@ export function profileWriteFlow(profile: Profile): ProfileFlow {
   return isProfileIncomplete(profile) ? 'onboarding' : 'update';
 }
 
+// The full-name rule messages per flow, overridable by the tree's
+// dictionary: the view passes the profiles section's rule strings; the
+// omitted case keeps the english defaults the editor's tests live on.
+export interface NameProblems {
+  nameRequired: string;
+  nameRequiredUpdate: string;
+  namePlaceholderConflict: string;
+}
+
+const NAME_PROBLEMS_EN: NameProblems = {
+  nameRequired: 'Full name is required',
+  nameRequiredUpdate: 'The profile cannot lose its name; write it again before saving',
+  namePlaceholderConflict: '"User" is the placeholder; write your real name instead',
+};
+
 // The full-name rule of each flow, shared by the submit validation and the
 // real-time marking of the field.
-export function fullNameProblem(value: string, flow: ProfileFlow): string | null {
+export function fullNameProblem(
+  value: string,
+  flow: ProfileFlow,
+  problems: NameProblems = NAME_PROBLEMS_EN,
+): string | null {
   const trimmed = value.trim();
   if (!trimmed) {
-    return flow === 'onboarding'
-      ? 'Full name is required'
-      : 'The profile cannot lose its name; write it again before saving';
+    return flow === 'onboarding' ? problems.nameRequired : problems.nameRequiredUpdate;
   }
   if (flow === 'update' && trimmed.toLowerCase() === 'user') {
-    return '"User" is the placeholder; write your real name instead';
+    return problems.namePlaceholderConflict;
   }
   return null;
 }
@@ -181,20 +198,37 @@ export function normalizeProfileLinkUrl(raw: string): string {
 // email field): neutral when the row is empty, otherwise it names exactly
 // what is expected - including the shape of the address - before the save
 // even happens.
-export function linkRowProblem(row: { type: string; url: string }): string | null {
+// The link-row rule messages, overridable by the tree's dictionary with
+// the same english defaults as the name rules.
+export interface LinkRowProblems {
+  linkNeedsUrl: string;
+  linkNeedsType: string;
+  linkNeedsScheme: string;
+}
+
+const LINK_ROW_PROBLEMS_EN: LinkRowProblems = {
+  linkNeedsUrl: 'Add the link address, like https://example.com',
+  linkNeedsType: 'Add the site name, like github, linkedin or x',
+  linkNeedsScheme: 'An https address is expected, like https://example.com',
+};
+
+export function linkRowProblem(
+  row: { type: string; url: string },
+  problems: LinkRowProblems = LINK_ROW_PROBLEMS_EN,
+): string | null {
   const type = row.type.trim();
   const url = normalizeProfileLinkUrl(row.url.trim());
   if (!type && !url) {
     return null;
   }
   if (!url) {
-    return 'Add the link address, like https://example.com';
+    return problems.linkNeedsUrl;
   }
   if (!type) {
-    return 'Add the site name, like github, linkedin or x';
+    return problems.linkNeedsType;
   }
   if (!/^https?:\/\//i.test(url)) {
-    return 'An https address is expected, like https://example.com';
+    return problems.linkNeedsScheme;
   }
   return null;
 }

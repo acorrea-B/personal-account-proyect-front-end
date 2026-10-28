@@ -7,7 +7,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const replaceMock = vi.fn();
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: replaceMock }),
+  useRouter: () => ({ replace: replaceMock, push: vi.fn() }),
+  usePathname: () => null,
 }));
 
 vi.mock('@/lib/auth/session', async () => ({
