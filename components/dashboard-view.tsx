@@ -1,0 +1,414 @@
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+
+import { ProblemError } from '@/lib/api/client';
+import { fetchCvText, getVersions } from '@/lib/api/cv';
+import { fetchProfile, isProfileIncomplete } from '@/lib/api/profile';
+import { loadSession, refreshSession } from '@/lib/auth/session';
+import type { Profile } from '@/lib/schemas/profile';
+import { type Locale, labels, tr } from '@/lib/i18n';
+import { useRequireAuth } from '@/lib/auth/useRequireAuth';
+import { AccountMenu } from '@/components/account-menu';
+import { ClampedText } from '@/components/clamped-text';
+import { CvCard, type CvCardState } from '@/components/cv-card';
+import { CvHistoryCard, formatWhen, type CvHistoryState } from '@/components/cv-timeline';
+import { CvVersionDetail } from '@/components/cv-version-detail';
+import { Skeleton } from '@/components/skeleton';
+import { SignalIcon } from '@/components/icons';
+
+type WorkspaceLoad =
+  | { status: 'loading' }
+  | { status: 'ready'; profile: Profile }
+  | { status: 'error'; error: string };
+
+// The shared workspace dashboard: one implementation serves both locale
+// trees, every page string reads the json dictionaries, and the routes
+// hang from the tree's base prefix (empty for english, /es for spanish).
+// The tree's user-facing error voice is the dictionary's; the api problem
+// details stay in the contract's english voice and only ride the detail
+// suffix composition. This view is the en dashboard (the superset mirror:
+// version detail dialog, history on-select, abort handling) - the stale
+// es mirror is retired with the same behavior restored to /es/app.
+export function DashboardView({ locale }: { locale: Locale }) {
+  const t = labels(locale);
+  const base = locale === 'es' ? '/es' : '';
+  const router = useRouter();
+  const { isHydrated, isAuthorized, session } = useRequireAuth();
+  const accessToken = session?.accessToken ?? null;
+
+  const [load, setLoad] = useState<WorkspaceLoad>({ status: 'loading' });
+  const [cvCard, setCvCard] = useState<CvCardState>({ kind: 'loading' });
+  const [history, setHistory] = useState<CvHistoryState>({ kind: 'loading' });
+  const [detailVersionId, setDetailVersionId] = useState<string | null>(null);
+
+  const timedOut = (error: unknown): boolean =>
+    error instanceof DOMException && error.name === 'AbortError';
+
+  const readFallback = (error: unknown): string | undefined =>
+    error instanceof ProblemError ? (error.problem.detail ?? error.problem.title) : undefined;
+
+  const loadCv = useCallback(
+    async (token: string) => {
+      setCvCard({ kind: 'loading' });
+      try {
+        const cv = await fetchCvText(token);
+        setCvCard({ kind: 'ready', cv });
+      } catch (error) {
+        // Mirror the profile read: a cv read failure never destroys the
+        // session and never waits on the profile - the rail card carries
+        // its own retry while the profile panel stays usable.
+        if (error instanceof ProblemError) {
+          if (error.problem.status === 404) {
+            setCvCard({ kind: 'empty' });
+            return;
+          }
+          if (error.problem.status === 429) {
+            setCvCard({
+              kind: 'error',
+              message: t.workspace.cvRateCapped,
+              onRetry: () => loadCv(token),
+            });
+            return;
+          }
+          if (error.problem.status === 401) {
+            setCvCard({
+              kind: 'error',
+              message: t.workspace.serviceDeclined,
+              onRetry: () => loadCv(token),
+            });
+            return;
+          }
+          const fallback = readFallback(error);
+          setCvCard({
+            kind: 'error',
+            message: fallback ? `${fallback}${t.workspace.detailSuffix}` : t.workspace.cvFallback,
+            onRetry: () => loadCv(token),
+          });
+          return;
+        }
+        if (timedOut(error)) {
+          setCvCard({
+            kind: 'error',
+            message: t.workspace.cvTimeout,
+            onRetry: () => loadCv(token),
+          });
+          return;
+        }
+        setCvCard({
+          kind: 'error',
+          message: t.workspace.cvFallback,
+          onRetry: () => loadCv(token),
+        });
+      }
+    },
+    [t],
+  );
+
+  const loadProfile = useCallback(
+    async (token: string, viaRenewal = false) => {
+      setLoad({ status: 'loading' });
+      try {
+        const profile = await fetchProfile(token);
+        // The api always seeds full_name as 'User': the placeholder owns the
+        // setup flow until the user completes their profile.
+        if (isProfileIncomplete(profile)) {
+          router.replace(`${base}/app/profile/`);
+          setLoad({ status: 'loading' });
+          return;
+        }
+        setLoad({ status: 'ready', profile });
+      } catch (error) {
+        // A 401 on a READ never destroys the session: a read failure is not
+        // a session event. One silent renewal is attempted with the kept
+        // refresh token; if the service still declines, the session stays
+        // and the failure is surfaced with a retryable message.
+        if (error instanceof ProblemError && error.problem.status === 401 && !viaRenewal) {
+          const kept = loadSession();
+          if (kept?.refreshToken) {
+            try {
+              const next = await refreshSession();
+              if (next) {
+                return loadProfile(next.accessToken, true);
+              }
+            } catch {
+              // fall through: keep the session, report the failure below
+            }
+          }
+          setLoad({ status: 'error', error: t.workspace.serviceDeclined });
+          return;
+        }
+        if (error instanceof ProblemError) {
+          if (error.problem.status === 429) {
+            setLoad({ status: 'error', error: t.workspace.profileRateCapped });
+            return;
+          }
+          if (error.problem.status === 503) {
+            setLoad({ status: 'error', error: t.workspace.profileWarming });
+            return;
+          }
+          if (error.problem.status >= 500) {
+            setLoad({ status: 'error', error: t.workspace.profileUnreachable });
+            return;
+          }
+          const fallback = readFallback(error);
+          setLoad({
+            status: 'error',
+            error: `${fallback ?? t.versionDetail.viewFallback}${t.workspace.detailSuffix}`,
+          });
+          return;
+        }
+        if (timedOut(error)) {
+          setLoad({ status: 'error', error: t.workspace.profileTimeout });
+          return;
+        }
+        // A response outside the schema or an unknown failure: fail closed —
+        // never render improvised data for the user's real profile.
+        setLoad({ status: 'error', error: t.workspace.profileUnknown });
+      }
+    },
+    [router, base, t],
+  );
+
+  const loadHistory = useCallback(
+    async (token: string) => {
+      setHistory({ kind: 'loading' });
+      try {
+        const versions = await getVersions(token);
+        setHistory({ kind: 'ready', versions });
+      } catch (error) {
+        // Same read rule as the cv card: the history failure never destroys
+        // the session and stays inside its own card with a retry.
+        if (error instanceof ProblemError) {
+          setHistory({
+            kind: 'error',
+            message:
+              error.problem.status === 401
+                ? t.workspace.serviceDeclined
+                : error.problem.status === 429
+                  ? t.workspace.cvRateCapped
+                  : `${readFallback(error) ?? ''}${t.workspace.detailSuffix}`,
+            onRetry: () => loadHistory(token),
+          });
+          return;
+        }
+        setHistory({
+          kind: 'error',
+          message: t.workspace.historyFallback,
+          onRetry: () => loadHistory(token),
+        });
+      }
+    },
+    [t],
+  );
+
+  useEffect(() => {
+    if (isHydrated && isAuthorized && accessToken) {
+      loadProfile(accessToken);
+      // The cv and the history ride the profile in parallel: the profile
+      // panel never waits on the rail cards, each with its own retry.
+      loadCv(accessToken);
+      loadHistory(accessToken);
+    }
+  }, [isHydrated, isAuthorized, accessToken, loadProfile, loadCv, loadHistory]);
+
+  // The waiting face: the session check and the profile fetch both hide
+  // the dashboard behind the skeleton screen — never a white page.
+  if (!isHydrated || !isAuthorized || load.status === 'loading') {
+    return (
+      <main className="workspace-page" aria-busy="true">
+        <WorkspaceSkeleton />
+      </main>
+    );
+  }
+
+  const profile = load.status === 'ready' ? load.profile : null;
+  const firstName = profile ? profile.full_name.trim().split(/\s+/)[0] : '';
+
+  return (
+    <main className="workspace-page">
+      <div className="content-resolve">
+        <header className="workspace-bar">
+          <div className="workspace-identity">
+            <p className="eyebrow">{t.workspace.eyebrow}</p>
+            <h1 className="workspace-title">
+              {firstName ? tr(t.workspace.greeting, { name: firstName }) : t.workspace.title}
+            </h1>
+            <p className="auth-subtitle">
+              {tr(t.workspace.signedInAs, { email: session?.user.email ?? '' })}
+            </p>
+          </div>
+          <AccountMenu locale={locale} />
+        </header>
+
+        {load.status === 'error' ? (
+          <section className="profile-panel">
+            <div role="alert" className="form-error">
+              <p>{load.error}</p>
+              <button
+                type="button"
+                className="button button-ghost"
+                onClick={() => accessToken && loadProfile(accessToken)}
+              >
+                {t.cvCard.retry}
+              </button>
+            </div>
+          </section>
+        ) : null}
+
+        {load.status === 'ready' && profile ? (
+          <div className="dashboard-grid">
+            <section className="profile-panel" aria-label={t.workspace.profilePanel}>
+              <div className="panel-head">
+                <p className="eyebrow">{t.panel.eyebrow}</p>
+                <Link className="link" href={`${base}/app/profile/`}>
+                  {t.panel.updateLink}
+                </Link>
+              </div>
+
+              <dl className="profile-grid">
+                <div>
+                  <dt>{t.panel.fullName}</dt>
+                  <dd className="profile-headline">{profile.full_name}</dd>
+                </div>
+                {profile.headline ? (
+                  <div>
+                    <dt>{t.panel.headline}</dt>
+                    <dd>{profile.headline}</dd>
+                  </div>
+                ) : null}
+                {profile.location ? (
+                  <div>
+                    <dt>{t.panel.location}</dt>
+                    <dd>{profile.location}</dd>
+                  </div>
+                ) : null}
+              </dl>
+
+              {profile.bio ? (
+                <div>
+                  <p className="eyebrow">{t.panel.bio}</p>
+                  <ClampedText text={profile.bio} className="clamped-text" locale={locale} />
+                </div>
+              ) : null}
+
+              {profile.skills ? (
+                <div>
+                  <p className="eyebrow">{t.panel.skills}</p>
+                  <ul className="skill-chips" aria-label={t.panel.skills}>
+                    {profile.skills.map((skill) => (
+                      <li key={skill.toLowerCase()}>{skill}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {profile.links ? (
+                <div>
+                  <p className="eyebrow">{t.panel.links}</p>
+                  <ul className="profile-links" aria-label={t.panel.links}>
+                    {profile.links.map((link) => (
+                      <li key={link.url}>
+                        <a
+                          className="link"
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {link.type}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              <p className="auth-form-note">
+                {tr(t.panel.updatedNote, { date: formatWhen(profile.updated_at) })}
+              </p>
+            </section>
+
+            <aside className="upcoming-panel" aria-label={t.workspace.comingUpPanel}>
+              <p className="eyebrow">{t.panel.comingUp}</p>
+              <ul className="upcoming-list">
+                <CvCard state={cvCard} locale={locale} />
+                <CvHistoryCard
+                  state={history}
+                  locale={locale}
+                  onSelect={accessToken ? (id: string) => setDetailVersionId(id) : undefined}
+                />
+                <li className="upcoming-item">
+                  <SignalIcon />
+                  <div className="upcoming-copy">
+                    <strong>{t.workspace.skillSuggestions}</strong>
+                    <span>{t.workspace.skillSuggestionsCopy}</span>
+                    <span className="status-chip">{t.workspace.afterBeta}</span>
+                  </div>
+                </li>
+              </ul>
+            </aside>
+          </div>
+        ) : null}
+
+        {accessToken && detailVersionId ? (
+          <CvVersionDetail
+            id={detailVersionId}
+            accessToken={accessToken}
+            locale={locale}
+            currentUpdatedAt={cvCard.kind === 'ready' ? cvCard.cv.updated_at : undefined}
+            onClose={() => setDetailVersionId(null)}
+            onRestored={() => {
+              setDetailVersionId(null);
+              if (accessToken) {
+                void loadCv(accessToken);
+                void loadHistory(accessToken);
+              }
+            }}
+          />
+        ) : null}
+      </div>
+    </main>
+  );
+}
+
+// The dashboard skeleton: the same containers as the ready state (bar,
+// profile panel, coming-up rail) with the content replaced by soft
+// placeholder lines riding the blurred glow sweep.
+function WorkspaceSkeleton() {
+  return (
+    <>
+      <div className="skeleton-bar">
+        <div className="skeleton-screen">
+          <Skeleton width={110} height={11} />
+          <Skeleton width={280} height={28} />
+          <Skeleton width={210} height={14} />
+        </div>
+        <div className="workspace-actions">
+          <Skeleton width={40} height={40} />
+          <Skeleton width={92} height={36} />
+        </div>
+      </div>
+      <div className="dashboard-grid">
+        <div className="profile-panel">
+          <div className="skeleton-screen">
+            <Skeleton width={150} height={12} />
+            <Skeleton width="100%" height={16} />
+            <Skeleton width="70%" height={16} />
+            <Skeleton width="55%" height={16} />
+            <Skeleton width="85%" height={16} />
+          </div>
+        </div>
+        <div className="upcoming-panel">
+          <div className="skeleton-screen">
+            <Skeleton width={90} height={12} />
+            <Skeleton width="100%" height={44} />
+            <Skeleton width="100%" height={44} />
+            <Skeleton width="100%" height={44} />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

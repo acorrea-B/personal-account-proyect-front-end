@@ -102,5 +102,28 @@
   "logout": {
     "heading": "Signing out",
     "subtitle": "Ending your session on this device."
+  },
+  "workspace": {
+    "eyebrow": "Your workspace",
+    "greeting": "Hello, {name}.",
+    "title": "Your workspace",
+    "signedInAs": "Signed in as {email}",
+    "profilePanel": "Your profile",
+    "comingUpPanel": "Coming to your workspace",
+    "skillSuggestions": "Skill suggestions",
+    "skillSuggestionsCopy": "Inferred from what the api already knows about you.",
+    "afterBeta": "After beta 1",
+    "serviceDeclined": "The service did not accept the credential for now. Your session is kept; try again shortly.",
+    "detailSuffix": " — try again shortly.",
+    "cvRateCapped": "The cv endpoint is rate limited (at most twice a minute). Wait a few seconds and try again.",
+    "cvTimeout": "Request timed out. Please try again.",
+    "cvFallback": "The cv response was not understood. Please retry or report it.",
+    "historyFallback": "The version history failed to load. Please try again.",
+    "profileRateCapped": "Too many requests; please wait a moment and try again.",
+    "profileWarming": "The service is warming up; try again shortly.",
+    "profileUnreachable": "The service could not be reached; please try again.",
+    "profileTimeout": "Request timed out. Please try again.",
+    "profileUnknown": "The profile response was not understood. Please retry or report it.",
+    "profileFallback": "The profile could not be loaded. Please try again."
   }
 }

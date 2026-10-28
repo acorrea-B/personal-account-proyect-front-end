@@ -102,5 +102,28 @@
   "logout": {
     "heading": "Cerrando sesión",
     "subtitle": "Terminando tu sesión en este dispositivo."
+  },
+  "workspace": {
+    "eyebrow": "Tu espacio",
+    "greeting": "Hola, {name}.",
+    "title": "Tu espacio de trabajo",
+    "signedInAs": "Sesión iniciada como {email}",
+    "profilePanel": "Tu perfil",
+    "comingUpPanel": "Lo que viene a tu espacio",
+    "skillSuggestions": "Sugerencias de habilidades",
+    "skillSuggestionsCopy": "Inferidas de lo que la api ya sabe de ti.",
+    "afterBeta": "Después de beta 1",
+    "serviceDeclined": "El servicio no aceptó la credencial por el momento. Tu sesión se conserva; reintenta en un momento.",
+    "detailSuffix": " — reintenta en un momento.",
+    "cvRateCapped": "El CV está limitado (máximo dos veces por minuto). Espera unos segundos e inténtalo de nuevo.",
+    "cvTimeout": "La petición agotó el tiempo de espera. Por favor inténtalo de nuevo.",
+    "cvFallback": "El CV no cargó. Inténtalo de nuevo.",
+    "historyFallback": "El historial no cargó. Inténtalo de nuevo.",
+    "profileRateCapped": "Demasiadas peticiones; espera un momento e inténtalo de nuevo.",
+    "profileWarming": "El servicio está arrancando; reintenta en un momento.",
+    "profileUnreachable": "El servicio no se pudo alcanzar; inténtalo de nuevo.",
+    "profileTimeout": "La petición agotó el tiempo de espera. Inténtalo de nuevo.",
+    "profileUnknown": "La respuesta del perfil no se entendió. Reintenta o repórtalo.",
+    "profileFallback": "El perfil no cargó. Inténtalo de nuevo."
   }
 }
