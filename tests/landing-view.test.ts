@@ -11,12 +11,16 @@ vi.mock('next/navigation', () => ({
   usePathname: () => null,
 }));
 
-const sessionState = { session: null, isHydrated: false };
+const sessionState: { session: AuthSession | null; isHydrated: boolean } = {
+  session: null,
+  isHydrated: false,
+};
 vi.mock('@/lib/auth/useSession', async () => ({
   ...(await vi.importActual<typeof import('@/lib/auth/useSession')>('@/lib/auth/useSession')),
   useSession: () => sessionState,
 }));
 
+import { type AuthSession } from '@/lib/auth/session';
 import { labels } from '@/lib/i18n';
 import { LandingView } from '../components/landing-view';
 
@@ -69,10 +73,14 @@ describe('LandingView', () => {
     expect(document.querySelector('.landing-hero .eyebrow')?.textContent).toBe(t.heroEyebrow);
     expect(document.body.textContent).toContain(t.feature1Title);
     expect(document.body.textContent).toContain(t.trust1Copy);
-    const nav = [...document.querySelectorAll('a.nav-link')].map((element) => hrefOf(element as HTMLAnchorElement));
+    const nav = [...document.querySelectorAll('a.nav-link')].map((element) =>
+      hrefOf(element as HTMLAnchorElement),
+    );
     expect(nav).toContain('/login');
     expect(nav).toContain('/register');
-    const cta = [...document.querySelectorAll('a.button')].map((element) => hrefOf(element as HTMLAnchorElement));
+    const cta = [...document.querySelectorAll('a.button')].map((element) =>
+      hrefOf(element as HTMLAnchorElement),
+    );
     expect(cta).toContain('/register');
     expect(document.body.textContent).toContain(t.closingGuestCta);
   });
@@ -82,10 +90,14 @@ describe('LandingView', () => {
     await render('es');
     const t = labels('es').landing;
     expect(document.querySelector('h1')?.textContent).toBe(t.heroTitle);
-    const nav = [...document.querySelectorAll('a.nav-link')].map((element) => hrefOf(element as HTMLAnchorElement));
+    const nav = [...document.querySelectorAll('a.nav-link')].map((element) =>
+      hrefOf(element as HTMLAnchorElement),
+    );
     expect(nav).toContain('/es/login');
     expect(nav).toContain('/es/register');
-    const cta = [...document.querySelectorAll('a.button')].map((element) => hrefOf(element as HTMLAnchorElement));
+    const cta = [...document.querySelectorAll('a.button')].map((element) =>
+      hrefOf(element as HTMLAnchorElement),
+    );
     expect(cta).toContain('/es/register');
     expect(document.body.textContent).toContain(t.feature1Title);
   });
@@ -112,7 +124,9 @@ describe('LandingView', () => {
     };
     await render('en');
     const t = labels('en').landing;
-    const nav = [...document.querySelectorAll('a.nav-link')].map((element) => hrefOf(element as HTMLAnchorElement));
+    const nav = [...document.querySelectorAll('a.nav-link')].map((element) =>
+      hrefOf(element as HTMLAnchorElement),
+    );
     expect(nav).toContain('/app');
     expect(document.body.textContent).toContain(t.openProfile);
     expect(document.body.textContent).toContain(t.closingSignInCopy);
