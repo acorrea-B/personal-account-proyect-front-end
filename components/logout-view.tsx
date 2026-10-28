@@ -16,9 +16,14 @@ export function LogoutView({ locale }: { locale: Locale }) {
   const router = useRouter();
 
   useEffect(() => {
-    void signOut().finally(() => {
-      router.replace(`${base}/login/`);
-    });
+    void signOut()
+      .catch(() => {
+        // The revoke failing never blocks the exit: the local clear already
+        // happened in the session module; the sign-in handoff proceeds.
+      })
+      .finally(() => {
+        router.replace(`${base}/login/`);
+      });
   }, [router, base]);
 
   return (
