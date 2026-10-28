@@ -16,7 +16,8 @@
     "title": "Historial de versiones",
     "empty": "Aún no hay versiones archivadas — guarda el CV para empezar el historial.",
     "retry": "Intentar de nuevo",
-    "viewLabel": "Ver la versión archivada el {date}"
+    "viewLabel": "Ver la versión archivada el {date}",
+    "listAria": "Versiones archivadas, la más reciente primero"
   },
   "versionDetail": {
     "eyebrow": "Historial de versiones · archivada",
@@ -27,7 +28,12 @@
     "restored": "Versión restaurada — ahora es la vigente.",
     "restoredNote": "CV guardado — la versión anterior pasó al historial.",
     "close": "Cerrar",
-    "dismiss": "Descartar la confirmación de guardado"
+    "dismiss": "Descartar la confirmación de guardado",
+    "loadingAria": "Cargando la versión",
+    "restoring": "Restaurando…",
+    "loadFallback": "La versión no cargó. Por favor inténtalo de nuevo.",
+    "restoreFallback": "La restauración no se pudo completar. Por favor inténtalo de nuevo.",
+    "conflictNote": "El CV vigente cambió durante la restauración — cierra el panel, recarga el espacio y prueba otra vez."
   },
   "panel": {
     "eyebrow": "Perfil",

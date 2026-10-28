@@ -47,7 +47,7 @@ export function CvHistoryCard({
           state.versions.length === 0 ? (
             <span>{labelsT.history.empty}</span>
           ) : (
-            <ol className="cv-timeline" aria-label="Archived versions, newest first">
+            <ol className="cv-timeline" aria-label={labelsT.history.listAria}>
               {state.versions.map((version) => (
                 <li key={version.id} className="cv-timeline-entry">
                   <span className="cv-timeline-dot" aria-hidden="true" />

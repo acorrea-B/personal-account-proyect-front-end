@@ -17,7 +17,9 @@ export type CvCardState =
 // bytes, so the rail carries a hard truncation instead of an unfolding
 // clamp (a document reader does not belong in a rail) - the full text is
 // one click away in the editor, and a future structured (html) api answer
-// will power a proper full page.
+// will power a proper full page. Both editor actions hang from the tree's
+// base prefix: they were pinned to /app/cv and the es tree's taps landed
+// on the english editor - the language switched under the user's finger.
 const previewLimit = 280;
 
 function cvPreview(content: string): string {
@@ -27,6 +29,7 @@ function cvPreview(content: string): string {
 
 export function CvCard({ state, locale = 'en' }: { state: CvCardState; locale?: Locale }) {
   const labelsT = labels(locale);
+  const editorHref = `${locale === 'es' ? '/es' : ''}/app/cv/`;
   return (
     <li className="upcoming-item">
       <ProfileIcon />
@@ -41,7 +44,7 @@ export function CvCard({ state, locale = 'en' }: { state: CvCardState; locale?: 
             <span className="cv-preview">{cvPreview(state.cv.content)}</span>
             <span>{tr(labelsT.cvCard.lastSaved, { date: formatWhen(state.cv.updated_at) })}</span>
             <div className="cv-card-actions">
-              <Link className="link" href="/app/cv/">
+              <Link className="link" href={editorHref}>
                 {labelsT.cvCard.edit}
               </Link>
             </div>
@@ -50,7 +53,7 @@ export function CvCard({ state, locale = 'en' }: { state: CvCardState; locale?: 
           <>
             <span>{labelsT.cvCard.empty}</span>
             <div className="cv-card-actions">
-              <Link className="link" href="/app/cv/">
+              <Link className="link" href={editorHref}>
                 {labelsT.cvCard.write}
               </Link>
             </div>
@@ -60,7 +63,7 @@ export function CvCard({ state, locale = 'en' }: { state: CvCardState; locale?: 
             <span role="alert">{state.message}</span>
             {state.onRetry ? (
               <button type="button" className="button button-ghost" onClick={state.onRetry}>
-                Try again
+                {labelsT.cvCard.retry}
               </button>
             ) : null}
           </>

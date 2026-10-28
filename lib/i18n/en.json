@@ -16,7 +16,8 @@
     "title": "Version history",
     "empty": "No archived versions yet — save the cv to start the history.",
     "retry": "Try again",
-    "viewLabel": "View the version archived {date}"
+    "viewLabel": "View the version archived {date}",
+    "listAria": "Archived versions, newest first"
   },
   "versionDetail": {
     "eyebrow": "Version history · archived",
@@ -27,7 +28,12 @@
     "restored": "Version restored — it is now the current cv.",
     "restoredNote": "Cv saved — the previous version moved to the history when there was one.",
     "close": "Close",
-    "dismiss": "Dismiss the saved confirmation"
+    "dismiss": "Dismiss the saved confirmation",
+    "loadingAria": "Loading the version",
+    "restoring": "Restoring…",
+    "loadFallback": "The version failed to load. Please try again shortly.",
+    "restoreFallback": "The restore could not be completed. Please try again.",
+    "conflictNote": "The current cv changed while restoring — close the panel, reload the dashboard and try again."
   },
   "panel": {
     "eyebrow": "Profile",

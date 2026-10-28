@@ -30,6 +30,7 @@ export const labelsSchema = z.object({
     empty: z.string(),
     retry: z.string(),
     viewLabel: z.string(),
+    listAria: z.string(),
   }),
   versionDetail: z.object({
     eyebrow: z.string(),
@@ -41,6 +42,11 @@ export const labelsSchema = z.object({
     restoredNote: z.string(),
     close: z.string(),
     dismiss: z.string(),
+    loadingAria: z.string(),
+    restoring: z.string(),
+    loadFallback: z.string(),
+    restoreFallback: z.string(),
+    conflictNote: z.string(),
   }),
   panel: z.object({
     eyebrow: z.string(),

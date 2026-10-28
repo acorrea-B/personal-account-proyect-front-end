@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ProblemError } from '@/lib/api/client';
-import { cvLoadMessage, getVersionDetail, saveCvText } from '@/lib/api/cv';
+import { getVersionDetail, saveCvText } from '@/lib/api/cv';
 import { type CvSaveResponse, type VersionDetail } from '@/lib/schemas/cv';
 import { labels, tr, type Locale } from '@/lib/i18n';
 
@@ -42,6 +42,30 @@ export function CvVersionDetail({
   const [note, setNote] = useState<string | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
 
+  // The detail's read/save failures speak the tree through the dictionary:
+  // the api problem details ride the detail suffix composition (the
+  // contract's english voice), every cap and fallback owns a label.
+  const problemNote = useCallback(
+    (error: unknown, fallback: string): string => {
+      if (error instanceof ProblemError) {
+        if (error.problem.status === 429) {
+          return labelsT.workspace.cvRateCapped;
+        }
+        if (error.problem.status === 401) {
+          return labelsT.workspace.serviceDeclined;
+        }
+        const detail =
+          error.problem.detail ?? error.problem.title ?? labelsT.versionDetail.viewFallback;
+        return `${detail}${labelsT.workspace.detailSuffix}`;
+      }
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return labelsT.workspace.cvTimeout;
+      }
+      return fallback;
+    },
+    [labelsT],
+  );
+
   const loadDetail = useCallback(async () => {
     setDetail({ status: 'loading' });
     setNote(null);
@@ -51,13 +75,10 @@ export function CvVersionDetail({
     } catch (error) {
       setDetail({
         status: 'error',
-        message:
-          error instanceof ProblemError
-            ? cvLoadMessage(error.problem.status, error.problem.detail ?? error.problem.title)
-            : 'The version failed to load. Please try again shortly.',
+        message: problemNote(error, labelsT.versionDetail.loadFallback),
       });
     }
-  }, [accessToken, id]);
+  }, [accessToken, id, problemNote, labelsT.versionDetail]);
 
   useEffect(() => {
     void loadDetail();
@@ -95,21 +116,21 @@ export function CvVersionDetail({
       } catch (error) {
         setSaving(false);
         if (error instanceof ProblemError && error.problem.status === 412) {
-          setNote(
-            'The current cv changed while restoring — close the panel, reload the dashboard and try again.',
-          );
+          setNote(labelsT.versionDetail.conflictNote);
           return;
         }
-        if (error instanceof ProblemError) {
-          setNote(cvLoadMessage(error.problem.status, error.problem.detail ?? error.problem.title));
-        } else if (error instanceof DOMException && error.name === 'AbortError') {
-          setNote('Request timed out. Please try again.');
-        } else {
-          setNote('The restore could not be completed. Please try again.');
-        }
+        setNote(problemNote(error, labelsT.versionDetail.restoreFallback));
       }
     },
-    [accessToken, currentUpdatedAt, onRestored, restoredSaved, saving],
+    [
+      accessToken,
+      currentUpdatedAt,
+      onRestored,
+      restoredSaved,
+      saving,
+      problemNote,
+      labelsT.versionDetail,
+    ],
   );
 
   return (
@@ -133,8 +154,10 @@ export function CvVersionDetail({
             <p className="eyebrow">{labelsT.versionDetail.eyebrow}</p>
             <h2 id="cv-version-title" className="cv-version-heading">
               {detail.status === 'ready'
-                ? `Version from ${formatWhen(detail.detail.archived_at)}`
-                : 'Version'}
+                ? tr(labelsT.versionDetail.viewHeading, {
+                    date: formatWhen(detail.detail.archived_at),
+                  })
+                : labelsT.versionDetail.viewFallback}
             </h2>
             {detail.status === 'ready' ? (
               <p className="eyebrow">
@@ -154,7 +177,7 @@ export function CvVersionDetail({
         </div>
 
         {detail.status === 'loading' ? (
-          <div className="cv-version-content" aria-label="Loading the version">
+          <div className="cv-version-content" aria-label={labelsT.versionDetail.loadingAria}>
             <div className="skeleton-screen">
               <Skeleton width={140} height={12} />
               <Skeleton width="100%" height={12} />
@@ -172,7 +195,7 @@ export function CvVersionDetail({
                 className="button button-ghost"
                 onClick={() => void loadDetail()}
               >
-                Try again
+                {labelsT.cvCard.retry}
               </button>
             </div>
           </div>
@@ -200,7 +223,7 @@ export function CvVersionDetail({
                   onClick={() => detail.status === 'ready' && void restore(detail.detail)}
                 >
                   {saving
-                    ? 'Restoring…'
+                    ? labelsT.versionDetail.restoring
                     : restoredSaved
                       ? labelsT.versionDetail.restored
                       : labelsT.versionDetail.restore}
