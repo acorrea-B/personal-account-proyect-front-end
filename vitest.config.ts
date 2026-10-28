@@ -6,9 +6,11 @@ export default defineConfig({
   // The app's tsconfig keeps jsx: preserve for Next; the test harness needs
   // its own working transform - the same automatic runtime Next compiles
   // with, so component tests render the real JSX.
-  esbuild: {
-    jsx: 'automatic',
-    jsxImportSource: 'react',
+  oxc: {
+    jsx: {
+      runtime: 'automatic',
+      importSource: 'react',
+    },
   },
   // Component tests import the shared @ alias from the app; the same
   // mapping as tsconfig keeps vitest and Next on one vocabulary.
