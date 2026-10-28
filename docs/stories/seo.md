@@ -40,3 +40,17 @@ versioned CV, the safety net), longer feature-card paragraphs in the same
 calm voice, a growth section with two full paragraphs and a closing that
 echoes the keywords. No stuffing — every sentence is a product sentence,
 per the refero voice.
+++ b/docs/stories/seo.md
+
+### Mobile pass (2026-10-27, iPhone 16 Pro review)
+
+The operator's device review: tiny text, small buttons, hard taps at
+402px. The audit found the root cause plus a latent one: `--text-body-sm`
+was consumed five times but never defined (an invalid font-size that fell
+back to inherited small sizes), and the button scale sat under the 44x44
+touch bar. The pass defines the token, steps the whole ladder down in a
+single 640px media block (`:root` token re-declaration — every consumer
+follows), and raises controls to touch targets: buttons 44px min with
+15px text, menu items 44px, inputs 44px with 16px (no iOS focus zoom), and
+the trailing actions stack full-width on phones. The viewport meta was
+already correct.

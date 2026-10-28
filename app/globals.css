@@ -38,8 +38,9 @@
     var(--font-inter-loaded), 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
     sans-serif;
 
-  --text-caption: 10px;
+  --text-caption: 12px;
   --text-body: 16px;
+  --text-body-sm: 15px;
   --text-subheading: 20px;
   --text-heading-sm: 32px;
   --text-display: 52px;
@@ -188,7 +189,8 @@ body {
   font-size: 16px;
   border-radius: 6px;
   border: 1px solid var(--color-stone-border);
-  padding: 10px 12px;
+  padding: 12px 14px;
+  min-height: 44px;
   color: var(--color-ink-black);
   background: var(--color-pure-white);
 }
@@ -231,9 +233,13 @@ textarea[aria-invalid='true'] {
 
 .button {
   border-radius: var(--radius-full);
-  padding: 8px 16px;
+  padding: 11px 18px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   line-height: 1;
   cursor: pointer;
@@ -1049,9 +1055,12 @@ textarea[aria-invalid='true'] {
 .suggestions button {
   display: block;
   width: 100%;
-  padding: var(--space-8) var(--space-12);
+  padding: 12px 14px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   text-align: left;
   background: none;
   border: none;
@@ -1155,9 +1164,12 @@ textarea[aria-invalid='true'] {
 .account-menu-item {
   display: block;
   width: 100%;
-  padding: var(--space-8) var(--space-12);
+  padding: 12px 14px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   text-align: left;
   text-decoration: none;
   color: var(--color-ink-black);
@@ -1512,4 +1524,76 @@ textarea[aria-invalid='true'] {
 .cv-timeline-view:disabled {
   opacity: 0.4;
   cursor: default;
+}
+
+/* The mobile token scale: on a phone the whole ladder steps down in one
+   place (every consumer of the tokens follows), while controls keep their
+   44px touch targets - the iPhone review found tiny text and unreachable
+   buttons at 402px. */
+@media (max-width: 640px) {
+  :root {
+    --text-display: 34px;
+    --text-heading-sm: 24px;
+    --text-subheading: 18px;
+    --text-body: 16px;
+    --text-body-sm: 15px;
+    --text-caption: 12px;
+  }
+
+  .button {
+    width: auto;
+    padding: 11px 16px;
+  }
+
+  .landing-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .landing-actions .button {
+    width: 100%;
+  }
+
+  /* The dashboard bar on a phone: the identity takes the row and the
+     account menu drops under it full-width (its absolute panel used to
+     spill off the right edge on a 402px screen). */
+  .workspace-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .workspace-bar .account-menu {
+    width: 100%;
+  }
+
+  .workspace-bar .account-menu .button {
+    width: 100%;
+  }
+
+  .workspace-bar .account-menu-list {
+    position: static;
+    width: 100%;
+    min-width: 0;
+    margin-top: var(--space-8);
+    box-shadow: none;
+  }
+
+  .workspace-bar .workspace-identity {
+    width: 100%;
+  }
+
+  /* The timeline view taps grow to the touch bar as well. */
+  .cv-timeline-view {
+    width: 44px;
+    height: 44px;
+  }
+
+  .cv-timeline-view svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .cv-timeline-entry {
+    gap: var(--space-8);
+  }
 }
