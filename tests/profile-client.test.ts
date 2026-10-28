@@ -4,6 +4,7 @@ import {
   fetchProfile,
   isProfileIncomplete,
   linkRowProblem,
+  fullNameProblem,
   normalizeProfileLinkUrl,
   profileReadMessage,
   updateProfile,
@@ -377,5 +378,39 @@ describe('configured api base url', () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
+  });
+});
+
+// The editor rules in the tree's language: the view passes the dictionary
+// strings and the rules speak the tree voice; the omitted case keeps the
+// english defaults the older tests on this file already cover.
+describe('the editor rules overridable by the dictionary', () => {
+  const NAME_ES = {
+    nameRequired: 'El nombre completo es obligatorio',
+    nameRequiredUpdate: 'El perfil no puede perder su nombre; escríbelo otra vez antes de guardar',
+    namePlaceholderConflict: '"User" es el provisional; escribe tu nombre real',
+  };
+  const LINK_ES = {
+    linkNeedsUrl: 'Falta la dirección del enlace, como https://example.com',
+    linkNeedsType: 'Falta el nombre del sitio, como github, linkedin o x',
+    linkNeedsScheme: 'Se espera una dirección https, como https://example.com',
+  };
+
+  it('speaks the es name rule of each flow', () => {
+    expect(fullNameProblem('', 'onboarding', NAME_ES)).toBe(NAME_ES.nameRequired);
+    expect(fullNameProblem('', 'update', NAME_ES)).toBe(NAME_ES.nameRequiredUpdate);
+    expect(fullNameProblem('User', 'update', NAME_ES)).toBe(NAME_ES.namePlaceholderConflict);
+    expect(fullNameProblem('Juan Pérez', 'update', NAME_ES)).toBeNull();
+  });
+
+  it('speaks the es link-row rules', () => {
+    expect(linkRowProblem({ type: 'github', url: '' }, LINK_ES)).toBe(LINK_ES.linkNeedsUrl);
+    expect(linkRowProblem({ type: '', url: 'https://example.com' }, LINK_ES)).toBe(
+      LINK_ES.linkNeedsType,
+    );
+    expect(linkRowProblem({ type: 'github', url: 'ftp://example.com' }, LINK_ES)).toBe(
+      LINK_ES.linkNeedsScheme,
+    );
+    expect(linkRowProblem({ type: '', url: '' }, LINK_ES)).toBeNull();
   });
 });
