@@ -16,17 +16,25 @@
 // A failed install or registration degrades to plain network
 // navigation: this is an acceleration, never a dependency.
 
-const VERSION = 'shell-v2026-10-27.1';
+const VERSION = 'shell-v2026-10-27.2';
 const SHELL_CACHE = `documents-${VERSION}`;
 const IMMUTABLE_CACHE = `assets-${VERSION}`;
 const SHELL_ROUTES = [
   '/',
+  '/es/',
   '/login/',
+  '/es/login/',
   '/logout/',
+  '/es/logout/',
   '/register/',
+  '/es/register/',
   '/register/confirm/',
+  '/es/register/confirm/',
   '/app/',
+  '/es/app/',
   '/app/profile/',
+  '/app/cv/',
+  '/es/app/cv/',
   '/404.html',
 ];
 

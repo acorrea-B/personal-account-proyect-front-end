@@ -1628,19 +1628,25 @@ textarea[aria-invalid='true'] {
     gap: var(--space-8);
   }
 }
-/* The language picker (i18n): native select, 44px row, desktop-quiet in
-   the nav row and full-width in the stacked 640px header. */
+/* The language picker (i18n): one quiet look everywhere - the flat menu-row
+   treatment the account menu introduced (no box, the sky hover, the cyan
+   text), now the base for every context. Native select, 44px row, desktop
+   nav row and the stacked 640px header. */
 .language-select {
   display: inline-flex;
   align-items: center;
+  width: auto;
+  padding: 0;
   min-height: 44px;
-  padding: 10px 14px;
-  border: 1px solid var(--color-stone-border);
-  border-radius: var(--radius-md);
-  background: var(--color-pure-white);
+  border: none;
+  background: transparent;
   font: inherit;
   font-size: 16px;
-  color: var(--color-ink-black);
+  color: var(--color-cyan-text-strong);
+}
+
+.language-select:hover {
+  background: var(--color-sky-wash-soft);
 }
 
 @media (max-width: 640px) {
@@ -1654,9 +1660,9 @@ textarea[aria-invalid='true'] {
   }
 }
 
-/* The language row inside the account menu: rides the menu item look (no
-   box, the sky hover) instead of a bordered field - a bordered select
-   inside the dropdown read like a foreign control. */
+/* The language row inside the account menu: the menu row look originates
+   here; the variant keeps only its layout deltas (no margin in the plain
+   nav, auto here so the value rides the row's end). */
 .account-menu-language {
   display: flex;
   align-items: center;
@@ -1677,13 +1683,8 @@ textarea[aria-invalid='true'] {
 }
 
 .language-select--menu {
-  border: none;
-  background: transparent;
-  padding: 0;
   min-height: 40px;
   margin-left: auto;
-  width: auto;
-  color: var(--color-cyan-text-strong);
   font-size: 15px;
 }
 
