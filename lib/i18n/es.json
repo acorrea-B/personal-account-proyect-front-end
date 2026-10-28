@@ -125,5 +125,25 @@
     "profileTimeout": "La petición agotó el tiempo de espera. Inténtalo de nuevo.",
     "profileUnknown": "La respuesta del perfil no se entendió. Reintenta o repórtalo.",
     "profileFallback": "El perfil no cargó. Inténtalo de nuevo."
+  },
+  "cvEditor": {
+    "title": "Editor de CV",
+    "loadingAria": "Cargando tu CV",
+    "currentVersionSaved": "Guardado el {date}",
+    "firstVersion": "Tu primera versión",
+    "placeholder": "Escribe tu CV aquí — texto simple, exactamente como lo quieres.",
+    "textareaAria": "Texto del CV",
+    "savedNote": "La versión anterior pasó al historial de versiones.",
+    "stale": "Alguien guardó una versión más reciente mientras editabas. Tu texto queda en el editor — recarga la vigente después de copiar lo que necesites.",
+    "reloadAction": "Recargar la versión vigente",
+    "limitNote": "El texto del CV llega a {bytes} bytes — recórtalo y guarda otra vez.",
+    "loadRateCapped": "El endpoint del CV está limitado (máximo dos veces por minuto). Espera unos segundos e inténtalo de nuevo.",
+    "loadFallback": "El CV no cargó. Por favor inténtalo de nuevo.",
+    "saveRateCapped": "El guardado está limitado (máximo diez veces por minuto). Espera unos segundos e inténtalo de nuevo.",
+    "saveFallback": "El guardado no se pudo completar. Por favor inténtalo de nuevo.",
+    "saving": "Guardando…",
+    "saved": "Guardado",
+    "save": "Guardar CV",
+    "back": "Volver al espacio"
   }
 }

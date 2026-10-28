@@ -139,6 +139,26 @@ export const labelsSchema = z.object({
     profileUnknown: z.string(),
     profileFallback: z.string(),
   }),
+  cvEditor: z.object({
+    title: z.string(),
+    loadingAria: z.string(),
+    currentVersionSaved: z.string(),
+    firstVersion: z.string(),
+    placeholder: z.string(),
+    textareaAria: z.string(),
+    savedNote: z.string(),
+    stale: z.string(),
+    reloadAction: z.string(),
+    limitNote: z.string(),
+    loadRateCapped: z.string(),
+    loadFallback: z.string(),
+    saveRateCapped: z.string(),
+    saveFallback: z.string(),
+    saving: z.string(),
+    saved: z.string(),
+    save: z.string(),
+    back: z.string(),
+  }),
 });
 
 export type Labels = z.infer<typeof labelsSchema>;

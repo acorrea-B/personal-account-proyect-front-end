@@ -125,5 +125,25 @@
     "profileTimeout": "Request timed out. Please try again.",
     "profileUnknown": "The profile response was not understood. Please retry or report it.",
     "profileFallback": "The profile could not be loaded. Please try again."
+  },
+  "cvEditor": {
+    "title": "CV editor",
+    "loadingAria": "Loading your cv",
+    "currentVersionSaved": "Current version saved {date}",
+    "firstVersion": "Your first version",
+    "placeholder": "Write your cv here — plain text, exactly as you want it.",
+    "textareaAria": "CV text",
+    "savedNote": "The previous version moved to the version history.",
+    "stale": "Someone saved a newer version while you were editing. Your text stays in the editor — reload the latest after copying what you need.",
+    "reloadAction": "Reload the latest version",
+    "limitNote": "The cv text is at most {bytes} bytes — trim it and save again.",
+    "loadRateCapped": "The cv endpoint is rate limited (at most twice a minute). Wait a few seconds and try again.",
+    "loadFallback": "The cv failed to load. Please try again shortly.",
+    "saveRateCapped": "The save is rate limited (at most ten times a minute). Wait a few seconds and try again.",
+    "saveFallback": "The save could not be completed. Please try again.",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "save": "Save cv",
+    "back": "Back to workspace"
   }
 }
