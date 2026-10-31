@@ -82,8 +82,10 @@ dev container: `docker compose -f compose.dev.yaml up` serves live reload on
 `127.0.0.1:3001` from `.next-docker/`, and the gates run with
 `docker compose -f compose.dev.yaml run --rm --no-deps web npm test` (same for
 `typecheck`, `lint`, `format:check`). The container keeps its own
-`node_modules` volume; rebuild it after dependency changes
-(`docker compose -f compose.dev.yaml build`).
+`node_modules` in a named volume that outlives the image, so after a
+dependency change drop the volume with the rebuild:
+`docker compose -f compose.dev.yaml down -v && docker compose -f compose.dev.yaml up --build`
+(a plain `build` would keep serving the old packages from the volume).
 
 Conventions: test-first functional code; features never exceed six files
 (stacked windows); Conventional Commits in English with a descriptive body;
