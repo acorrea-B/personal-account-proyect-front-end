@@ -62,6 +62,10 @@ export const labelsSchema = z.object({
     retry: z.string(),
     loadingAria: z.string(),
   }),
+  catalogInput: z.object({
+    listAria: z.string(),
+    searching: z.string(),
+  }),
   history: z.object({
     title: z.string(),
     empty: z.string(),

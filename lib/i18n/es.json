@@ -258,5 +258,9 @@
     "loadFailed": "No se pudo cargar el consentimiento del catálogo.",
     "retry": "Reintentar",
     "loadingAria": "Cargando el consentimiento del catálogo"
+  },
+  "catalogInput": {
+    "listAria": "Nombres de habilidades que otras personas confirmaron",
+    "searching": "Buscando en el catálogo de habilidades…"
   }
 }
