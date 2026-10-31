@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useState } from 'react';
 
 import { ProblemError } from '@/lib/api/client';
 import { fetchCvText, getVersions } from '@/lib/api/cv';
@@ -13,12 +13,21 @@ import { type Locale, labels, tr } from '@/lib/i18n';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
 import {
+  AuthFormNote,
   AuthSubtitle,
   Eyebrow,
+  RailItem,
+  RailTitle,
+  SkillChips,
+  StatusChip,
   WorkspaceBar,
   WorkspacePage,
   WorkspaceTitle,
+  cx,
   ghostButton,
+  linkClass,
+  railText,
+  workspacePanel,
 } from '@/components/ui';
 import { ClampedText } from '@/components/clamped-text';
 import { CvCard, type CvCardState } from '@/components/cv-card';
@@ -255,8 +264,11 @@ export function DashboardView({ locale }: { locale: Locale }) {
         </WorkspaceBar>
 
         {load.status === 'error' ? (
-          <section className="profile-panel">
-            <div role="alert" className="form-error">
+          <section className={workspacePanel}>
+            <div
+              role="alert"
+              className="grid justify-items-start gap-8 rounded-lg border border-stone-muted px-12 py-8 text-[12px] leading-[1.6] text-soot"
+            >
               <p>{load.error}</p>
               <button
                 type="button"
@@ -270,60 +282,58 @@ export function DashboardView({ locale }: { locale: Locale }) {
         ) : null}
 
         {load.status === 'ready' && profile ? (
-          <div className="dashboard-grid">
-            <section className="profile-panel" aria-label={t.workspace.profilePanel}>
-              <div className="panel-head">
-                <p className="eyebrow">{t.panel.eyebrow}</p>
-                <Link className="link" href={`${base}/app/profile/`}>
+          <div className={dashboardGrid}>
+            <section className={workspacePanel} aria-label={t.workspace.profilePanel}>
+              <div className="flex items-center justify-between gap-16 max-sm:flex-col max-sm:items-stretch max-sm:gap-8">
+                <Eyebrow>{t.panel.eyebrow}</Eyebrow>
+                <Link
+                  className={cx(
+                    linkClass,
+                    'max-sm:flex max-sm:min-h-[44px] max-sm:items-center max-sm:justify-center max-sm:rounded-full max-sm:bg-sky-wash max-sm:text-[16px]',
+                  )}
+                  href={`${base}/app/profile/`}
+                >
                   {t.panel.updateLink}
                 </Link>
               </div>
 
-              <dl className="profile-grid">
-                <div>
-                  <dt>{t.panel.fullName}</dt>
-                  <dd className="profile-headline">{profile.full_name}</dd>
-                </div>
+              <dl className="m-0 grid gap-12">
+                <ProfileFact term={t.panel.fullName} headline>
+                  {profile.full_name}
+                </ProfileFact>
                 {profile.headline ? (
-                  <div>
-                    <dt>{t.panel.headline}</dt>
-                    <dd>{profile.headline}</dd>
-                  </div>
+                  <ProfileFact term={t.panel.headline}>{profile.headline}</ProfileFact>
                 ) : null}
                 {profile.location ? (
-                  <div>
-                    <dt>{t.panel.location}</dt>
-                    <dd>{profile.location}</dd>
-                  </div>
+                  <ProfileFact term={t.panel.location}>{profile.location}</ProfileFact>
                 ) : null}
               </dl>
 
               {profile.bio ? (
                 <div>
-                  <p className="eyebrow">{t.panel.bio}</p>
-                  <ClampedText text={profile.bio} className="clamped-text" locale={locale} />
+                  <Eyebrow>{t.panel.bio}</Eyebrow>
+                  <ClampedText text={profile.bio} className="m-0 text-ink-black" locale={locale} />
                 </div>
               ) : null}
 
               {profile.skills ? (
                 <div>
-                  <p className="eyebrow">{t.panel.skills}</p>
-                  <ul className="skill-chips" aria-label={t.panel.skills}>
-                    {profile.skills.map((skill) => (
-                      <li key={skill.toLowerCase()}>{skill}</li>
-                    ))}
-                  </ul>
+                  <Eyebrow>{t.panel.skills}</Eyebrow>
+                  <SkillChips skills={profile.skills} label={t.panel.skills} />
                 </div>
               ) : null}
 
               {profile.links ? (
                 <div>
-                  <p className="eyebrow">{t.panel.links}</p>
-                  <ul className="profile-links" aria-label={t.panel.links}>
+                  <Eyebrow>{t.panel.links}</Eyebrow>
+                  <ul
+                    className="m-0 flex list-none flex-wrap gap-16 p-0"
+                    aria-label={t.panel.links}
+                  >
                     {profile.links.map((link) => (
                       <li key={link.url}>
                         <a
-                          className="link"
+                          className={linkClass}
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -336,28 +346,25 @@ export function DashboardView({ locale }: { locale: Locale }) {
                 </div>
               ) : null}
 
-              <p className="auth-form-note">
+              <AuthFormNote>
                 {tr(t.panel.updatedNote, { date: formatWhen(profile.updated_at) })}
-              </p>
+              </AuthFormNote>
             </section>
 
-            <aside className="upcoming-panel" aria-label={t.workspace.comingUpPanel}>
-              <p className="eyebrow">{t.panel.comingUp}</p>
-              <ul className="upcoming-list">
+            <aside className={workspacePanel} aria-label={t.workspace.comingUpPanel}>
+              <Eyebrow>{t.panel.comingUp}</Eyebrow>
+              <ul className="m-0 grid list-none gap-12 p-0">
                 <CvCard state={cvCard} locale={locale} />
                 <CvHistoryCard
                   state={history}
                   locale={locale}
                   onSelect={accessToken ? (id: string) => setDetailVersionId(id) : undefined}
                 />
-                <li className="upcoming-item">
-                  <SignalIcon />
-                  <div className="upcoming-copy">
-                    <strong>{t.workspace.skillSuggestions}</strong>
-                    <span>{t.workspace.skillSuggestionsCopy}</span>
-                    <span className="status-chip">{t.workspace.afterBeta}</span>
-                  </div>
-                </li>
+                <RailItem icon={SignalIcon}>
+                  <RailTitle>{t.workspace.skillSuggestions}</RailTitle>
+                  <span className={railText}>{t.workspace.skillSuggestionsCopy}</span>
+                  <StatusChip>{t.workspace.afterBeta}</StatusChip>
+                </RailItem>
               </ul>
             </aside>
           </div>
@@ -384,26 +391,54 @@ export function DashboardView({ locale }: { locale: Locale }) {
   );
 }
 
+// .dashboard-grid: the profile panel and the coming-up rail side by side,
+// stacked under 860px.
+const dashboardGrid =
+  'grid grid-cols-[minmax(0,1.6fr)_minmax(280px,0.9fr)] items-start gap-16 max-md:grid-cols-1';
+
+// One fact of the profile panel (.profile-grid > div, dt, dd): the cyan
+// rule on the left, the label over the value; the name reads larger.
+function ProfileFact({
+  term,
+  headline,
+  children,
+}: {
+  term: string;
+  headline?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div className="grid gap-4 border-l-2 border-sky-wash pl-12">
+      <dt className="text-(length:--text-label) tracking-[0.08em] text-cyan-text uppercase">
+        {term}
+      </dt>
+      <dd className={cx('m-0 text-ink-black', headline && 'text-(length:--text-subheading)')}>
+        {children}
+      </dd>
+    </div>
+  );
+}
+
 // The dashboard skeleton: the same containers as the ready state (bar,
 // profile panel, coming-up rail) with the content replaced by soft
 // placeholder lines riding the blurred glow sweep.
 function WorkspaceSkeleton() {
   return (
     <>
-      <div className="skeleton-bar">
-        <div className="skeleton-screen">
+      <div className="flex items-end justify-between gap-16 border-b border-stone-border pb-24">
+        <div className="grid gap-12">
           <Skeleton width={110} height={11} />
           <Skeleton width={280} height={28} />
           <Skeleton width={210} height={14} />
         </div>
-        <div className="workspace-actions">
+        <div className="flex items-center gap-12">
           <Skeleton width={40} height={40} />
           <Skeleton width={92} height={36} />
         </div>
       </div>
-      <div className="dashboard-grid">
-        <div className="profile-panel">
-          <div className="skeleton-screen">
+      <div className={dashboardGrid}>
+        <div className={workspacePanel}>
+          <div className="grid gap-12">
             <Skeleton width={150} height={12} />
             <Skeleton width="100%" height={16} />
             <Skeleton width="70%" height={16} />
@@ -411,8 +446,8 @@ function WorkspaceSkeleton() {
             <Skeleton width="85%" height={16} />
           </div>
         </div>
-        <div className="upcoming-panel">
-          <div className="skeleton-screen">
+        <div className={workspacePanel}>
+          <div className="grid gap-12">
             <Skeleton width={90} height={12} />
             <Skeleton width="100%" height={44} />
             <Skeleton width="100%" height={44} />
