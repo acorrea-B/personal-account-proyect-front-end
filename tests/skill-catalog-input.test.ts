@@ -151,6 +151,25 @@ describe('SkillCatalogInput', () => {
     expect(input().getAttribute('aria-activedescendant')).toBeNull();
   });
 
+  it('keeps the options out of the tab order and closes when focus leaves', async () => {
+    vi.mocked(searchSkillCatalog).mockResolvedValue([{ skill_key: 'go', display_name: 'Go' }]);
+    await render('');
+    await type('go');
+    const option = document.querySelector('[role="option"] button') as HTMLButtonElement;
+    expect(option.tabIndex).toBe(-1);
+    // Focus moving to an option keeps the list; leaving the field closes it.
+    await act(async () => {
+      input().dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: option }));
+    });
+    expect(document.querySelector('[role="listbox"]')).not.toBeNull();
+    await act(async () => {
+      input().dispatchEvent(
+        new FocusEvent('focusout', { bubbles: true, relatedTarget: document.body }),
+      );
+    });
+    expect(document.querySelector('[role="listbox"]')).toBeNull();
+  });
+
   it('exposes the highlighted option as the active descendant', async () => {
     vi.mocked(searchSkillCatalog).mockResolvedValue([
       { skill_key: 'go', display_name: 'Go' },
