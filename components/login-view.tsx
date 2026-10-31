@@ -8,6 +8,19 @@ import { ProblemError, login } from '@/lib/api/client';
 import { loginRequestSchema } from '@/lib/schemas/auth';
 import { savePendingVerificationEmail, saveSession } from '@/lib/auth/session';
 import { type Locale, labels, tr } from '@/lib/i18n';
+import {
+  AuthCard,
+  AuthForm,
+  AuthFormNote,
+  AuthHeading,
+  AuthPage,
+  AuthSubtitle,
+  Field,
+  FieldError,
+  FormMessage,
+  primaryButton,
+  TextLink,
+} from '@/components/ui';
 
 interface FieldErrors {
   email?: string;
@@ -88,76 +101,56 @@ export function LoginView({ locale }: { locale: Locale }) {
   }
 
   return (
-    <main className="auth-page">
-      <section className="auth-shell auth-card">
-        <h1 className="auth-heading">{t.login.heading}</h1>
-        <p className="auth-subtitle">{t.login.subtitle}</p>
+    <AuthPage>
+      <AuthCard>
+        <AuthHeading>{t.login.heading}</AuthHeading>
+        <AuthSubtitle>{t.login.subtitle}</AuthSubtitle>
 
-        {formError ? (
-          <div role="alert" className="form-error">
-            <p>{formError}</p>
-          </div>
-        ) : null}
+        {formError ? <FormMessage tone="alert">{formError}</FormMessage> : null}
 
-        <form method="post" onSubmit={handleSubmit} noValidate>
-          <label className="field" htmlFor="email">
-            {t.login.email}
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              aria-invalid={Boolean(fieldErrors.email)}
-              aria-describedby={fieldErrors.email ? 'email-error' : undefined}
-            />
-          </label>
-          {fieldErrors.email ? (
-            <p id="email-error" role="alert" className="field-error">
-              {fieldErrors.email}
-            </p>
-          ) : null}
+        <AuthForm method="post" onSubmit={handleSubmit} noValidate>
+          <Field
+            label={t.login.email}
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            aria-invalid={Boolean(fieldErrors.email)}
+            aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+          />
+          {fieldErrors.email ? <FieldError id="email-error">{fieldErrors.email}</FieldError> : null}
 
-          <label className="field" htmlFor="password">
-            {t.login.password}
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              aria-invalid={Boolean(fieldErrors.password)}
-              aria-describedby={fieldErrors.password ? 'password-error' : undefined}
-            />
-          </label>
+          <Field
+            label={t.login.password}
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            aria-invalid={Boolean(fieldErrors.password)}
+            aria-describedby={fieldErrors.password ? 'password-error' : undefined}
+          />
           {fieldErrors.password ? (
-            <p id="password-error" role="alert" className="field-error">
-              {fieldErrors.password}
-            </p>
+            <FieldError id="password-error">{fieldErrors.password}</FieldError>
           ) : null}
 
-          <button type="submit" className="button button-primary" disabled={isSubmitting}>
+          <button type="submit" className={primaryButton} disabled={isSubmitting}>
             {isSubmitting ? t.login.submitting : t.login.submit}
           </button>
-        </form>
+        </AuthForm>
 
         <p>
-          <a className="link" href={`${base}/register/`}>
-            {t.login.registerEntry}
-          </a>
+          <TextLink href={`${base}/register/`}>{t.login.registerEntry}</TextLink>
         </p>
-        <p className="auth-form-note">
-          <a
-            className="link"
-            href={locale === 'es' ? '/' : '/es/'}
-            hrefLang={locale === 'es' ? 'en' : 'es'}
-          >
+        <AuthFormNote>
+          <TextLink href={locale === 'es' ? '/' : '/es/'} hrefLang={locale === 'es' ? 'en' : 'es'}>
             {t.login.otherLanguage}
-          </a>
-        </p>
-      </section>
-    </main>
+          </TextLink>
+        </AuthFormNote>
+      </AuthCard>
+    </AuthPage>
   );
 }

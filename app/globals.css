@@ -130,6 +130,9 @@
 
   /* Spacing (export): named steps, so p-16 is 16px and gap-24 is 24px. The
      base unit is cleared on purpose: a spacing utility can only name a step. */
+  /* Extension: the zero step, so m-0, p-0 and right-0 exist (the export
+     starts at 4px). */
+  --spacing-0: 0px;
   --spacing-4: 4px;
   --spacing-8: 8px;
   --spacing-12: 12px;
