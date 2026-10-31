@@ -12,6 +12,14 @@ import type { Profile } from '@/lib/schemas/profile';
 import { type Locale, labels, tr } from '@/lib/i18n';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
+import {
+  AuthSubtitle,
+  Eyebrow,
+  WorkspaceBar,
+  WorkspacePage,
+  WorkspaceTitle,
+  ghostButton,
+} from '@/components/ui';
 import { ClampedText } from '@/components/clamped-text';
 import { CvCard, type CvCardState } from '@/components/cv-card';
 import { CvHistoryCard, formatWhen, type CvHistoryState } from '@/components/cv-timeline';
@@ -218,9 +226,9 @@ export function DashboardView({ locale }: { locale: Locale }) {
   // the dashboard behind the skeleton screen — never a white page.
   if (!isHydrated || !isAuthorized || load.status === 'loading') {
     return (
-      <main className="workspace-page" aria-busy="true">
+      <WorkspacePage busy>
         <WorkspaceSkeleton />
-      </main>
+      </WorkspacePage>
     );
   }
 
@@ -228,20 +236,23 @@ export function DashboardView({ locale }: { locale: Locale }) {
   const firstName = profile ? profile.full_name.trim().split(/\s+/)[0] : '';
 
   return (
-    <main className="workspace-page">
+    <WorkspacePage>
       <div className="content-resolve">
-        <header className="workspace-bar">
-          <div className="workspace-identity">
-            <p className="eyebrow">{t.workspace.eyebrow}</p>
-            <h1 className="workspace-title">
-              {firstName ? tr(t.workspace.greeting, { name: firstName }) : t.workspace.title}
-            </h1>
-            <p className="auth-subtitle">
-              {tr(t.workspace.signedInAs, { email: session?.user.email ?? '' })}
-            </p>
-          </div>
+        <WorkspaceBar
+          identity={
+            <>
+              <Eyebrow>{t.workspace.eyebrow}</Eyebrow>
+              <WorkspaceTitle>
+                {firstName ? tr(t.workspace.greeting, { name: firstName }) : t.workspace.title}
+              </WorkspaceTitle>
+              <AuthSubtitle>
+                {tr(t.workspace.signedInAs, { email: session?.user.email ?? '' })}
+              </AuthSubtitle>
+            </>
+          }
+        >
           <AccountMenu locale={locale} />
-        </header>
+        </WorkspaceBar>
 
         {load.status === 'error' ? (
           <section className="profile-panel">
@@ -249,7 +260,7 @@ export function DashboardView({ locale }: { locale: Locale }) {
               <p>{load.error}</p>
               <button
                 type="button"
-                className="button button-ghost"
+                className={ghostButton}
                 onClick={() => accessToken && loadProfile(accessToken)}
               >
                 {t.cvCard.retry}
@@ -369,7 +380,7 @@ export function DashboardView({ locale }: { locale: Locale }) {
           />
         ) : null}
       </div>
-    </main>
+    </WorkspacePage>
   );
 }
 
