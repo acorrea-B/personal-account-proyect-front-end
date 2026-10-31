@@ -16,17 +16,13 @@ import {
   AuthFormNote,
   AuthSubtitle,
   Eyebrow,
-  RailItem,
-  RailTitle,
   SkillChips,
-  StatusChip,
   WorkspaceBar,
   WorkspacePage,
   WorkspaceTitle,
   cx,
   ghostButton,
   linkClass,
-  railText,
   workspacePanel,
 } from '@/components/ui';
 import { ClampedText } from '@/components/clamped-text';
@@ -34,7 +30,7 @@ import { CvCard, type CvCardState } from '@/components/cv-card';
 import { CvHistoryCard, formatWhen, type CvHistoryState } from '@/components/cv-timeline';
 import { CvVersionDetail } from '@/components/cv-version-detail';
 import { Skeleton } from '@/components/skeleton';
-import { SignalIcon } from '@/components/icons';
+import { SkillSuggestionsCard } from '@/components/skill-suggestions-card';
 
 type WorkspaceLoad =
   | { status: 'loading' }
@@ -360,11 +356,13 @@ export function DashboardView({ locale }: { locale: Locale }) {
                   locale={locale}
                   onSelect={accessToken ? (id: string) => setDetailVersionId(id) : undefined}
                 />
-                <RailItem icon={SignalIcon}>
-                  <RailTitle>{t.workspace.skillSuggestions}</RailTitle>
-                  <span className={railText}>{t.workspace.skillSuggestionsCopy}</span>
-                  <StatusChip>{t.workspace.afterBeta}</StatusChip>
-                </RailItem>
+                {accessToken ? (
+                  <SkillSuggestionsCard
+                    accessToken={accessToken}
+                    locale={locale}
+                    onAccepted={() => void loadProfile(accessToken)}
+                  />
+                ) : null}
               </ul>
             </aside>
           </div>
