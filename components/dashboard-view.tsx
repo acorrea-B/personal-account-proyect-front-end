@@ -384,7 +384,7 @@ export function DashboardView({ locale }: { locale: Locale }) {
               ) : null}
 
               <AuthFormNote>
-                {tr(t.panel.updatedNote, { date: formatWhen(profile.updated_at) })}
+                {tr(t.panel.updatedNote, { date: formatWhen(profile.updated_at, locale) })}
               </AuthFormNote>
             </section>
 

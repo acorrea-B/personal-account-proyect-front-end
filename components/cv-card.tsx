@@ -47,7 +47,7 @@ export function CvCard({ state, locale = 'en' }: { state: CvCardState; locale?: 
             {cvPreview(state.cv.content)}
           </span>
           <span className={railText}>
-            {tr(labelsT.cvCard.lastSaved, { date: formatWhen(state.cv.updated_at) })}
+            {tr(labelsT.cvCard.lastSaved, { date: formatWhen(state.cv.updated_at, locale) })}
           </span>
           <div className={cardActions}>
             <Link className={linkClass} href={editorHref}>
