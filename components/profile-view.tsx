@@ -350,10 +350,8 @@ export function ProfileView({ locale }: { locale: Locale }) {
   }
 
   // The update flow opens inside the workspace column, onboarding on the
-  // centered auth page; inside the workspace the alert and the note lay
-  // their content out as a grid (the old .workspace-page .form-error rule).
+  // centered auth page.
   const Page = isUpdateFlow ? WorkspacePage : AuthPage;
-  const workspaceMessage = isUpdateFlow ? 'grid justify-items-start gap-8' : undefined;
 
   return (
     <Page>
@@ -455,10 +453,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
         {load.status === 'error' ? (
           <div
             role="alert"
-            className={cx(
-              'rounded-lg border border-stone-muted px-12 py-8 text-[12px] leading-[1.6] text-soot',
-              workspaceMessage,
-            )}
+            className="rounded-lg border border-stone-muted px-12 py-8 text-[12px] leading-[1.6] text-soot"
           >
             <p>{load.error}</p>
             <button
@@ -744,11 +739,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
                 ) : null}
               </div>
 
-              {formNote ? (
-                <FormMessage tone="status" className={workspaceMessage}>
-                  {formNote}
-                </FormMessage>
-              ) : null}
+              {formNote ? <FormMessage tone="status">{formNote}</FormMessage> : null}
 
               <div className="flex flex-wrap gap-8 max-sm:flex-col max-sm:items-stretch">
                 <button
