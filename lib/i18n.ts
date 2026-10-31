@@ -81,6 +81,8 @@ export const labelsSchema = z.object({
     additional: z.string(),
   }),
   journal: z.object({
+    railCopy: z.string(),
+    open: z.string(),
     title: z.string(),
     intro: z.string(),
     consentTitle: z.string(),

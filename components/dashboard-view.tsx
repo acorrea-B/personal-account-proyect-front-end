@@ -25,7 +25,10 @@ import {
   cx,
   contentResolve,
   ghostButton,
+  RailItem,
+  RailTitle,
   linkClass,
+  railText,
   workspacePanel,
 } from '@/components/ui';
 import { ClampedText } from '@/components/clamped-text';
@@ -34,6 +37,7 @@ import { CvHistoryCard, formatWhen, type CvHistoryState } from '@/components/cv-
 import { CvVersionDetail } from '@/components/cv-version-detail';
 import { Skeleton } from '@/components/skeleton';
 import { SkillSuggestionsCard } from '@/components/skill-suggestions-card';
+import { CheckIcon } from '@/components/icons';
 
 type WorkspaceLoad =
   | { status: 'loading' }
@@ -398,6 +402,15 @@ export function DashboardView({ locale }: { locale: Locale }) {
                   locale={locale}
                   onSelect={accessToken ? (id: string) => setDetailVersionId(id) : undefined}
                 />
+                <RailItem icon={CheckIcon}>
+                  <RailTitle>{t.journal.title}</RailTitle>
+                  <span className={railText}>{t.journal.railCopy}</span>
+                  <div className="mt-8 w-full border-t border-stone-border pt-12">
+                    <Link className={linkClass} href={`${base}/app/journal/`}>
+                      {t.journal.open}
+                    </Link>
+                  </div>
+                </RailItem>
                 {accessToken ? (
                   <SkillSuggestionsCard
                     accessToken={accessToken}
