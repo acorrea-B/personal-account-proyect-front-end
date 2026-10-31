@@ -253,7 +253,10 @@ export function CvEditorView({ locale }: { locale: Locale }) {
                         overLimit ? 'font-medium text-alert' : 'text-ink-black',
                       )}
                     >
-                      {bytes} / {maxCvContentBytes} bytes
+                      {tr(t.cvEditor.byteCounter, {
+                        bytes: String(bytes),
+                        max: String(maxCvContentBytes),
+                      })}
                     </span>
                     {note ? (
                       <span role="status" className={inlineNote}>

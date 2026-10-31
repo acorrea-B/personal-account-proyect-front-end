@@ -1,6 +1,6 @@
 'use client';
 
-import { type Locale } from '@/lib/i18n';
+import { type Locale, labels } from '@/lib/i18n';
 
 // The native select's look (the old .language-select rule): no chrome, the
 // strong cyan voice, a 44px row, the full width of the stacked header on a
@@ -31,7 +31,7 @@ export function LanguageSelect({ current, path }: { current: Locale; path: strin
   return (
     <select
       className={languageSelectClass}
-      aria-label="Site language"
+      aria-label={labels(current).language}
       value={current}
       onChange={(event) => {
         const next = event.target.value as Locale;

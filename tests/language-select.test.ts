@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { swapLocalePath } from '../components/language-select';
+import { labels } from '../lib/i18n';
 
 describe('swapLocalePath', () => {
   it('maps the landing root to the es tree', () => {
@@ -60,7 +61,7 @@ describe('LanguageSelect navigation', () => {
         throw new Error('select not found');
       }
       expect(select.value).toBe('en');
-      expect(select.getAttribute('aria-label')).toBe('Site language');
+      expect(select.getAttribute('aria-label')).toBe(labels('en').language);
 
       await act(async () => {
         select.value = 'es';
