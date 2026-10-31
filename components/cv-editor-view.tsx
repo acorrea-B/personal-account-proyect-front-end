@@ -9,6 +9,19 @@ import { maxCvContentBytes, type CvMeta } from '@/lib/schemas/cv';
 import { type Locale, labels, tr } from '@/lib/i18n';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
+import {
+  AuthForm,
+  Eyebrow,
+  SaveToast,
+  WorkspaceBar,
+  WorkspacePage,
+  WorkspaceTitle,
+  cx,
+  ghostButton,
+  inlineAlert,
+  inlineNote,
+  primaryButton,
+} from '@/components/ui';
 import { CheckIcon, HomeIcon } from '@/components/icons';
 import { Skeleton } from '@/components/skeleton';
 
@@ -157,43 +170,50 @@ export function CvEditorView({ locale }: { locale: Locale }) {
 
   if (!isHydrated || !isAuthorized || load.status === 'loading') {
     return (
-      <main className="workspace-page" aria-busy="true">
+      <WorkspacePage busy>
         <div className="content-resolve">
-          <header className="workspace-bar">
-            <div className="workspace-identity">
-              <p className="eyebrow">{t.workspace.eyebrow}</p>
-              <h1 className="workspace-title">{t.cvEditor.title}</h1>
-            </div>
-          </header>
-          <section className="auth-card cv-editor-card" aria-label={t.cvEditor.loadingAria}>
-            <div className="skeleton-screen">
+          <WorkspaceBar
+            identity={
+              <>
+                <Eyebrow>{t.workspace.eyebrow}</Eyebrow>
+                <WorkspaceTitle>{t.cvEditor.title}</WorkspaceTitle>
+              </>
+            }
+          >
+            {null}
+          </WorkspaceBar>
+          <section className={editorCard} aria-label={t.cvEditor.loadingAria}>
+            <div className="grid gap-12">
               <Skeleton width={140} height={16} />
               <Skeleton width="100%" height={340} />
             </div>
           </section>
         </div>
-      </main>
+      </WorkspacePage>
     );
   }
 
   return (
-    <main className="workspace-page">
+    <WorkspacePage>
       <div className="content-resolve">
-        <header className="workspace-bar">
-          <div className="workspace-identity">
-            <p className="eyebrow">{t.workspace.eyebrow}</p>
-            <h1 className="workspace-title">{t.cvEditor.title}</h1>
-          </div>
+        <WorkspaceBar
+          identity={
+            <>
+              <Eyebrow>{t.workspace.eyebrow}</Eyebrow>
+              <WorkspaceTitle>{t.cvEditor.title}</WorkspaceTitle>
+            </>
+          }
+        >
           <AccountMenu locale={locale} />
-        </header>
+        </WorkspaceBar>
 
         {load.status === 'error' ? (
-          <section className="auth-card cv-editor-card">
-            <div role="alert" className="form-error">
+          <section className={editorCard}>
+            <div role="alert" className={inlineAlert}>
               <p>{load.message}</p>
               <button
                 type="button"
-                className="button button-ghost"
+                className={ghostButton}
                 onClick={() => accessToken && loadCv(accessToken)}
               >
                 {t.cvCard.retry}
@@ -201,21 +221,22 @@ export function CvEditorView({ locale }: { locale: Locale }) {
             </div>
           </section>
         ) : (
-          <section className="auth-card cv-editor-card" aria-label={t.cvEditor.title}>
+          <section className={editorCard} aria-label={t.cvEditor.title}>
             {load.status === 'ready' ? (
-              <form
+              <AuthForm
                 onSubmit={(event) => {
                   event.preventDefault();
                   void saveCv();
                 }}
               >
-                <p className="eyebrow">
+                <Eyebrow>
                   {meta
                     ? tr(t.cvEditor.currentVersionSaved, { date: meta.updated_at })
                     : t.cvEditor.firstVersion}
-                </p>
-                <div className="cv-editor-block">
+                </Eyebrow>
+                <div>
                   <textarea
+                    className="block min-h-[340px] w-full max-w-full resize-y text-(length:--text-body-md) leading-[1.6] whitespace-pre-wrap focus-visible:border-cyan-text! focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none max-md:min-h-[260px]"
                     value={content}
                     onChange={(event) => setContent(event.target.value)}
                     rows={18}
@@ -224,26 +245,27 @@ export function CvEditorView({ locale }: { locale: Locale }) {
                     aria-invalid={overLimit}
                     placeholder={t.cvEditor.placeholder}
                   />
-                  <p className="cv-editor-meta">
+                  <p>
                     <span
                       id="cv-byte-counter"
-                      className={
-                        overLimit ? 'cv-editor-counter cv-editor-counter-over' : 'cv-editor-counter'
-                      }
+                      className={cx(
+                        'text-(length:--text-body-md) tabular-nums',
+                        overLimit ? 'font-medium text-alert' : 'text-ink-black',
+                      )}
                     >
                       {bytes} / {maxCvContentBytes} bytes
                     </span>
                     {note ? (
-                      <span role="status" className="form-note">
+                      <span role="status" className={inlineNote}>
                         {note}
                       </span>
                     ) : null}
                     {stale ? (
-                      <span role="alert" className="form-error">
+                      <span role="alert" className={inlineAlert}>
                         {t.cvEditor.stale}
                         <button
                           type="button"
-                          className="button button-ghost"
+                          className={ghostButton}
                           onClick={() => accessToken && loadCv(accessToken)}
                         >
                           {t.cvEditor.reloadAction}
@@ -253,10 +275,10 @@ export function CvEditorView({ locale }: { locale: Locale }) {
                   </p>
                 </div>
 
-                <div className="landing-actions">
+                <div className="flex flex-wrap gap-8 max-sm:flex-col max-sm:items-stretch">
                   <button
                     type="submit"
-                    className="button button-primary"
+                    className={cx(primaryButton, 'max-sm:w-full')}
                     disabled={save.status === 'saving' || overLimit}
                   >
                     {save.status === 'saving'
@@ -267,33 +289,32 @@ export function CvEditorView({ locale }: { locale: Locale }) {
                   </button>
                   {/* The persistent way back: never tied to the toast's
                       five seconds, so the exit does not vanish with it. */}
-                  <Link className="button button-ghost" href={`${base}/app/`}>
+                  <Link className={cx(ghostButton, 'max-sm:w-full')} href={`${base}/app/`}>
                     <HomeIcon /> {t.cvEditor.back}
                   </Link>
                 </div>
-              </form>
+              </AuthForm>
             ) : null}
           </section>
         )}
       </div>
 
       {showToast ? (
-        <div role="status" className="save-toast">
-          <CheckIcon />
-          <p>{t.versionDetail.restoredNote}</p>
-          <button
-            type="button"
-            className="save-toast-dismiss"
-            aria-label={t.versionDetail.dismiss}
-            onClick={() => setShowToast(false)}
-          >
-            ✕
-          </button>
-        </div>
+        <SaveToast
+          icon={CheckIcon}
+          dismissLabel={t.versionDetail.dismiss}
+          onDismiss={() => setShowToast(false)}
+        >
+          {t.versionDetail.restoredNote}
+        </SaveToast>
       ) : null}
-    </main>
+    </WorkspacePage>
   );
 }
+
+// .auth-card.cv-editor-card: the editor sheet, centered at 880px.
+const editorCard =
+  'mx-auto grid w-full max-w-[880px] gap-16 rounded-lg border border-stone-border bg-pure-white p-32 shadow-subtle max-sm:p-16';
 
 // Reads the problem's detail or title; a missing one degrades to undefined
 // for the caller's fallback composition.

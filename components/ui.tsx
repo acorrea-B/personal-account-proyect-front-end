@@ -199,12 +199,11 @@ export const primaryButton = cx(
 // .button.button-ghost: the quiet hairline action.
 export const ghostButton = cx(buttonBase, 'border-stone-border bg-transparent text-ink-black');
 
-// .workspace-page: the signed-in page column. The workspace-page class stays
-// as a hook for the descendant rules of views that have not moved yet.
+// .workspace-page: the signed-in page column.
 export function WorkspacePage({ busy, children }: { busy?: boolean; children: ReactNode }) {
   return (
     <main
-      className="workspace-page mx-auto grid min-h-screen w-full max-w-page content-start gap-32 p-24"
+      className="mx-auto grid min-h-screen w-full max-w-page content-start gap-32 p-24"
       aria-busy={busy ? 'true' : undefined}
     >
       {children}
@@ -281,14 +280,83 @@ export function Eyebrow({ children }: { children: ReactNode }) {
 }
 
 // .link
+export const linkClass = 'text-cyan-text no-underline hover:text-cyan-text-strong hover:underline';
+
 export function TextLink(props: ComponentPropsWithoutRef<'a'>) {
+  return <a {...props} className={cx(linkClass, props.className)} />;
+}
+
+// .profile-panel / .upcoming-panel inside the workspace: the white rounded
+// panels of the dashboard.
+export const workspacePanel =
+  'grid gap-16 rounded-2xl border border-stone-border bg-pure-white px-32 py-24';
+
+// .upcoming-item + .upcoming-copy: one card of the dashboard rail, the icon
+// on the left and the copy stacked on the right. The rail icon is 20px
+// cyan; an svg inside the copy keeps its own look.
+export function RailItem({ icon: ItemIcon, children }: { icon: Icon; children: ReactNode }) {
   return (
-    <a
-      {...props}
-      className={cx(
-        'text-cyan-text no-underline hover:text-cyan-text-strong hover:underline',
-        props.className,
-      )}
-    />
+    <li className="flex items-start gap-12 rounded-lg border border-stone-border p-16">
+      <ItemIcon className="mt-4 size-[20px] flex-none text-cyan-text" />
+      <div className="grid gap-4">{children}</div>
+    </li>
   );
 }
+
+// .upcoming-copy strong
+export function RailTitle({ children }: { children: ReactNode }) {
+  return <strong className="font-medium text-ink-black">{children}</strong>;
+}
+
+// .upcoming-copy span
+export const railText = 'text-[14px] leading-[1.6] text-warm-gray max-sm:text-[15px]';
+
+// .status-chip: it sits in the rail copy, whose span rule outranked the
+// chip's own label size, so it reads at the rail text size.
+export function StatusChip({ children }: { children: ReactNode }) {
+  return (
+    <span
+      className={cx(
+        railText,
+        'justify-self-start rounded-full bg-stone-canvas px-12 py-4 tracking-[0.08em] uppercase',
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
+// .save-toast: the confirmation that rises in the bottom-right corner.
+export function SaveToast({
+  icon: ToastIcon,
+  dismissLabel,
+  onDismiss,
+  children,
+}: {
+  icon: Icon;
+  dismissLabel: string;
+  onDismiss: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      role="status"
+      className="fixed right-24 bottom-24 z-30 flex max-w-[min(480px,calc(100%-2*var(--spacing-24)))] animate-[toast-rise_180ms_cubic-bezier(0.16,1,0.3,1)] items-center gap-8 rounded-lg border border-cyan-text bg-pure-white px-16 py-12 font-medium text-ink-black shadow-xl motion-reduce:animate-none"
+    >
+      <ToastIcon className="size-[16px] flex-none text-cyan-text" />
+      <p className="m-0">{children}</p>
+      <button type="button" className={dismissButton} aria-label={dismissLabel} onClick={onDismiss}>
+        ✕
+      </button>
+    </div>
+  );
+}
+
+// .save-toast-dismiss: the quiet ✕.
+export const dismissButton =
+  'cursor-pointer border-none bg-transparent py-0 pr-0 pl-8 [font-family:inherit] [font-size:inherit] [font-weight:inherit] leading-none text-warm-gray hover:text-ink-black';
+
+// .form-error / .form-note on an inline message (a span in an actions row).
+export const inlineAlert =
+  'rounded-lg border border-stone-muted px-12 py-8 text-[12px] leading-[1.6] text-soot';
+export const inlineNote = 'rounded-lg px-12 py-8 text-[12px] leading-[1.6] text-warm-gray';

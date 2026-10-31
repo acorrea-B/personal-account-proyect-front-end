@@ -5,6 +5,7 @@ import { ProfileIcon } from '@/components/icons';
 import { type Cv } from '@/lib/schemas/cv';
 import { formatWhen } from './cv-timeline';
 import { labels, tr, type Locale } from '@/lib/i18n';
+import { RailItem, RailTitle, cx, ghostButton, linkClass, railText } from '@/components/ui';
 
 export type CvCardState =
   | { kind: 'loading' }
@@ -27,48 +28,54 @@ function cvPreview(content: string): string {
   return trimmed.length > previewLimit ? `${trimmed.slice(0, previewLimit).trimEnd()}…` : trimmed;
 }
 
+// .cv-card-actions: the hairline row under the card copy.
+const cardActions = 'mt-8 w-full border-t border-stone-border pt-12';
+
 export function CvCard({ state, locale = 'en' }: { state: CvCardState; locale?: Locale }) {
   const labelsT = labels(locale);
   const editorHref = `${locale === 'es' ? '/es' : ''}/app/cv/`;
   return (
-    <li className="upcoming-item">
-      <ProfileIcon />
-      <div className="upcoming-copy">
-        <strong>{labelsT.cvCard.title}</strong>
-        {state.kind === 'loading' ? (
-          <span>
-            <Skeleton width={150} height={12} />
+    <RailItem icon={ProfileIcon}>
+      <RailTitle>{labelsT.cvCard.title}</RailTitle>
+      {state.kind === 'loading' ? (
+        <span className={railText}>
+          <Skeleton width={150} height={12} />
+        </span>
+      ) : state.kind === 'ready' ? (
+        <>
+          <span className={cx(railText, 'block [overflow-wrap:anywhere] whitespace-pre-line')}>
+            {cvPreview(state.cv.content)}
           </span>
-        ) : state.kind === 'ready' ? (
-          <>
-            <span className="cv-preview">{cvPreview(state.cv.content)}</span>
-            <span>{tr(labelsT.cvCard.lastSaved, { date: formatWhen(state.cv.updated_at) })}</span>
-            <div className="cv-card-actions">
-              <Link className="link" href={editorHref}>
-                {labelsT.cvCard.edit}
-              </Link>
-            </div>
-          </>
-        ) : state.kind === 'empty' ? (
-          <>
-            <span>{labelsT.cvCard.empty}</span>
-            <div className="cv-card-actions">
-              <Link className="link" href={editorHref}>
-                {labelsT.cvCard.write}
-              </Link>
-            </div>
-          </>
-        ) : (
-          <>
-            <span role="alert">{state.message}</span>
-            {state.onRetry ? (
-              <button type="button" className="button button-ghost" onClick={state.onRetry}>
-                {labelsT.cvCard.retry}
-              </button>
-            ) : null}
-          </>
-        )}
-      </div>
-    </li>
+          <span className={railText}>
+            {tr(labelsT.cvCard.lastSaved, { date: formatWhen(state.cv.updated_at) })}
+          </span>
+          <div className={cardActions}>
+            <Link className={linkClass} href={editorHref}>
+              {labelsT.cvCard.edit}
+            </Link>
+          </div>
+        </>
+      ) : state.kind === 'empty' ? (
+        <>
+          <span className={railText}>{labelsT.cvCard.empty}</span>
+          <div className={cardActions}>
+            <Link className={linkClass} href={editorHref}>
+              {labelsT.cvCard.write}
+            </Link>
+          </div>
+        </>
+      ) : (
+        <>
+          <span role="alert" className={railText}>
+            {state.message}
+          </span>
+          {state.onRetry ? (
+            <button type="button" className={ghostButton} onClick={state.onRetry}>
+              {labelsT.cvCard.retry}
+            </button>
+          ) : null}
+        </>
+      )}
+    </RailItem>
   );
 }
