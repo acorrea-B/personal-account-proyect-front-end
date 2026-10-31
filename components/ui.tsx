@@ -19,7 +19,7 @@ export function cx(...parts: Array<string | false | null | undefined>): string {
 // .auth-page: the centered page with the sky wash rising from the top right.
 export function AuthPage({ children }: { children: ReactNode }) {
   return (
-    <main className="grid min-h-screen place-items-center bg-[radial-gradient(1200px_620px_at_72%_-8%,var(--color-sky-wash-soft),rgba(227,241,251,0)_68%),var(--color-stone-canvas)] p-24">
+    <main className="grid min-h-screen place-items-center [background:radial-gradient(1200px_620px_at_72%_-8%,var(--color-sky-wash-soft),rgba(227,241,251,0)_68%),var(--color-stone-canvas)] p-24">
       {children}
     </main>
   );
