@@ -224,5 +224,26 @@
     "linkNeedsUrl": "Falta la dirección del enlace, como https://example.com",
     "linkNeedsType": "Falta el nombre del sitio, como github, linkedin o x",
     "linkNeedsScheme": "Se espera una dirección https, como https://example.com"
+  },
+  "suggestions": {
+    "title": "Sugerencias de habilidades",
+    "pending": "{count} por revisar",
+    "listAria": "Sugerencias de habilidades por revisar",
+    "loadingAria": "Cargando sugerencias de habilidades",
+    "none": "Las sugerencias aparecen cuando se haya leído tu CV.",
+    "allReviewed": "Revisaste todas las sugerencias.",
+    "evidence": "De tu CV · {section}",
+    "accept": "Agregar",
+    "reject": "Descartar",
+    "saving": "Guardando…",
+    "acceptAria": "Agregar {skill} a mis habilidades",
+    "rejectAria": "Descartar {skill}",
+    "limit": "Tu perfil ya tiene 100 habilidades; quita una antes de agregar más.",
+    "changed": "Estas sugerencias cambiaron; te mostramos las más recientes.",
+    "failed": "La decisión no se guardó. Inténtalo de nuevo.",
+    "loadFailed": "No se pudieron cargar las sugerencias.",
+    "busy": "El servicio está ocupado; inténtalo de nuevo en un momento.",
+    "retry": "Reintentar",
+    "cvNew": "{count} sugerencias para tu CV de tu última revisión — la revisión llega pronto."
   }
 }

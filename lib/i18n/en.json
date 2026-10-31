@@ -224,5 +224,26 @@
     "linkNeedsUrl": "Add the link address, like https://example.com",
     "linkNeedsType": "Add the site name, like github, linkedin or x",
     "linkNeedsScheme": "An https address is expected, like https://example.com"
+  },
+  "suggestions": {
+    "title": "Skill suggestions",
+    "pending": "{count} to review",
+    "listAria": "Skill suggestions to review",
+    "loadingAria": "Loading skill suggestions",
+    "none": "Suggestions appear once your CV has been read.",
+    "allReviewed": "You reviewed every suggestion.",
+    "evidence": "From your CV · {section}",
+    "accept": "Add",
+    "reject": "Dismiss",
+    "saving": "Saving…",
+    "acceptAria": "Add {skill} to my skills",
+    "rejectAria": "Dismiss {skill}",
+    "limit": "Your profile already has 100 skills; remove one before adding more.",
+    "changed": "These suggestions changed; showing the latest ones.",
+    "failed": "The decision was not saved. Please try again.",
+    "loadFailed": "The suggestions could not be loaded.",
+    "busy": "The service is busy; please try again shortly.",
+    "retry": "Try again",
+    "cvNew": "{count} CV suggestions from your latest revision — review is coming soon."
   }
 }

@@ -197,6 +197,14 @@ export const primaryButton = cx(
   'border-transparent bg-cyan-signal text-ink-black enabled:hover:bg-cyan-edge',
 );
 
+// The outlined cyan action (the export's Cyan Edge role: outlined action
+// borders): a positive action that repeats in a list, where a filled cyan
+// button would break the one-primary-per-view rule.
+export const outlineButton = cx(
+  buttonBase,
+  'border-cyan-edge bg-transparent text-cyan-text-strong enabled:hover:bg-sky-wash-soft',
+);
+
 // .button.button-ghost: the quiet hairline action.
 export const ghostButton = cx(buttonBase, 'border-stone-border bg-transparent text-ink-black');
 
