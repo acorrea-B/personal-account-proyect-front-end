@@ -408,120 +408,10 @@ textarea[aria-invalid='true'] {
   }
 }
 
-.landing-page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.landing-hero {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--spacing-64) var(--spacing-24);
-  display: grid;
-  gap: var(--spacing-48);
-  grid-template-areas: 'copy panel';
-  grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr);
-  align-items: center;
-}
-
-.landing-copy {
-  grid-area: copy;
-}
-
-.hero-figure {
-  grid-area: panel;
-}
-
-.hero-image {
-  width: 100%;
-  max-height: 440px;
-  aspect-ratio: 3 / 2;
-  object-fit: cover;
-  border-radius: var(--radius-2xl);
-  border: 1px solid var(--color-stone-border);
-  box-shadow: var(--shadow-md);
-  display: block;
-}
-
-.landing-copy h1 {
-  margin: 0;
-  font-family: var(--font-roobert);
-  font-size: var(--text-display);
-  font-weight: 400;
-  line-height: 1.12;
-  letter-spacing: -1.092px;
-}
-
-.landing-copy p {
-  margin: var(--spacing-16) 0 0 0;
-  color: var(--color-warm-gray);
-  font-size: var(--text-body-lg);
-  line-height: 1.64;
-}
-
-.feature-section {
-  width: 100%;
-  background: var(--color-sky-wash-soft);
-  padding: var(--spacing-48) var(--spacing-24) var(--spacing-48);
-}
-
-.feature-section .feature-grid {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
 .landing-actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-8);
-}
-
-.feature-grid {
-  display: grid;
-  gap: var(--spacing-16);
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-}
-
-.feature-card {
-  background: var(--color-pure-white);
-  color: var(--color-ink-black);
-  border: 1px solid var(--color-stone-border);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-24);
-  display: grid;
-  gap: var(--spacing-8);
-}
-
-.feature-card svg {
-  color: var(--color-cyan-text);
-  margin-bottom: var(--spacing-4);
-}
-
-.feature-card .auth-subtitle {
-  color: var(--color-warm-gray);
-}
-
-.feature-card h2 {
-  margin: 0;
-  font-family: var(--font-roobert);
-  font-size: var(--text-subheading);
-  font-weight: 400;
-  line-height: 1.2;
-}
-
-@media (max-width: 860px) {
-  .landing-hero {
-    grid-template-areas: 'copy' 'panel';
-    grid-template-columns: 1fr;
-    gap: var(--spacing-32);
-  }
-
-  .landing-copy h1 {
-    font-size: var(--text-heading-sm);
-    letter-spacing: -0.8px;
-  }
 }
 
 .page-transition {
@@ -670,173 +560,12 @@ textarea[aria-invalid='true'] {
   transform: none;
 }
 
-.site-header {
-  border-bottom: 1px solid var(--color-stone-border);
-}
-
-.site-header-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--spacing-16) var(--spacing-24);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-16);
-}
-
-.site-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-8);
-  text-decoration: none;
-  border-radius: var(--radius-md);
-}
-
-/* Brand mark: the signal glyph on the signal cyan, with ink contrast
-   (7.44:1) so the only chromatic voice of the brand leads the header. */
-.site-brand-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-md);
-  background: var(--color-cyan-signal);
-  color: var(--color-ink-black);
-}
-
-.site-brand-mark svg {
-  width: 16px;
-  height: 16px;
-}
-
-.site-brand-word {
-  font-family: var(--font-roobert);
-  font-size: 19px;
-  font-weight: 500;
-  letter-spacing: -0.3px;
-  color: var(--color-ink-black);
-}
-
-.site-nav {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-16);
-}
-
-/* Text-only entry links: the pill pair read as merged in the header. */
-.nav-link {
-  padding: var(--spacing-8) var(--spacing-8);
-  font-size: 14px;
-  color: var(--color-ink-black);
-  text-decoration: none;
-}
-
-.nav-link:hover {
-  color: var(--color-ink-black);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-.nav-link--quiet {
-  color: var(--color-warm-gray);
-}
-
-.trust-strip {
-  width: 100%;
-  max-width: 1200px;
-  margin: var(--spacing-64) auto 0;
-  padding: 0 var(--spacing-24);
-}
-
-.trust-strip ul {
-  display: grid;
-  gap: var(--spacing-24);
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin: 0;
-  padding: var(--spacing-24);
-  list-style: none;
-  border: 1px solid var(--color-stone-border);
-  border-radius: var(--radius-2xl);
-  background: var(--color-pure-white);
-  box-shadow: var(--shadow-subtle);
-}
-
-.trust-strip li {
-  display: grid;
-  gap: var(--spacing-4);
-}
-
-.trust-strip strong {
-  font-weight: 500;
-  color: var(--color-ink-black);
-}
-
-.trust-strip span {
-  color: var(--color-warm-gray);
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.site-footer {
-  margin-top: auto;
-  border-top: 1px solid var(--color-stone-border);
-  padding: var(--spacing-24);
-}
-
-.site-footer p {
-  margin: 0;
-  text-align: center;
-  font-size: 12px;
-  color: var(--color-warm-gray);
-}
-
-.final-action h2 {
-  margin: 0;
-  font-family: var(--font-roobert);
-  font-size: var(--text-subheading);
-  font-weight: 400;
-  line-height: 1.2;
-  color: var(--color-pure-white);
-}
-
-.final-action p {
-  color: rgba(255, 255, 255, 0.8);
-}
-
 .eyebrow {
   margin: 0;
   font-size: var(--text-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-warm-gray);
-}
-
-.final-action {
-  width: 100%;
-  max-width: 760px;
-  margin: var(--spacing-64) auto;
-  padding: 0 var(--spacing-24);
-}
-
-.final-action-panel {
-  border-radius: var(--radius-2xl);
-  background: var(--color-soot);
-  padding: var(--spacing-40) var(--spacing-32);
-  display: grid;
-  gap: var(--spacing-16);
-  justify-items: center;
-}
-
-.final-action-panel .landing-actions {
-  justify-content: center;
-  width: 100%;
-}
-
-@media (max-width: 860px) {
-  .trust-strip ul {
-    grid-template-columns: 1fr;
-  }
 }
 
 .auth-kicker {
@@ -1769,11 +1498,6 @@ textarea[aria-invalid='true'] {
 @media (max-width: 640px) {
   .language-select {
     width: 100%;
-  }
-
-  .site-nav {
-    width: 100%;
-    flex-wrap: wrap;
   }
 }
 

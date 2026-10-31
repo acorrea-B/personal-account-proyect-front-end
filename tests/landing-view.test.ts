@@ -70,17 +70,19 @@ describe('LandingView', () => {
     await render('en');
     const t = labels('en').landing;
     expect(document.querySelector('h1')?.textContent).toBe(t.heroTitle);
-    expect(document.querySelector('.landing-hero .eyebrow')?.textContent).toBe(t.heroEyebrow);
+    expect(document.querySelector('section[aria-labelledby="landing-title"] p')?.textContent).toBe(
+      t.heroEyebrow,
+    );
     expect(document.body.textContent).toContain(t.feature1Title);
     expect(document.body.textContent).toContain(t.trust1Copy);
-    const nav = [...document.querySelectorAll('a.nav-link')].map((element) =>
+    const nav = [...document.querySelectorAll('header nav a')].map((element) =>
       hrefOf(element as HTMLAnchorElement),
     );
     expect(nav).toContain('/login');
     expect(nav).toContain('/register');
-    const cta = [...document.querySelectorAll('a.button')].map((element) =>
-      hrefOf(element as HTMLAnchorElement),
-    );
+    const cta = [
+      ...document.querySelectorAll('main section[aria-labelledby="closing-title"] a'),
+    ].map((element) => hrefOf(element as HTMLAnchorElement));
     expect(cta).toContain('/register');
     expect(document.body.textContent).toContain(t.closingGuestCta);
   });
@@ -90,14 +92,14 @@ describe('LandingView', () => {
     await render('es');
     const t = labels('es').landing;
     expect(document.querySelector('h1')?.textContent).toBe(t.heroTitle);
-    const nav = [...document.querySelectorAll('a.nav-link')].map((element) =>
+    const nav = [...document.querySelectorAll('header nav a')].map((element) =>
       hrefOf(element as HTMLAnchorElement),
     );
     expect(nav).toContain('/es/login');
     expect(nav).toContain('/es/register');
-    const cta = [...document.querySelectorAll('a.button')].map((element) =>
-      hrefOf(element as HTMLAnchorElement),
-    );
+    const cta = [
+      ...document.querySelectorAll('main section[aria-labelledby="closing-title"] a'),
+    ].map((element) => hrefOf(element as HTMLAnchorElement));
     expect(cta).toContain('/es/register');
     expect(document.body.textContent).toContain(t.feature1Title);
   });
@@ -124,7 +126,7 @@ describe('LandingView', () => {
     };
     await render('en');
     const t = labels('en').landing;
-    const nav = [...document.querySelectorAll('a.nav-link')].map((element) =>
+    const nav = [...document.querySelectorAll('header nav a')].map((element) =>
       hrefOf(element as HTMLAnchorElement),
     );
     expect(nav).toContain('/app');
@@ -137,7 +139,7 @@ describe('LandingView', () => {
     await render('es');
     // The jsdom window has no IntersectionObserver: the useReveal guard
     // marks the sections visible immediately so the content stays readable.
-    const hero = document.querySelector('.landing-hero');
+    const hero = document.querySelector('section[aria-labelledby="landing-title"]');
     expect(hero?.className).toContain('is-visible');
   });
 });
