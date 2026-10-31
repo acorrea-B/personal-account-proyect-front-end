@@ -156,6 +156,39 @@ export const primaryButton = cx(
 // .button.button-ghost: the quiet hairline action.
 export const ghostButton = cx(buttonBase, 'border-stone-border bg-transparent text-ink-black');
 
+// .workspace-page: the signed-in page column. The workspace-page class stays
+// as a hook for the descendant rules of views that have not moved yet.
+export function WorkspacePage({ busy, children }: { busy?: boolean; children: ReactNode }) {
+  return (
+    <main
+      className="workspace-page mx-auto grid min-h-screen w-full max-w-page content-start gap-32 p-24"
+      aria-busy={busy ? 'true' : undefined}
+    >
+      {children}
+    </main>
+  );
+}
+
+// .workspace-bar + .workspace-identity: the identity row over a signed-in
+// page; on a phone it stacks and the account menu takes the full width.
+export function WorkspaceBar({ identity, children }: { identity: ReactNode; children: ReactNode }) {
+  return (
+    <header className="flex flex-wrap items-end justify-between gap-16 border-b border-stone-border pb-24 max-sm:flex-col max-sm:items-stretch">
+      <div className="max-sm:w-full">{identity}</div>
+      {children}
+    </header>
+  );
+}
+
+// .workspace-title
+export function WorkspaceTitle({ children }: { children: ReactNode }) {
+  return (
+    <h1 className="mx-0 mt-4 mb-8 font-roobert text-heading-sm font-regular text-ink-black">
+      {children}
+    </h1>
+  );
+}
+
 // .eyebrow: the small uppercase label above a heading.
 export function Eyebrow({ children }: { children: ReactNode }) {
   return (

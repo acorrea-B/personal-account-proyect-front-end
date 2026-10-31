@@ -128,9 +128,7 @@ describe('DashboardView', () => {
     expect(document.querySelector('h1')?.textContent).toBe(
       tr(t.workspace.greeting, { name: 'Juan' }),
     );
-    expect(document.querySelector('.workspace-identity .eyebrow')?.textContent).toBe(
-      t.workspace.eyebrow,
-    );
+    expect(document.querySelector('header p')?.textContent).toBe(t.workspace.eyebrow);
     expect(document.body.textContent).toContain(
       t.workspace.signedInAs.replace('{email}', 'juan@example.com'),
     );
