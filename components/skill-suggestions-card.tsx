@@ -11,7 +11,7 @@ import {
   cx,
   ghostButton,
   inlineAlert,
-  primaryButton,
+  outlineButton,
   railText,
 } from '@/components/ui';
 import { ProblemError } from '@/lib/api/client';
@@ -160,10 +160,10 @@ export function SkillSuggestionsCard({
                           {tr(t.evidence, { section: suggestion.evidence.cv_section })}
                         </figcaption>
                       </figure>
-                      <div className="flex flex-wrap gap-8">
+                      <div className="grid grid-cols-2 gap-8">
                         <button
                           type="button"
-                          className={primaryButton}
+                          className={outlineButton}
                           disabled={deciding !== null}
                           aria-label={tr(t.acceptAria, { skill: suggestion.display_name })}
                           onClick={() => void decide(suggestion, 'accepted')}

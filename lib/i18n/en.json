@@ -233,7 +233,7 @@
     "none": "Suggestions appear once your CV has been read.",
     "allReviewed": "You reviewed every suggestion.",
     "evidence": "From your CV · {section}",
-    "accept": "Add to my skills",
+    "accept": "Add",
     "reject": "Dismiss",
     "saving": "Saving…",
     "acceptAria": "Add {skill} to my skills",

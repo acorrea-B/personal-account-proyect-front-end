@@ -233,7 +233,7 @@
     "none": "Las sugerencias aparecen cuando se haya leído tu CV.",
     "allReviewed": "Revisaste todas las sugerencias.",
     "evidence": "De tu CV · {section}",
-    "accept": "Agregar a mis habilidades",
+    "accept": "Agregar",
     "reject": "Descartar",
     "saving": "Guardando…",
     "acceptAria": "Agregar {skill} a mis habilidades",
