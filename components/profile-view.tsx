@@ -613,8 +613,9 @@ export function ProfileView({ locale }: { locale: Locale }) {
                         <button
                           type="button"
                           className={cx(
-                            'flex min-h-[44px] w-full cursor-pointer items-center rounded-md border-none bg-transparent px-[14px] py-12 text-left [font-family:inherit] text-[15px] [font-weight:inherit] [line-height:inherit] text-ink-black hover:bg-sky-wash',
-                            index === highlight && 'bg-sky-wash',
+                            'flex min-h-[44px] w-full cursor-pointer items-center rounded-md border-none px-[14px] py-12 text-left [font-family:inherit] text-[15px] [font-weight:inherit] [line-height:inherit] text-ink-black hover:bg-sky-wash',
+                            // One background at a time: the keyboard highlight must win.
+                            index === highlight ? 'bg-sky-wash' : 'bg-transparent',
                           )}
                           onMouseDown={() => pickSuggestion(index)}
                           onMouseEnter={() => setHighlight(index)}
