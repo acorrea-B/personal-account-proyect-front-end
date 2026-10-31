@@ -267,7 +267,7 @@ export function DashboardView({ locale }: { locale: Locale }) {
           <section className={workspacePanel}>
             <div
               role="alert"
-              className="grid justify-items-start gap-8 rounded-lg border border-stone-muted px-12 py-8 text-[12px] leading-[1.6] text-soot"
+              className="rounded-lg border border-stone-muted px-12 py-8 text-[12px] leading-[1.6] text-soot"
             >
               <p>{load.error}</p>
               <button
