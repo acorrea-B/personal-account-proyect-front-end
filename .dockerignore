@@ -1,0 +1,9 @@
+node_modules
+.next
+.next-prod
+.next-docker
+out
+coverage
+.git
+.env*.local
+.env
