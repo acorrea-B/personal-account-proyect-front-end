@@ -43,12 +43,14 @@ export function SkillCatalogInput({
   const token = lastSkillToken(value);
 
   useEffect(() => {
+    // Every run invalidates the search in flight, the short-token path
+    // included: a late answer for an older token never repopulates the list.
+    const id = ++request.current;
     if (token.length < minPrefix) {
       setOptions([]);
       setSearching(false);
       return;
     }
-    const id = ++request.current;
     setSearching(true);
     const timer = window.setTimeout(() => {
       searchSkillCatalog(accessToken, token)
@@ -108,6 +110,7 @@ export function SkillCatalogInput({
         aria-controls={listId}
         aria-expanded={expanded}
         aria-busy={searching}
+        aria-activedescendant={expanded && highlight >= 0 ? `${listId}-${highlight}` : undefined}
         value={value}
         onChange={(event) => {
           onValueChange(event.target.value);
@@ -144,7 +147,12 @@ export function SkillCatalogInput({
           className="absolute top-full right-0 left-0 z-10 m-0 list-none rounded-lg border border-stone-border bg-pure-white p-4 shadow-sm"
         >
           {options.map((entry, index) => (
-            <li key={entry.skill_key} role="option" aria-selected={index === highlight}>
+            <li
+              key={entry.skill_key}
+              id={`${listId}-${index}`}
+              role="option"
+              aria-selected={index === highlight}
+            >
               <button
                 type="button"
                 className={cx(

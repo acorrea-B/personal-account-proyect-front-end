@@ -116,6 +116,39 @@ describe('SkillCatalogInput', () => {
     expect(document.querySelector('[role="listbox"]')).toBeNull();
   });
 
+  it('drops a late answer for a token the user already erased', async () => {
+    let resolveSearch: (entries: { skill_key: string; display_name: string }[]) => void = () => {};
+    vi.mocked(searchSkillCatalog).mockReturnValue(
+      new Promise((resolve) => {
+        resolveSearch = resolve;
+      }),
+    );
+    await render('');
+    await type('ty');
+    await type('t');
+    await act(async () => {
+      resolveSearch([{ skill_key: 'typescript', display_name: 'TypeScript' }]);
+      await Promise.resolve();
+    });
+    expect(document.querySelector('[role="listbox"]')).toBeNull();
+  });
+
+  it('exposes the highlighted option as the active descendant', async () => {
+    vi.mocked(searchSkillCatalog).mockResolvedValue([
+      { skill_key: 'go', display_name: 'Go' },
+      { skill_key: 'graphql', display_name: 'GraphQL' },
+    ]);
+    await render('');
+    await type('gr');
+    expect(input().getAttribute('aria-activedescendant')).toBeNull();
+    await act(async () => {
+      input().dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    });
+    const active = input().getAttribute('aria-activedescendant');
+    expect(active).toBeTruthy();
+    expect(document.getElementById(active as string)?.textContent).toBe('Go');
+  });
+
   it('picks with the keyboard and closes on Escape', async () => {
     vi.mocked(searchSkillCatalog).mockResolvedValue([
       { skill_key: 'go', display_name: 'Go' },
