@@ -1,6 +1,6 @@
 'use client';
 
-import { type SyntheticEvent, useCallback, useEffect, useState } from 'react';
+import { type SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 import { Skeleton } from '@/components/skeleton';
 import {
@@ -76,8 +76,14 @@ export function EvolutionCard({ accessToken, locale }: { accessToken: string; lo
     }
   }, [accessToken]);
 
+  // Loads once per visit: a renewed access token (background session
+  // refresh) must not reload the panel under a declaration in flight.
+  const loaded = useRef(false);
   useEffect(() => {
-    void load();
+    if (!loaded.current) {
+      loaded.current = true;
+      void load();
+    }
   }, [load]);
 
   function startEditing(mode: EvolutionMode | null) {
