@@ -26,6 +26,18 @@ vi.mock('@/lib/api/profile', async () => ({
 }));
 
 const searchCitiesMock = vi.fn();
+vi.mock('@/lib/api/suggestions', () => ({
+  searchSkillCatalog: vi.fn().mockResolvedValue([]),
+  fetchCatalogConsent: vi.fn().mockResolvedValue({
+    version: 'catalog-v1',
+    consent_text: 'Share your skill names, de-identified.',
+    effective_from: '2026-10-01T00:00:00Z',
+    granted: null,
+    decided_at: null,
+  }),
+  decideCatalogConsent: vi.fn(),
+}));
+
 vi.mock('@/lib/api/geocoding', async () => ({
   ...(await vi.importActual<typeof import('@/lib/api/geocoding')>('@/lib/api/geocoding')),
   searchCities: (...args: unknown[]) => searchCitiesMock(...args),
