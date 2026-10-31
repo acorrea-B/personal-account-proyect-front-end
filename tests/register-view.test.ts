@@ -129,7 +129,7 @@ describe('RegisterView', () => {
       typeInto('password', 'contraseña1');
       registerMock.mockRejectedValueOnce(new ProblemError({ status: 409, title: 'email taken' }));
       await submitForm();
-      expect(document.querySelector('.form-error')?.textContent).toContain(
+      expect(document.querySelector('div[role="alert"]')?.textContent).toContain(
         labels(locale).register.conflict,
       );
     }
@@ -143,7 +143,7 @@ describe('RegisterView', () => {
       registerMock.mockRejectedValueOnce(new ProblemError({ status: 429, retry_after_seconds: 7 }));
       await submitForm();
       const expected = labels(locale).register.rateCappedWithSeconds.replace('{seconds}', '7');
-      expect(document.querySelector('.form-error')?.textContent).toContain(expected);
+      expect(document.querySelector('div[role="alert"]')?.textContent).toContain(expected);
     }
   });
 });
