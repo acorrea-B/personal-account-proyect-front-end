@@ -66,6 +66,20 @@ export const labelsSchema = z.object({
     listAria: z.string(),
     searching: z.string(),
   }),
+  // The canonical CV section keys of the harness vocabulary
+  // (profile-harnees skills/cv-extraction/vocabulary.json).
+  cvSections: z.object({
+    summary: z.string(),
+    experience: z.string(),
+    education: z.string(),
+    skills: z.string(),
+    projects: z.string(),
+    links: z.string(),
+    contact: z.string(),
+    certifications: z.string(),
+    languages: z.string(),
+    additional: z.string(),
+  }),
   history: z.object({
     title: z.string(),
     empty: z.string(),

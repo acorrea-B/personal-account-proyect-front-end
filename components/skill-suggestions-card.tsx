@@ -48,6 +48,11 @@ export function SkillSuggestionsCard({
   onAccepted: () => void;
 }) {
   const t = labels(locale).suggestions;
+  const sections = labels(locale).cvSections;
+  // The harness names the section by its canonical key; an unknown key
+  // (a newer vocabulary) shows as sent rather than disappearing.
+  const sectionLabel = (key: string) =>
+    Object.hasOwn(sections, key) ? sections[key as keyof typeof sections] : key;
   const [state, setState] = useState<CardState>({ kind: 'loading' });
   const [deciding, setDeciding] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ tone: 'alert' | 'status'; text: string } | null>(null);
@@ -157,7 +162,9 @@ export function SkillSuggestionsCard({
                           {suggestion.evidence.quote}
                         </blockquote>
                         <figcaption className="text-(length:--text-label) tracking-[0.08em] text-warm-gray uppercase">
-                          {tr(t.evidence, { section: suggestion.evidence.cv_section })}
+                          {tr(t.evidence, {
+                            section: sectionLabel(suggestion.evidence.cv_section),
+                          })}
                         </figcaption>
                       </figure>
                       <div className="grid grid-cols-2 gap-8">

@@ -96,8 +96,25 @@ describe('SkillSuggestionsCard', () => {
     expect(document.body.textContent).toContain(tr(t.pending, { count: '2' }));
     expect(document.body.textContent).toContain('Rust');
     expect(document.body.textContent).toContain('Built payment services in Rust');
-    expect(document.body.textContent).toContain(tr(t.evidence, { section: 'experience' }));
+    expect(document.body.textContent).toContain(
+      tr(t.evidence, { section: labels('en').cvSections.experience }),
+    );
     expect(document.querySelector(`ul[aria-label="${t.listAria}"]`)).not.toBeNull();
+  });
+
+  it('names the CV section in the tree language and keeps an unknown key as sent', async () => {
+    vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(2));
+    vi.mocked(fetchSkillSuggestions).mockResolvedValue({
+      revision_id: REVISION,
+      suggestions: [
+        rust,
+        { ...sql, evidence: { quote: 'Tuned queries', cv_section: 'volunteering' } },
+      ],
+    });
+    await render('es');
+    const t = labels('es').suggestions;
+    expect(document.body.textContent).toContain(tr(t.evidence, { section: 'Experiencia' }));
+    expect(document.body.textContent).toContain(tr(t.evidence, { section: 'volunteering' }));
   });
 
   it('accepts a suggestion for its revision, removes it and tells the dashboard', async () => {

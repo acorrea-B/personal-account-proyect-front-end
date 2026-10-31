@@ -262,5 +262,17 @@
   "catalogInput": {
     "listAria": "Skill names other people confirmed",
     "searching": "Searching the skill catalog…"
+  },
+  "cvSections": {
+    "summary": "Summary",
+    "experience": "Experience",
+    "education": "Education",
+    "skills": "Skills",
+    "projects": "Projects",
+    "links": "Links",
+    "contact": "Contact",
+    "certifications": "Certifications",
+    "languages": "Languages",
+    "additional": "Additional information"
   }
 }
