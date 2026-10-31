@@ -206,7 +206,7 @@
     "bioCounter": "{current} / {max}",
     "searchingPlaces": "Buscando lugares…",
     "noPlaces": "No hay lugares; sigue escribiendo el nombre.",
-    "skillsNote": "Separadas por comas, máximo 30 · se recuperan como múltiples valores",
+    "skillsNote": "Separadas por comas, máximo 100 · se recuperan como múltiples valores",
     "linksKicker": "Enlaces sociales y de repositorio",
     "linkTypeAria": "Tipo del enlace {index}",
     "linkUrlAria": "Url del enlace {index}",
