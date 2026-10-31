@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { SignalIcon } from '@/components/icons';
 import { Skeleton } from '@/components/skeleton';
@@ -84,8 +84,14 @@ export function SkillSuggestionsCard({
     }
   }, [accessToken, readError]);
 
+  // Loads once per visit: a renewed access token (the session refreshes it
+  // in the background) must not reload under a decision in flight.
+  const loaded = useRef(false);
   useEffect(() => {
-    void load();
+    if (!loaded.current) {
+      loaded.current = true;
+      void load();
+    }
   }, [load]);
 
   async function decide(suggestion: SkillSuggestion, decision: SkillDecision) {
