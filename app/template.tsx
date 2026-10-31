@@ -20,5 +20,11 @@ export default function Template({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  return <div className="page-transition">{children}</div>;
+  // The page entrance (fades up on the house curve); reduced motion shows
+  // the page at once.
+  return (
+    <div className="animate-page-in opacity-0 motion-reduce:transform-none motion-reduce:animate-none motion-reduce:opacity-100">
+      {children}
+    </div>
+  );
 }

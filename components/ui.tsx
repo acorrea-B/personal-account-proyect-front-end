@@ -257,13 +257,13 @@ export function SkillChips({ skills, label }: { skills: string[]; label?: string
   );
 }
 
-// .spinner: the 14px ring (the spinner-turn keyframes stay in globals.css).
+// .spinner: the 14px ring.
 export function Spinner({ className }: { className?: string }) {
   return (
     <span
       aria-hidden="true"
       className={cx(
-        'inline-block size-[14px] flex-none animate-[spinner-turn_700ms_linear_infinite] rounded-full border-2 border-stone-muted border-t-cyan-text',
+        'inline-block size-[14px] flex-none animate-spinner rounded-full border-2 border-stone-muted border-t-cyan-text',
         className,
       )}
     />
@@ -341,7 +341,7 @@ export function SaveToast({
   return (
     <div
       role="status"
-      className="fixed right-24 bottom-24 z-30 flex max-w-[min(480px,calc(100%-2*var(--spacing-24)))] animate-[toast-rise_180ms_cubic-bezier(0.16,1,0.3,1)] items-center gap-8 rounded-lg border border-cyan-text bg-pure-white px-16 py-12 font-medium text-ink-black shadow-xl motion-reduce:animate-none"
+      className="fixed right-24 bottom-24 z-30 flex max-w-[min(480px,calc(100%-2*var(--spacing-24)))] animate-toast-rise items-center gap-8 rounded-lg border border-cyan-text bg-pure-white px-16 py-12 font-medium text-ink-black shadow-xl motion-reduce:animate-none"
     >
       <ToastIcon className="size-[16px] flex-none text-cyan-text" />
       <p className="m-0">{children}</p>

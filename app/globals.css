@@ -167,6 +167,57 @@
   --shadow-subtle: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
   --shadow-xl: rgba(17, 12, 46, 0.12) 0px 12px 45px 0px;
 
+  /* Motion (extension): the house curve and the five entrances/loops the
+     views use, as animate-* utilities. */
+  --animate-page-in: page-transition-in 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-content-resolve: content-resolve 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-skeleton-glow: skeleton-glow 1400ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  --animate-spinner: spinner-turn 700ms linear infinite;
+  --animate-toast-rise: toast-rise 180ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  @keyframes page-transition-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes content-resolve {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: blur(0);
+    }
+  }
+  @keyframes skeleton-glow {
+    to {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes spinner-turn {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+  @keyframes toast-rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   /* Breakpoints (extension): max-sm: and max-md: equal the old
      max-width: 640px / 860px queries. */
   --breakpoint-sm: 641px;
@@ -204,19 +255,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.page-shell {
-  min-height: 100vh;
-  display: grid;
-  background: var(--color-stone-canvas);
-}
-
-.page-main {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--spacing-24);
-}
-
 /* Any input carrying a validation problem marks red - the email field and
    every link row included, evaluated in real time while it is typed. */
 input[aria-invalid='true'],
@@ -224,129 +262,25 @@ textarea[aria-invalid='true'] {
   border-color: var(--color-alert);
 }
 
-.link {
-  color: var(--color-cyan-text);
-  text-decoration: none;
-}
-
-.link:hover {
-  color: var(--color-cyan-text-strong);
-  text-decoration: underline;
-}
-
-.page-transition {
-  opacity: 0;
-  animation: page-transition-in 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes page-transition-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.loading-state {
-  opacity: 0.78;
-  animation: loading-pulse 2.2s ease-in-out infinite alternate;
-}
-
-@keyframes loading-pulse {
-  from {
-    opacity: 0.55;
-  }
-  to {
-    opacity: 0.95;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .page-transition,
-  .loading-state,
-  .reveal {
-    animation: none;
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-}
-
-/* Skeleton screens: content hides behind a soft placeholder instead of
-   a blank canvas. A blurred white glow sweeps the block while the real
-   data rides the network; reduced motion keeps the static block. */
-.skeleton {
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--radius-lg);
-  background: var(--color-sky-wash-soft);
-}
-
-.skeleton::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
-  filter: blur(6px);
-  animation: skeleton-glow 1400ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
-}
-
-@keyframes skeleton-glow {
-  to {
-    transform: translateX(100%);
-  }
-}
-
 /* The resolve: after the skeleton, content does not pop in — it gains
    clarity through the same blur the glow swept, on the house curve. */
 .content-resolve {
-  animation: content-resolve 500ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* The clamped fold: the Show more panel travels on max-height with the
-   house curve, so the text unfolds fluidly instead of snapping. */
-.clamped-fold {
-  transition: max-height 400ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes content-resolve {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-    filter: blur(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-    filter: blur(0);
-  }
+  animation: var(--animate-content-resolve);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .page-transition,
-  .loading-state,
   .reveal {
     animation: none;
     opacity: 1;
     transform: none;
     transition: none;
   }
-  /* The skeleton sweep and the resolve both drop to the static state;
-     the clamped fold becomes instant (no transitionend fires, so the
-     component lifts the clamp without waiting). */
-  .skeleton::after,
+  /* The resolve drops to the static state. */
   .content-resolve {
     animation: none;
     opacity: 1;
     transform: none;
     filter: none;
-  }
-  .clamped-fold {
-    transition: none;
   }
 }
 
@@ -364,32 +298,6 @@ textarea[aria-invalid='true'] {
 .js .reveal.is-visible {
   opacity: 1;
   transform: none;
-}
-
-@keyframes spinner-turn {
-  to {
-    transform: rotate(1turn);
-  }
-}
-
-@keyframes toast-rise {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* The reduced-motion voice keeps the toast static: only the entrance
-   animation is dropped. */
-.cv-editor-count {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-top: 2px;
 }
 
 /* The mobile token scale: on a phone the whole ladder steps down in one
