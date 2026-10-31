@@ -281,14 +281,48 @@ export function Eyebrow({ children }: { children: ReactNode }) {
 }
 
 // .link
+export const linkClass = 'text-cyan-text no-underline hover:text-cyan-text-strong hover:underline';
+
 export function TextLink(props: ComponentPropsWithoutRef<'a'>) {
+  return <a {...props} className={cx(linkClass, props.className)} />;
+}
+
+// .profile-panel / .upcoming-panel inside the workspace: the white rounded
+// panels of the dashboard.
+export const workspacePanel =
+  'grid gap-16 rounded-2xl border border-stone-border bg-pure-white px-32 py-24';
+
+// .upcoming-item + .upcoming-copy: one card of the dashboard rail, the icon
+// on the left and the copy stacked on the right. The rail icon is 20px
+// cyan; an svg inside the copy keeps its own look.
+export function RailItem({ icon: ItemIcon, children }: { icon: Icon; children: ReactNode }) {
   return (
-    <a
-      {...props}
+    <li className="flex items-start gap-12 rounded-lg border border-stone-border p-16">
+      <ItemIcon className="mt-4 size-[20px] flex-none text-cyan-text" />
+      <div className="grid gap-4">{children}</div>
+    </li>
+  );
+}
+
+// .upcoming-copy strong
+export function RailTitle({ children }: { children: ReactNode }) {
+  return <strong className="font-medium text-ink-black">{children}</strong>;
+}
+
+// .upcoming-copy span
+export const railText = 'text-[14px] leading-[1.6] text-warm-gray max-sm:text-[15px]';
+
+// .status-chip: it sits in the rail copy, whose span rule outranked the
+// chip's own label size, so it reads at the rail text size.
+export function StatusChip({ children }: { children: ReactNode }) {
+  return (
+    <span
       className={cx(
-        'text-cyan-text no-underline hover:text-cyan-text-strong hover:underline',
-        props.className,
+        railText,
+        'justify-self-start rounded-full bg-stone-canvas px-12 py-4 tracking-[0.08em] uppercase',
       )}
-    />
+    >
+      {children}
+    </span>
   );
 }

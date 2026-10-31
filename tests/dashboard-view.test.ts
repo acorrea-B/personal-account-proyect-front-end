@@ -135,7 +135,9 @@ describe('DashboardView', () => {
     expect(document.body.textContent).toContain(t.panel.fullName);
     expect(document.body.textContent).toContain(t.panel.headline);
     expect(document.body.textContent).toContain(t.workspace.skillSuggestions);
-    const panel = document.querySelector<HTMLAnchorElement>('.panel-head a');
+    const panel = document.querySelector<HTMLAnchorElement>(
+      'section[aria-label] a[href*="/app/profile"]',
+    );
     expect(hrefOf(panel)).toBe('/app/profile');
     expect(document.body.textContent).toContain(
       tr(t.panel.updatedNote, { date: formatWhen(PROFILE.updated_at) }),
@@ -151,8 +153,12 @@ describe('DashboardView', () => {
     expect(document.querySelector('h1')?.textContent).toBe(
       tr(t.workspace.greeting, { name: 'Juan' }),
     );
-    expect(document.querySelector('.panel-head .eyebrow')?.textContent).toBe(t.panel.eyebrow);
-    const panel = document.querySelector<HTMLAnchorElement>('.panel-head a');
+    expect(document.querySelector('section[aria-label] > div > p')?.textContent).toBe(
+      t.panel.eyebrow,
+    );
+    const panel = document.querySelector<HTMLAnchorElement>(
+      'section[aria-label] a[href*="/app/profile"]',
+    );
     expect(hrefOf(panel)).toBe('/es/app/profile');
     expect(document.body.textContent).toContain(t.workspace.skillSuggestionsCopy);
   });

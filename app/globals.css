@@ -455,15 +455,6 @@ textarea[aria-invalid='true'] {
   }
 }
 
-.skeleton-bar {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--spacing-16);
-  padding-bottom: var(--spacing-24);
-  border-bottom: 1px solid var(--color-stone-border);
-}
-
 .skeleton-screen {
   display: grid;
   gap: var(--spacing-12);
@@ -493,73 +484,9 @@ textarea[aria-invalid='true'] {
   color: var(--color-warm-gray);
 }
 
-.auth-form-note {
-  margin: 0;
-  padding-top: var(--spacing-16);
-  border-top: 1px solid var(--color-stone-border);
-  font-size: 12px;
-  color: var(--color-warm-gray);
-  line-height: 1.6;
-}
-
 .workspace-profile {
   display: grid;
   gap: var(--spacing-16);
-}
-
-.profile-grid {
-  display: grid;
-  gap: var(--spacing-12);
-  margin: 0;
-}
-
-.profile-grid > div {
-  display: grid;
-  gap: var(--spacing-4);
-  padding-left: var(--spacing-12);
-  border-left: 2px solid var(--color-sky-wash);
-}
-
-.profile-grid dt {
-  font-size: var(--text-label);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-cyan-text);
-}
-
-.profile-grid dd {
-  margin: 0;
-  color: var(--color-ink-black);
-}
-
-.profile-headline {
-  font-size: var(--text-subheading);
-}
-
-.skill-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-8);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.skill-chips li {
-  padding: var(--spacing-4) var(--spacing-12);
-  border: 1px solid var(--color-stone-border);
-  border-radius: var(--radius-full);
-  font-size: 14px;
-  color: var(--color-warm-gray);
-}
-
-.profile-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-16);
-  margin: 0;
-  padding: 0;
-  list-style: none;
 }
 
 .workspace-profile .form-error {
@@ -679,113 +606,6 @@ textarea[aria-invalid='true'] {
   color: var(--color-ink-black);
 }
 
-/* The actions cluster of the dashboard bar: the home action rides
-   beside the Account menu (an icon link per the navigation contract:
-   <a> for navigation, visible focus, the shared stroke icon style). */
-.workspace-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-12);
-}
-
-.dashboard-grid {
-  display: grid;
-  gap: var(--spacing-16);
-  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
-  align-items: start;
-}
-
-.workspace-page .profile-panel,
-.workspace-page .upcoming-panel {
-  display: grid;
-  gap: var(--spacing-16);
-  padding: var(--spacing-24) var(--spacing-32);
-  border: 1px solid var(--color-stone-border);
-  border-radius: var(--radius-2xl);
-  background: var(--color-pure-white);
-}
-
-.panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-16);
-}
-
-.clamped-text {
-  margin: 0;
-  color: var(--color-ink-black);
-}
-
-.upcoming-list {
-  display: grid;
-  gap: var(--spacing-12);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.upcoming-item {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-12);
-  padding: var(--spacing-16);
-  border: 1px solid var(--color-stone-border);
-  border-radius: var(--radius-lg);
-}
-
-.upcoming-item svg {
-  width: 20px;
-  height: 20px;
-  flex: none;
-  margin-top: var(--spacing-4);
-  color: var(--color-cyan-text);
-}
-
-.upcoming-copy {
-  display: grid;
-  gap: var(--spacing-4);
-}
-
-.upcoming-copy strong {
-  color: var(--color-ink-black);
-  font-weight: 500;
-}
-
-.upcoming-copy span {
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--color-warm-gray);
-}
-
-.status-chip {
-  justify-self: start;
-  padding: var(--spacing-4) var(--spacing-12);
-  border-radius: var(--radius-full);
-  font-size: var(--text-label);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-warm-gray);
-  background: var(--color-stone-canvas);
-}
-
-/* The skills render as badges: the tinted chip is now the badge. */
-.skill-chips li {
-  padding: var(--spacing-4) var(--spacing-12);
-  border: 1px solid transparent;
-  border-radius: var(--radius-full);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-cyan-text-strong);
-  background: var(--color-sky-wash-soft);
-}
-
-@media (max-width: 860px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* CV editor: the text block mirrors the auth-card input rules but stands
    tall (a cv is a document), with a tabular byte counter riding it. The
    counter turns alert when the draft crosses the contract limit. */
@@ -831,72 +651,6 @@ textarea[aria-invalid='true'] {
   .cv-editor-card textarea {
     min-height: 260px;
   }
-}
-
-/* The cv card preview: block text with its paragraph breaks preserved
-   (pre-line), capped by a js truncation at 280 chars - the full document
-   lives in the editor, not in the rail. */
-.cv-preview {
-  display: block;
-  white-space: pre-line;
-  overflow-wrap: anywhere;
-}
-
-/* The cv card actions: a hairline divider between the preview text and
-   the entry button - the rail's space-4 gap reads too tight against a
-   multi-line preview. */
-.cv-card-actions {
-  border-top: 1px solid var(--color-stone-border);
-  margin-top: var(--spacing-8);
-  padding-top: var(--spacing-12);
-  width: 100%;
-}
-
-/* The cv version timeline (rail, window 5): a vertical spine with dots
-   behind the entries; the newest archived version rides on top. */
-.cv-timeline {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-}
-
-.cv-timeline-entry {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-8);
-}
-
-.cv-timeline-entry::before {
-  content: '';
-  position: absolute;
-  left: 5px;
-  top: -14px;
-  bottom: 14px;
-  border-left: 1px solid var(--color-stone-border);
-}
-
-.cv-timeline-entry:first-child::before {
-  display: none;
-}
-
-.cv-timeline-dot {
-  position: relative;
-  z-index: 1;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--color-teal-text);
-  flex-shrink: 0;
-}
-
-.cv-timeline-date {
-  font-variant-numeric: tabular-nums;
-  font-size: var(--text-body-md);
-  color: var(--color-ink-black);
 }
 
 /* The version detail panel (window 6): a reading surface over the
@@ -979,49 +733,6 @@ textarea[aria-invalid='true'] {
   font-size: var(--text-body-md);
 }
 
-.cv-timeline-view {
-  /* A solid cyan circle hugging the text line: the eye reads as a
-     first-class action without shouting. */
-  display: inline-flex;
-  align-self: center;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-  margin-left: auto;
-  border: none;
-  border-radius: var(--radius-full);
-  background: var(--color-teal-text);
-  color: var(--color-pure-white);
-  cursor: pointer;
-  transition: 160ms ease;
-}
-
-.cv-timeline-view svg {
-  /* The rail scopes .upcoming-item svg (20px, cyan, 4px top margin) — that
-     rule beats inheritance and both centered AND grew the glyph: pin the
-     whole set so the icon centers inside the circle as drawn. */
-  width: 15px;
-  height: 15px;
-  margin-top: 0;
-  color: var(--color-pure-white);
-}
-
-.cv-timeline-view:hover {
-  background: var(--color-teal-strong);
-}
-
-.cv-timeline-view:focus-visible {
-  outline: 2px solid var(--color-teal-strong);
-  outline-offset: 2px;
-}
-
-.cv-timeline-view:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
 /* The mobile token scale: on a phone the whole ladder steps down in one
    place (every consumer of the tokens follows), while controls keep their
    44px touch targets - the iPhone review found tiny text and unreachable
@@ -1039,32 +750,6 @@ textarea[aria-invalid='true'] {
   .button {
     width: auto;
     padding: 11px 16px;
-    font-size: 16px;
-  }
-
-  .auth-form-note {
-    font-size: 14px;
-  }
-
-  .upcoming-copy span {
-    font-size: 15px;
-  }
-
-  /* The profile panel head stacks: the Update profile link drops below
-     and takes the card width, tappable at the touch bar. */
-  .panel-head {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--spacing-8);
-  }
-
-  .panel-head .link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 44px;
-    background: var(--color-sky-wash);
-    border-radius: var(--radius-full);
     font-size: 16px;
   }
 
@@ -1087,20 +772,5 @@ textarea[aria-invalid='true'] {
 
   .workspace-bar .workspace-identity {
     width: 100%;
-  }
-
-  /* The timeline view taps grow to the touch bar as well. */
-  .cv-timeline-view {
-    width: 44px;
-    height: 44px;
-  }
-
-  .cv-timeline-view svg {
-    width: 17px;
-    height: 17px;
-  }
-
-  .cv-timeline-entry {
-    gap: var(--spacing-8);
   }
 }
