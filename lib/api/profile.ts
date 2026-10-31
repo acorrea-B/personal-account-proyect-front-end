@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { ProblemError, type Problem } from './client';
 import {
-  profileSchema,
+  profileEnvelopeSchema,
   updateProfileRequestSchema,
   type Profile,
   type UpdateProfileRequest,
@@ -48,7 +48,7 @@ export async function fetchProfile(accessToken: string): Promise<Profile> {
   }
 
   const data: unknown = await response.json();
-  return profileSchema.parse(data as z.infer<typeof profileSchema>);
+  return profileEnvelopeSchema.parse(data as z.infer<typeof profileEnvelopeSchema>).profile;
 }
 
 // The api seeds every profile with the placeholder 'User' (the 1:1 insert
@@ -132,7 +132,7 @@ export async function updateProfile(
   }
 
   const data: unknown = await response.json();
-  return profileSchema.parse(data as z.infer<typeof profileSchema>);
+  return profileEnvelopeSchema.parse(data as z.infer<typeof profileEnvelopeSchema>).profile;
 }
 
 // The pasted urls from github/linkedin/x carry deep paths and query cruft

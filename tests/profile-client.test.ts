@@ -99,8 +99,9 @@ describe('fetchProfile', () => {
       created_at: '2026-10-27T00:00:00.000Z',
       updated_at: '2026-10-27T00:00:00.000Z',
     };
+    // The api answers the ProfileEnvelope of the contract: { profile }.
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify(profile), {
+      new Response(JSON.stringify({ profile }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       }),
@@ -117,6 +118,52 @@ describe('fetchProfile', () => {
       }),
     );
     expect(result).toEqual(profile);
+  });
+
+  it('accepts the envelope fields the api added beside the profile (profile_revision, user_id)', async () => {
+    const profile = {
+      id: '11111111-1111-4111-8111-111111111111',
+      profile_revision: '2026-10-31T01:33:39Z',
+      user_id: '11111111-1111-4111-8111-111111111111',
+      email: 'juan@example.com',
+      full_name: 'Juan Pérez',
+      created_at: '2026-10-27T00:00:00.000Z',
+      updated_at: '2026-10-27T00:00:00.000Z',
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ profile }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    );
+
+    const result = await fetchProfile(accessToken);
+
+    expect(result.full_name).toBe('Juan Pérez');
+    expect(result.updated_at).toBe(profile.updated_at);
+  });
+
+  it('fails closed on a bare profile outside the envelope', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            id: '11111111-1111-4111-8111-111111111111',
+            email: 'juan@example.com',
+            full_name: 'Juan Pérez',
+            created_at: '2026-10-27T00:00:00.000Z',
+            updated_at: '2026-10-27T00:00:00.000Z',
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        ),
+      ),
+    );
+
+    await expect(fetchProfile(accessToken)).rejects.toThrow();
   });
 
   it('throws a ProblemError with the api problem on 401', async () => {
@@ -239,7 +286,7 @@ describe('updateProfile', () => {
       updated_at: '2026-10-27T12:19:19Z',
     };
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify(updated), {
+      new Response(JSON.stringify({ profile: updated }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       }),
@@ -356,11 +403,13 @@ describe('configured api base url', () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
-          id: '11111111-1111-4111-8111-111111111111',
-          email: 'juan@example.com',
-          full_name: 'Juan Pérez',
-          created_at: '2026-10-27T00:00:00.000Z',
-          updated_at: '2026-10-27T00:00:00.000Z',
+          profile: {
+            id: '11111111-1111-4111-8111-111111111111',
+            email: 'juan@example.com',
+            full_name: 'Juan Pérez',
+            created_at: '2026-10-27T00:00:00.000Z',
+            updated_at: '2026-10-27T00:00:00.000Z',
+          },
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } },
       ),
