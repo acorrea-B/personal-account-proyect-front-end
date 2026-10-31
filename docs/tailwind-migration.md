@@ -45,15 +45,15 @@ generated from source words match no `className` in `app/`, `components/` or
 
 ## Windows (≤6 files each, stacked)
 
-| Window | Scope | Files |
-|---|---|---|
-| 1 | Foundation: Tailwind v4 + PostCSS, tokens in `@theme static`, this plan | `package.json`, `package-lock.json`, `postcss.config.mjs`, `app/globals.css`, `docs/tailwind-migration.md` |
-| 2 | Auth pages: login, register, confirm, logout | 4 views + `app/globals.css` |
-| 3 | Landing: hero, feature cards, scroll reveal, brand mark | `landing-view.tsx`, `icons.tsx` + `app/globals.css` |
-| 4 | Dashboard shell: identity bar, account menu, language picker | `dashboard-view.tsx`, `account-menu.tsx`, `language-select.tsx` + `app/globals.css` |
-| 5 | Profile setup: fields, counters, autocomplete, toast, link rows, skeletons | `profile-view.tsx`, `clamped-text.tsx`, `skeleton.tsx` + `app/globals.css` |
-| 6 | CV: card, editor, timeline, version detail | 4 CV components + `app/globals.css` |
-| 7 | Cleanup: keyframes as theme animations, mobile token scale, remaining base rules; `globals.css` keeps only imports, theme and base | `app/globals.css` (+ any straggler) |
+| Window | Scope                                                                                                                              | Files                                                                                                      |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| 1      | Foundation: Tailwind v4 + PostCSS, tokens in `@theme static`, this plan                                                            | `package.json`, `package-lock.json`, `postcss.config.mjs`, `app/globals.css`, `docs/tailwind-migration.md` |
+| 2      | Auth pages: login, register, confirm, logout                                                                                       | 4 views + `app/globals.css`                                                                                |
+| 3      | Landing: hero, feature cards, scroll reveal, brand mark                                                                            | `landing-view.tsx`, `icons.tsx` + `app/globals.css`                                                        |
+| 4      | Dashboard shell: identity bar, account menu, language picker                                                                       | `dashboard-view.tsx`, `account-menu.tsx`, `language-select.tsx` + `app/globals.css`                        |
+| 5      | Profile setup: fields, counters, autocomplete, toast, link rows, skeletons                                                         | `profile-view.tsx`, `clamped-text.tsx`, `skeleton.tsx` + `app/globals.css`                                 |
+| 6      | CV: card, editor, timeline, version detail                                                                                         | 4 CV components + `app/globals.css`                                                                        |
+| 7      | Cleanup: keyframes as theme animations, mobile token scale, remaining base rules; `globals.css` keeps only imports, theme and base | `app/globals.css` (+ any straggler)                                                                        |
 
 Then the BC-012 flows start (skill suggestions + summary, decisions, catalog with
 consent, `PUT /v1/profile` syncing skill rows).
