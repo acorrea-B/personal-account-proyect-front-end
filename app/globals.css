@@ -988,47 +988,6 @@ textarea[aria-invalid='true'] {
   height: 18px;
 }
 
-.account-menu {
-  position: relative;
-}
-
-.account-menu-list {
-  position: absolute;
-  right: 0;
-  top: calc(100% + var(--spacing-8));
-  z-index: 20;
-  min-width: 200px;
-  margin: 0;
-  padding: var(--spacing-4);
-  list-style: none;
-  background: var(--color-pure-white);
-  border: 1px solid var(--color-stone-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-}
-
-.account-menu-item {
-  display: block;
-  width: 100%;
-  padding: 12px 14px;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  font: inherit;
-  font-size: 15px;
-  text-align: left;
-  text-decoration: none;
-  color: var(--color-ink-black);
-  background: none;
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-}
-
-.account-menu-item:hover {
-  background: var(--color-sky-wash-soft);
-}
-
 .dashboard-grid {
   display: grid;
   gap: var(--spacing-16);
@@ -1392,10 +1351,6 @@ textarea[aria-invalid='true'] {
     font-size: 16px;
   }
 
-  .account-menu-item {
-    font-size: 16px;
-  }
-
   .auth-form-note {
     font-size: 14px;
   }
@@ -1439,22 +1394,6 @@ textarea[aria-invalid='true'] {
     align-items: stretch;
   }
 
-  .workspace-bar .account-menu {
-    width: 100%;
-  }
-
-  .workspace-bar .account-menu .button {
-    width: 100%;
-  }
-
-  .workspace-bar .account-menu-list {
-    position: static;
-    width: 100%;
-    min-width: 0;
-    margin-top: var(--spacing-8);
-    box-shadow: none;
-  }
-
   .workspace-bar .workspace-identity {
     width: 100%;
   }
@@ -1472,69 +1411,5 @@ textarea[aria-invalid='true'] {
 
   .cv-timeline-entry {
     gap: var(--spacing-8);
-  }
-}
-/* The language picker (i18n): one quiet look everywhere - the flat menu-row
-   treatment the account menu introduced (no box, the sky hover, the cyan
-   text), now the base for every context. Native select, 44px row, desktop
-   nav row and the stacked 640px header. */
-.language-select {
-  display: inline-flex;
-  align-items: center;
-  width: auto;
-  padding: 0;
-  min-height: 44px;
-  border: none;
-  background: transparent;
-  font: inherit;
-  font-size: 16px;
-  color: var(--color-cyan-text-strong);
-}
-
-.language-select:hover {
-  background: var(--color-sky-wash-soft);
-}
-
-@media (max-width: 640px) {
-  .language-select {
-    width: 100%;
-  }
-}
-
-/* The language row inside the account menu: the menu row look originates
-   here; the variant keeps only its layout deltas (no margin in the plain
-   nav, auto here so the value rides the row's end). */
-.account-menu-language {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-8);
-  width: 100%;
-  padding: 12px 14px;
-  min-height: 44px;
-  font-size: 15px;
-  color: var(--color-ink-black);
-}
-
-.account-menu-language:hover {
-  background: var(--color-sky-wash-soft);
-}
-
-.account-menu-language span {
-  flex-shrink: 0;
-}
-
-.language-select--menu {
-  min-height: 40px;
-  margin-left: auto;
-  font-size: 15px;
-}
-
-@media (max-width: 640px) {
-  .account-menu-language {
-    font-size: 16px;
-  }
-
-  .language-select--menu {
-    font-size: 16px;
   }
 }

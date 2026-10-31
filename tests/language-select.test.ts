@@ -60,7 +60,7 @@ describe('LanguageSelect navigation', () => {
         throw new Error('select not found');
       }
       expect(select.value).toBe('en');
-      expect(select.className).toContain('language-select');
+      expect(select.getAttribute('aria-label')).toBe('Site language');
 
       await act(async () => {
         select.value = 'es';
