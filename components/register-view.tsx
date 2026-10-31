@@ -8,6 +8,21 @@ import { ProblemError, register } from '@/lib/api/client';
 import { MailIcon, ProfileIcon, ShieldIcon, UserIcon } from '@/components/icons';
 import { registerRequestSchema } from '@/lib/schemas/auth';
 import { type Locale, labels, tr } from '@/lib/i18n';
+import {
+  AuthCard,
+  AuthForm,
+  AuthFormNote,
+  AuthHeading,
+  AuthKicker,
+  AuthPage,
+  AuthSteps,
+  AuthSubtitle,
+  Field,
+  FieldError,
+  FormMessage,
+  primaryButton,
+  TextLink,
+} from '@/components/ui';
 
 interface FieldErrors {
   email?: string;
@@ -78,90 +93,64 @@ export function RegisterView({ locale }: { locale: Locale }) {
   }
 
   return (
-    <main className="auth-page">
-      <section className="auth-shell auth-card">
-        <p className="auth-kicker">
-          <ShieldIcon className="auth-kicker-icon" /> {t.register.kicker}
-        </p>
-        <h1 className="auth-heading">{t.register.heading}</h1>
-        <p className="auth-subtitle">{t.register.subtitle}</p>
-        <ol className="auth-steps">
-          <li className="auth-step is-active">
-            <UserIcon className="auth-step-icon" /> {t.register.stepAccount}
-          </li>
-          <li className="auth-step">
-            <MailIcon className="auth-step-icon" /> {t.register.stepVerify}
-          </li>
-          <li className="auth-step">
-            <ProfileIcon className="auth-step-icon" /> {t.register.stepProfile}
-          </li>
-        </ol>
+    <AuthPage>
+      <AuthCard>
+        <AuthKicker icon={ShieldIcon}>{t.register.kicker}</AuthKicker>
+        <AuthHeading>{t.register.heading}</AuthHeading>
+        <AuthSubtitle>{t.register.subtitle}</AuthSubtitle>
+        <AuthSteps
+          steps={[
+            { icon: UserIcon, label: t.register.stepAccount, active: true },
+            { icon: MailIcon, label: t.register.stepVerify },
+            { icon: ProfileIcon, label: t.register.stepProfile },
+          ]}
+        />
 
-        {formError ? (
-          <div role="alert" className="form-error">
-            <p>{formError}</p>
-          </div>
-        ) : null}
+        {formError ? <FormMessage tone="alert">{formError}</FormMessage> : null}
 
-        <form method="post" onSubmit={handleSubmit} noValidate>
-          <label className="field" htmlFor="email">
-            {t.register.email}
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              aria-invalid={Boolean(fieldErrors.email)}
-              aria-describedby={fieldErrors.email ? 'email-error' : undefined}
-            />
-          </label>
-          {fieldErrors.email ? (
-            <p id="email-error" role="alert" className="field-error">
-              {fieldErrors.email}
-            </p>
-          ) : null}
+        <AuthForm method="post" onSubmit={handleSubmit} noValidate>
+          <Field
+            label={t.register.email}
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            aria-invalid={Boolean(fieldErrors.email)}
+            aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+          />
+          {fieldErrors.email ? <FieldError id="email-error">{fieldErrors.email}</FieldError> : null}
 
-          <label className="field" htmlFor="password">
-            {t.register.password}
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              aria-invalid={Boolean(fieldErrors.password)}
-              aria-describedby={fieldErrors.password ? 'password-error' : undefined}
-            />
-          </label>
+          <Field
+            label={t.register.password}
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            aria-invalid={Boolean(fieldErrors.password)}
+            aria-describedby={fieldErrors.password ? 'password-error' : undefined}
+          />
           {fieldErrors.password ? (
-            <p id="password-error" role="alert" className="field-error">
-              {fieldErrors.password}
-            </p>
+            <FieldError id="password-error">{fieldErrors.password}</FieldError>
           ) : null}
 
-          <button type="submit" className="button button-primary" disabled={isSubmitting}>
+          <button type="submit" className={primaryButton} disabled={isSubmitting}>
             {isSubmitting ? t.register.submitting : t.register.submit}
           </button>
-        </form>
-        <p className="auth-form-note">
+        </AuthForm>
+        <AuthFormNote>
           {t.register.loginQuestion}{' '}
-          <a className="link" href={`${base}/login/`}>
-            {t.register.loginEntry}
-          </a>
-        </p>
-        <p className="auth-form-note">
-          <a
-            className="link"
-            href={locale === 'es' ? '/' : '/es/'}
-            hrefLang={locale === 'es' ? 'en' : 'es'}
-          >
+          <TextLink href={`${base}/login/`}>{t.register.loginEntry}</TextLink>
+        </AuthFormNote>
+        <AuthFormNote>
+          <TextLink href={locale === 'es' ? '/' : '/es/'} hrefLang={locale === 'es' ? 'en' : 'es'}>
             {t.register.otherLanguage}
-          </a>
-        </p>
-      </section>
-    </main>
+          </TextLink>
+        </AuthFormNote>
+      </AuthCard>
+    </AuthPage>
   );
 }

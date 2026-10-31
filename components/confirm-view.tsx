@@ -8,6 +8,17 @@ import { ProblemError, resendVerification } from '@/lib/api/client';
 import { resendVerificationRequestSchema } from '@/lib/schemas/auth';
 import { readPendingVerificationEmail } from '@/lib/auth/session';
 import { type Locale, labels, tr } from '@/lib/i18n';
+import {
+  AuthCard,
+  AuthForm,
+  AuthHeading,
+  AuthPage,
+  AuthSubtitle,
+  Field,
+  FieldError,
+  FormMessage,
+  primaryButton,
+} from '@/components/ui';
 
 const THREE_MINUTES_MS = 3 * 60 * 1000;
 const RESEND_AVAILABLE_AT_KEY = 'verificationResendAvailableAt';
@@ -123,58 +134,44 @@ export function ConfirmView({ locale }: { locale: Locale }) {
   const countdownLabel = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
   return (
-    <main className="auth-page">
-      <section className="auth-shell auth-card">
-        <h1 className="auth-heading">{t.confirm.heading}</h1>
+    <AuthPage>
+      <AuthCard>
+        <AuthHeading>{t.confirm.heading}</AuthHeading>
         {pendingEmail ? (
           <>
             <p>
               {t.confirm.pendingPrefix} <strong>{pendingEmail}</strong> {t.confirm.pendingSuffix}
             </p>
-            <p className="auth-subtitle">{t.confirm.pendingNote}</p>
+            <AuthSubtitle>{t.confirm.pendingNote}</AuthSubtitle>
           </>
         ) : (
           <>
             <p>{t.confirm.freshCopy}</p>
-            <p className="auth-subtitle">{t.confirm.freshNote}</p>
+            <AuthSubtitle>{t.confirm.freshNote}</AuthSubtitle>
           </>
         )}
 
-        <form method="post" onSubmit={handleSubmit} noValidate>
-          <label className="field" htmlFor="email">
-            {t.confirm.email}
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              aria-invalid={Boolean(fieldErrors.email)}
-              aria-describedby={fieldErrors.email ? 'email-error' : undefined}
-            />
-          </label>
-          {fieldErrors.email ? (
-            <p id="email-error" role="alert" className="field-error">
-              {fieldErrors.email}
-            </p>
-          ) : null}
+        <AuthForm method="post" onSubmit={handleSubmit} noValidate>
+          <Field
+            label={t.confirm.email}
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            aria-invalid={Boolean(fieldErrors.email)}
+            aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+          />
+          {fieldErrors.email ? <FieldError id="email-error">{fieldErrors.email}</FieldError> : null}
 
-          {formError ? (
-            <div role="alert" className="form-error">
-              <p>{formError}</p>
-            </div>
-          ) : null}
+          {formError ? <FormMessage tone="alert">{formError}</FormMessage> : null}
 
-          {successMessage ? (
-            <div role="status" className="form-error">
-              <p>{successMessage}</p>
-            </div>
-          ) : null}
+          {successMessage ? <FormMessage tone="status">{successMessage}</FormMessage> : null}
 
           <button
             type="submit"
-            className="button button-primary"
+            className={primaryButton}
             disabled={isSubmitting || (secondsLeft ?? 0) > 0}
           >
             {(secondsLeft ?? 0) > 0
@@ -183,8 +180,8 @@ export function ConfirmView({ locale }: { locale: Locale }) {
                 ? t.confirm.sending
                 : t.confirm.resend}
           </button>
-        </form>
-      </section>
-    </main>
+        </AuthForm>
+      </AuthCard>
+    </AuthPage>
   );
 }

@@ -101,7 +101,7 @@ describe('ConfirmView', () => {
       await render(locale);
       const t = labels(locale).confirm;
       expect(document.querySelector('h1')?.textContent).toBe(t.heading);
-      const intro = document.querySelector('.auth-card > p')?.textContent ?? '';
+      const intro = document.querySelector('section > p')?.textContent ?? '';
       expect(intro).toContain(t.pendingPrefix);
       expect(intro).toContain('juan@example.com');
       expect(intro).toContain(t.pendingSuffix);
@@ -150,7 +150,7 @@ describe('ConfirmView', () => {
         // 1200 ms delay expires on the controlled clock.
         vi.advanceTimersByTime(1201);
       });
-      expect(document.querySelector('.form-error')?.textContent).toContain(
+      expect(document.querySelector('div[role="alert"]')?.textContent).toContain(
         labels(locale).confirm.rateCapped,
       );
       expect(pushMock).toHaveBeenCalledWith(`${prefix}/register/`);
