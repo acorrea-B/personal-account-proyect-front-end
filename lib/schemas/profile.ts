@@ -1,9 +1,19 @@
 import { z } from 'zod';
 
-// Contract mirror of the api profile DTOs (personal-account-proyect
-// src/domain/profile/dto.rs and handlers.rs ProfileResponse). The optional
-// fields are ABSENT from the JSON when the api holds none of them (serde
-// skip_serializing_if), so they are optional here, never null.
+// Contract mirror of the api profile DTOs (OpenAPI 0.1.7, Profile). The
+// optional text fields may arrive absent or null (the contract types them
+// string | null); both read as absent, so the views keep string | undefined.
+// The contract caps skills at 100 (0.1.7).
+
+export const maxProfileSkills = 100;
+
+const optionalText = (max: number) =>
+  z
+    .string()
+    .max(max)
+    .nullish()
+    .transform((value) => value ?? undefined)
+    .optional();
 
 export const profileLinkSchema = z.object({
   type: z.string().min(1).max(40),
@@ -16,11 +26,11 @@ export const profileSchema = z.object({
   id: z.uuid(),
   email: z.email(),
   full_name: z.string().min(1).max(200),
-  headline: z.string().max(120).optional(),
-  bio: z.string().max(2000).optional(),
-  location: z.string().max(120).optional(),
+  headline: optionalText(120),
+  bio: optionalText(2000),
+  location: optionalText(120),
   links: z.array(profileLinkSchema).max(10).optional(),
-  skills: z.array(z.string().min(1).max(40)).max(30).optional(),
+  skills: z.array(z.string().min(1).max(40)).max(maxProfileSkills).optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -45,7 +55,7 @@ export const updateProfileRequestSchema = z.object({
   links: z.array(profileLinkSchema).max(10).optional(),
   skills: z
     .array(z.string().min(1).max(40))
-    .max(30, 'At most 30 skills are accepted')
+    .max(maxProfileSkills, `At most ${maxProfileSkills} skills are accepted`)
     .optional()
     .refine(
       (skills) =>

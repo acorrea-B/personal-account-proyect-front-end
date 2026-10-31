@@ -37,6 +37,27 @@ describe('profile schema', () => {
     expect(result.success).toBe(true);
   });
 
+  it('accepts the null optional fields of the 0.1.7 contract as absent', () => {
+    const result = profileSchema.safeParse({
+      ...validProfile,
+      headline: null,
+      bio: null,
+      location: null,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.headline).toBeUndefined();
+      expect(result.data.bio).toBeUndefined();
+      expect(result.data.location).toBeUndefined();
+    }
+  });
+
+  it('accepts up to 100 skills and rejects 101 (0.1.7)', () => {
+    const skills = (count: number) => Array.from({ length: count }, (_, index) => `skill-${index}`);
+    expect(profileSchema.safeParse({ ...validProfile, skills: skills(100) }).success).toBe(true);
+    expect(profileSchema.safeParse({ ...validProfile, skills: skills(101) }).success).toBe(false);
+  });
+
   it('rejects a malformed id or full_name', () => {
     expect(profileSchema.safeParse({ ...validProfile, id: 'no-uuid' }).success).toBe(false);
     expect(profileSchema.safeParse({ ...validProfile, full_name: '' }).success).toBe(false);
@@ -55,6 +76,18 @@ describe('updateProfileRequestSchema', () => {
     });
     // full_name trims and the skills list is unique.
     expect(result.success).toBe(true);
+  });
+
+  it('accepts 100 skills and rejects 101 with the contract message (0.1.7)', () => {
+    const skills = (count: number) => Array.from({ length: count }, (_, index) => `skill-${index}`);
+    expect(
+      updateProfileRequestSchema.safeParse({ full_name: 'Juan', skills: skills(100) }).success,
+    ).toBe(true);
+    const over = updateProfileRequestSchema.safeParse({ full_name: 'Juan', skills: skills(101) });
+    expect(over.success).toBe(false);
+    if (!over.success) {
+      expect(over.error.issues[0]?.message).toBe('At most 100 skills are accepted');
+    }
   });
 
   it('rejects an over-long full_name, headline or bio', () => {
