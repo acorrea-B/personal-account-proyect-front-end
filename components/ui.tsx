@@ -245,22 +245,48 @@ export function WorkspaceTitle({
   );
 }
 
-// .skill-chips: the skills as tinted badges.
-export function SkillChips({ skills, label }: { skills: string[]; label?: string }) {
+// .skill-chips: the skills as tinted badges. Skills named in `marked`
+// (lowercased) carry a check and the given label for assistive tech: the
+// dashboard marks the ones accepted from a harness suggestion.
+export function SkillChips({
+  skills,
+  label,
+  marked,
+  markedLabel,
+}: {
+  skills: string[];
+  label?: string;
+  marked?: ReadonlySet<string>;
+  markedLabel?: string;
+}) {
   return (
     <ul
       className="m-0 flex list-none flex-wrap gap-8 p-0"
       aria-label={label}
       aria-hidden={label ? undefined : true}
     >
-      {skills.map((skill) => (
-        <li
-          key={skill.toLowerCase()}
-          className="rounded-full border border-transparent bg-sky-wash-soft px-12 py-4 text-[14px] font-medium text-cyan-text-strong"
-        >
-          {skill}
-        </li>
-      ))}
+      {skills.map((skill) => {
+        const isMarked = marked?.has(skill.toLowerCase()) ?? false;
+        return (
+          <li
+            key={skill.toLowerCase()}
+            className={cx(
+              'rounded-full border px-12 py-4 text-[14px] font-medium text-cyan-text-strong',
+              isMarked ? 'border-cyan-edge bg-pure-white' : 'border-transparent bg-sky-wash-soft',
+            )}
+          >
+            {isMarked ? (
+              <>
+                <span aria-hidden="true">✓ </span>
+                {skill}
+                <span className="sr-only"> ({markedLabel})</span>
+              </>
+            ) : (
+              skill
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }

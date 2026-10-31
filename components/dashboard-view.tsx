@@ -7,6 +7,8 @@ import { type ReactNode, useCallback, useEffect, useState } from 'react';
 import { ProblemError } from '@/lib/api/client';
 import { fetchCvText, getVersions } from '@/lib/api/cv';
 import { fetchProfile, isProfileIncomplete } from '@/lib/api/profile';
+import { fetchProfileSkills } from '@/lib/api/suggestions';
+import type { ProfileSkill } from '@/lib/schemas/suggestions';
 import { loadSession, refreshSession } from '@/lib/auth/session';
 import type { Profile } from '@/lib/schemas/profile';
 import { type Locale, labels, tr } from '@/lib/i18n';
@@ -120,6 +122,29 @@ export function DashboardView({ locale }: { locale: Locale }) {
     [t],
   );
 
+  // The skill rows tell which skills came from an accepted suggestion; a
+  // failed read just leaves the chips unmarked.
+  const [skillRows, setSkillRows] = useState<ProfileSkill[] | null>(null);
+  const loadSkillRows = useCallback(async (token: string) => {
+    try {
+      setSkillRows(await fetchProfileSkills(token));
+    } catch {
+      setSkillRows(null);
+    }
+  }, []);
+
+  // After a suggestion is accepted: the profile and the rows refresh in
+  // place, without the skeleton, so the new skill appears in the chips.
+  const refreshSkills = useCallback(async (token: string) => {
+    try {
+      const [profile, rows] = await Promise.all([fetchProfile(token), fetchProfileSkills(token)]);
+      setLoad({ status: 'ready', profile });
+      setSkillRows(rows);
+    } catch {
+      // keep what is shown; the next visit reads it again
+    }
+  }, []);
+
   const loadProfile = useCallback(
     async (token: string, viaRenewal = false) => {
       setLoad({ status: 'loading' });
@@ -224,8 +249,9 @@ export function DashboardView({ locale }: { locale: Locale }) {
       // panel never waits on the rail cards, each with its own retry.
       loadCv(accessToken);
       loadHistory(accessToken);
+      void loadSkillRows(accessToken);
     }
-  }, [isHydrated, isAuthorized, accessToken, loadProfile, loadCv, loadHistory]);
+  }, [isHydrated, isAuthorized, accessToken, loadProfile, loadCv, loadHistory, loadSkillRows]);
 
   // The waiting face: the session check and the profile fetch both hide
   // the dashboard behind the skeleton screen — never a white page.
@@ -238,6 +264,11 @@ export function DashboardView({ locale }: { locale: Locale }) {
   }
 
   const profile = load.status === 'ready' ? load.profile : null;
+  const acceptedSkills = new Set(
+    (skillRows ?? [])
+      .filter((row) => row.origin === 'accepted')
+      .map((row) => row.display_name.toLowerCase()),
+  );
   const firstName = profile ? profile.full_name.trim().split(/\s+/)[0] : '';
 
   return (
@@ -315,7 +346,17 @@ export function DashboardView({ locale }: { locale: Locale }) {
               {profile.skills ? (
                 <div>
                   <Eyebrow>{t.panel.skills}</Eyebrow>
-                  <SkillChips skills={profile.skills} label={t.panel.skills} />
+                  <SkillChips
+                    skills={profile.skills}
+                    label={t.panel.skills}
+                    marked={acceptedSkills}
+                    markedLabel={t.panel.acceptedSkill}
+                  />
+                  {acceptedSkills.size ? (
+                    <p className="mt-8 mb-0 text-(length:--text-label) text-warm-gray">
+                      {t.panel.acceptedLegend}
+                    </p>
+                  ) : null}
                 </div>
               ) : null}
 
@@ -360,7 +401,7 @@ export function DashboardView({ locale }: { locale: Locale }) {
                   <SkillSuggestionsCard
                     accessToken={accessToken}
                     locale={locale}
-                    onAccepted={() => void loadProfile(accessToken)}
+                    onAccepted={() => void refreshSkills(accessToken)}
                   />
                 ) : null}
               </ul>
