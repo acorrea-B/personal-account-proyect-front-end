@@ -25,6 +25,13 @@ export const profileSchema = z.object({
   updated_at: z.string(),
 });
 
+// GET and PUT /v1/profile answer the ProfileEnvelope of the contract: the
+// profile travels under `profile`, never bare. The api's extra fields
+// (profile_revision, user_id, ...) are stripped by the object parse.
+export const profileEnvelopeSchema = z.object({
+  profile: profileSchema,
+});
+
 export const updateProfileRequestSchema = z.object({
   // The api trims full_name and validates 1..200 AFTER the trim.
   full_name: z
