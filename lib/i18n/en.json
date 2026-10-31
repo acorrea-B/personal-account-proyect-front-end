@@ -258,5 +258,9 @@
     "loadFailed": "The catalog consent could not be loaded.",
     "retry": "Try again",
     "loadingAria": "Loading the catalog consent"
+  },
+  "catalogInput": {
+    "listAria": "Skill names other people confirmed",
+    "searching": "Searching the skill catalog…"
   }
 }
