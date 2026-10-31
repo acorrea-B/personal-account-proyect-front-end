@@ -134,9 +134,10 @@ export function AuthSteps({
   );
 }
 
-// .field input
+// .field input; a field in error marks red (the old input[aria-invalid]
+// rule), while focus keeps the cyan border.
 export const inputClass =
-  'min-h-[44px] rounded-inputs border border-stone-border bg-pure-white px-[14px] py-12 [font-family:inherit] text-[16px] [font-weight:inherit] [line-height:inherit] text-ink-black focus-visible:border-cyan-signal! focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none';
+  'min-h-[44px] rounded-inputs border border-stone-border bg-pure-white px-[14px] py-12 [font-family:inherit] text-[16px] [font-weight:inherit] [line-height:inherit] text-ink-black aria-invalid:border-alert focus-visible:border-cyan-signal! focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none';
 
 // .field + .field input: the label wraps its input. A field in error keeps
 // the red border from the global input[aria-invalid] rule; focus wins over
@@ -360,3 +361,7 @@ export const dismissButton =
 export const inlineAlert =
   'rounded-lg border border-stone-muted px-12 py-8 text-[12px] leading-[1.6] text-soot';
 export const inlineNote = 'rounded-lg px-12 py-8 text-[12px] leading-[1.6] text-warm-gray';
+
+// .content-resolve: after the skeleton, content gains clarity through the
+// same blur the glow swept, on the house curve; reduced motion shows it.
+export const contentResolve = 'animate-content-resolve motion-reduce:animate-none';

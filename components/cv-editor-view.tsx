@@ -17,6 +17,7 @@ import {
   WorkspacePage,
   WorkspaceTitle,
   cx,
+  contentResolve,
   ghostButton,
   inlineAlert,
   inlineNote,
@@ -171,7 +172,7 @@ export function CvEditorView({ locale }: { locale: Locale }) {
   if (!isHydrated || !isAuthorized || load.status === 'loading') {
     return (
       <WorkspacePage busy>
-        <div className="content-resolve">
+        <div className={contentResolve}>
           <WorkspaceBar
             identity={
               <>
@@ -195,7 +196,7 @@ export function CvEditorView({ locale }: { locale: Locale }) {
 
   return (
     <WorkspacePage>
-      <div className="content-resolve">
+      <div className={contentResolve}>
         <WorkspaceBar
           identity={
             <>
@@ -236,7 +237,7 @@ export function CvEditorView({ locale }: { locale: Locale }) {
                 </Eyebrow>
                 <div>
                   <textarea
-                    className="block min-h-[340px] w-full max-w-full resize-y text-(length:--text-body-md) leading-[1.6] whitespace-pre-wrap focus-visible:border-cyan-text! focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none max-md:min-h-[260px]"
+                    className="block min-h-[340px] w-full max-w-full resize-y text-(length:--text-body-md) leading-[1.6] whitespace-pre-wrap aria-invalid:border-alert focus-visible:border-cyan-text! focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none max-md:min-h-[260px]"
                     value={content}
                     onChange={(event) => setContent(event.target.value)}
                     rows={18}

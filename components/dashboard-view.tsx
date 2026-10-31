@@ -24,6 +24,7 @@ import {
   WorkspacePage,
   WorkspaceTitle,
   cx,
+  contentResolve,
   ghostButton,
   linkClass,
   railText,
@@ -246,7 +247,7 @@ export function DashboardView({ locale }: { locale: Locale }) {
 
   return (
     <WorkspacePage>
-      <div className="content-resolve">
+      <div className={contentResolve}>
         <WorkspaceBar
           identity={
             <>
