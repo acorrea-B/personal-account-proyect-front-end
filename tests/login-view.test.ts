@@ -123,7 +123,7 @@ describe('LoginView', () => {
         new ProblemError({ status: 401, title: 'invalid credentials' }),
       );
       await submitForm();
-      expect(document.querySelector('.form-error')?.textContent).toContain(
+      expect(document.querySelector('div[role="alert"]')?.textContent).toContain(
         labels(locale).login.invalid,
       );
       expect(saveSession).not.toHaveBeenCalled();
@@ -155,7 +155,7 @@ describe('LoginView', () => {
       loginMock.mockRejectedValueOnce(new ProblemError({ status: 429, retry_after_seconds: 12 }));
       await submitForm();
       const expected = labels(locale).login.rateCappedWithSeconds.replace('{seconds}', '12');
-      expect(document.querySelector('.form-error')?.textContent).toContain(expected);
+      expect(document.querySelector('div[role="alert"]')?.textContent).toContain(expected);
     }
   });
 });

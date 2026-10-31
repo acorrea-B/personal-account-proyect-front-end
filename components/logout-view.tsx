@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import { signOut } from '@/lib/auth/session';
 import { type Locale, labels } from '@/lib/i18n';
+import { AuthCard, AuthHeading, AuthPage, AuthSubtitle } from '@/components/ui';
 
 // The shared sign-out view: the revoke+clear lives in the session module
 // and the route always finishes by handing the user to its tree's sign-in
@@ -27,11 +28,11 @@ export function LogoutView({ locale }: { locale: Locale }) {
   }, [router, base]);
 
   return (
-    <main className="auth-page">
-      <section className="auth-shell auth-card">
-        <h1 className="auth-heading">{t.logout.heading}</h1>
-        <p className="auth-subtitle">{t.logout.subtitle}</p>
-      </section>
-    </main>
+    <AuthPage>
+      <AuthCard>
+        <AuthHeading>{t.logout.heading}</AuthHeading>
+        <AuthSubtitle>{t.logout.subtitle}</AuthSubtitle>
+      </AuthCard>
+    </AuthPage>
   );
 }
