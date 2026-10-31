@@ -262,5 +262,17 @@
   "catalogInput": {
     "listAria": "Nombres de habilidades que otras personas confirmaron",
     "searching": "Buscando en el catálogo de habilidades…"
+  },
+  "cvSections": {
+    "summary": "Resumen",
+    "experience": "Experiencia",
+    "education": "Educación",
+    "skills": "Habilidades",
+    "projects": "Proyectos",
+    "links": "Enlaces",
+    "contact": "Contacto",
+    "certifications": "Certificaciones",
+    "languages": "Idiomas",
+    "additional": "Información adicional"
   }
 }
