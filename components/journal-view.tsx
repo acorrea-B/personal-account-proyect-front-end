@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { type SyntheticEvent, useCallback, useEffect, useState } from 'react';
 
 import { AccountMenu } from '@/components/account-menu';
-import { formatWhen } from '@/components/cv-timeline';
 import { HomeIcon } from '@/components/icons';
 import { Skeleton } from '@/components/skeleton';
 import {
@@ -33,6 +32,17 @@ import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { type Locale, labels, tr } from '@/lib/i18n';
 import { journalTextMax, type JournalConsent, type JournalEntry } from '@/lib/schemas/journal';
 import type { ProfileSkill } from '@/lib/schemas/suggestions';
+
+// An entry happened on a day (stored as that day at 00:00 UTC): it reads
+// as a date in the tree language, never with a midnight time.
+function formatDay(iso: string, locale: Locale): string {
+  return new Intl.DateTimeFormat(locale === 'es' ? 'es' : 'en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(iso));
+}
 
 type JournalLoad =
   | { status: 'loading' }
@@ -343,7 +353,7 @@ export function JournalView({ locale }: { locale: Locale }) {
               {load.entries.length ? (
                 <ul className="m-0 grid list-none gap-12 p-0" aria-label={j.listAria}>
                   {load.entries.map((entry) => {
-                    const when = formatWhen(entry.occurred_at, locale);
+                    const when = formatDay(entry.occurred_at, locale);
                     const names = entry.linked_skill_ids
                       .map(skillName)
                       .filter((name): name is string => Boolean(name));
