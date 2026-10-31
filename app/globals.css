@@ -606,8 +606,6 @@ textarea[aria-invalid='true'] {
   color: var(--color-ink-black);
 }
 
-.workspace-page .profile-panel,
-
 /* CV editor: the text block mirrors the auth-card input rules but stands
    tall (a cv is a document), with a tabular byte counter riding it. The
    counter turns alert when the draft crosses the contract limit. */
