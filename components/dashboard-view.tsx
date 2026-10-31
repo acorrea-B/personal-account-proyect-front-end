@@ -37,6 +37,7 @@ import { CvHistoryCard, formatWhen, type CvHistoryState } from '@/components/cv-
 import { CvVersionDetail } from '@/components/cv-version-detail';
 import { Skeleton } from '@/components/skeleton';
 import { SkillSuggestionsCard } from '@/components/skill-suggestions-card';
+import { EvolutionCard } from '@/components/evolution-card';
 import { CheckIcon } from '@/components/icons';
 
 type WorkspaceLoad =
@@ -315,83 +316,92 @@ export function DashboardView({ locale }: { locale: Locale }) {
 
         {load.status === 'ready' && profile ? (
           <div className={dashboardGrid}>
-            <section className={workspacePanel} aria-label={t.workspace.profilePanel}>
-              <div className="flex items-center justify-between gap-16 max-sm:flex-col max-sm:items-stretch max-sm:gap-8">
-                <Eyebrow>{t.panel.eyebrow}</Eyebrow>
-                <Link
-                  className={cx(
-                    linkClass,
-                    'max-sm:flex max-sm:min-h-[44px] max-sm:items-center max-sm:justify-center max-sm:rounded-full max-sm:bg-sky-wash max-sm:text-[16px]',
-                  )}
-                  href={`${base}/app/profile/`}
-                >
-                  {t.panel.updateLink}
-                </Link>
-              </div>
-
-              <dl className="m-0 grid gap-12">
-                <ProfileFact term={t.panel.fullName} headline>
-                  {profile.full_name}
-                </ProfileFact>
-                {profile.headline ? (
-                  <ProfileFact term={t.panel.headline}>{profile.headline}</ProfileFact>
-                ) : null}
-                {profile.location ? (
-                  <ProfileFact term={t.panel.location}>{profile.location}</ProfileFact>
-                ) : null}
-              </dl>
-
-              {profile.bio ? (
-                <div>
-                  <Eyebrow>{t.panel.bio}</Eyebrow>
-                  <ClampedText text={profile.bio} className="m-0 text-ink-black" locale={locale} />
-                </div>
-              ) : null}
-
-              {profile.skills ? (
-                <div>
-                  <Eyebrow>{t.panel.skills}</Eyebrow>
-                  <SkillChips
-                    skills={profile.skills}
-                    label={t.panel.skills}
-                    marked={acceptedSkills}
-                    markedLabel={t.panel.acceptedSkill}
-                  />
-                  {acceptedSkills.size ? (
-                    <p className="mt-8 mb-0 text-(length:--text-label) text-warm-gray">
-                      {t.panel.acceptedLegend}
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
-
-              {profile.links ? (
-                <div>
-                  <Eyebrow>{t.panel.links}</Eyebrow>
-                  <ul
-                    className="m-0 flex list-none flex-wrap gap-16 p-0"
-                    aria-label={t.panel.links}
+            {/* The main column: the profile, then the evolution the user is
+                heading for with the harness checks. */}
+            <div className="grid gap-16">
+              <section className={workspacePanel} aria-label={t.workspace.profilePanel}>
+                <div className="flex items-center justify-between gap-16 max-sm:flex-col max-sm:items-stretch max-sm:gap-8">
+                  <Eyebrow>{t.panel.eyebrow}</Eyebrow>
+                  <Link
+                    className={cx(
+                      linkClass,
+                      'max-sm:flex max-sm:min-h-[44px] max-sm:items-center max-sm:justify-center max-sm:rounded-full max-sm:bg-sky-wash max-sm:text-[16px]',
+                    )}
+                    href={`${base}/app/profile/`}
                   >
-                    {profile.links.map((link) => (
-                      <li key={link.url}>
-                        <a
-                          className={linkClass}
-                          href={link.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {link.type}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
+                    {t.panel.updateLink}
+                  </Link>
                 </div>
-              ) : null}
 
-              <AuthFormNote>
-                {tr(t.panel.updatedNote, { date: formatWhen(profile.updated_at, locale) })}
-              </AuthFormNote>
-            </section>
+                <dl className="m-0 grid gap-12">
+                  <ProfileFact term={t.panel.fullName} headline>
+                    {profile.full_name}
+                  </ProfileFact>
+                  {profile.headline ? (
+                    <ProfileFact term={t.panel.headline}>{profile.headline}</ProfileFact>
+                  ) : null}
+                  {profile.location ? (
+                    <ProfileFact term={t.panel.location}>{profile.location}</ProfileFact>
+                  ) : null}
+                </dl>
+
+                {profile.bio ? (
+                  <div>
+                    <Eyebrow>{t.panel.bio}</Eyebrow>
+                    <ClampedText
+                      text={profile.bio}
+                      className="m-0 text-ink-black"
+                      locale={locale}
+                    />
+                  </div>
+                ) : null}
+
+                {profile.skills ? (
+                  <div>
+                    <Eyebrow>{t.panel.skills}</Eyebrow>
+                    <SkillChips
+                      skills={profile.skills}
+                      label={t.panel.skills}
+                      marked={acceptedSkills}
+                      markedLabel={t.panel.acceptedSkill}
+                    />
+                    {acceptedSkills.size ? (
+                      <p className="mt-8 mb-0 text-(length:--text-label) text-warm-gray">
+                        {t.panel.acceptedLegend}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {profile.links ? (
+                  <div>
+                    <Eyebrow>{t.panel.links}</Eyebrow>
+                    <ul
+                      className="m-0 flex list-none flex-wrap gap-16 p-0"
+                      aria-label={t.panel.links}
+                    >
+                      {profile.links.map((link) => (
+                        <li key={link.url}>
+                          <a
+                            className={linkClass}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {link.type}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
+                <AuthFormNote>
+                  {tr(t.panel.updatedNote, { date: formatWhen(profile.updated_at, locale) })}
+                </AuthFormNote>
+              </section>
+              {accessToken ? <EvolutionCard accessToken={accessToken} locale={locale} /> : null}
+            </div>
 
             <aside className={workspacePanel} aria-label={t.workspace.comingUpPanel}>
               <Eyebrow>{t.panel.comingUp}</Eyebrow>
