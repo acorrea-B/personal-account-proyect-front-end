@@ -11,14 +11,25 @@ Seline (`design/references/selected-style.md`, `docs/design-brief.md`).
 - **No preflight.** Only Tailwind's `theme` and `utilities` layers are imported;
   the project's own base rules stay. Preflight would reset margins, headings,
   lists and buttons across every page at once.
-- **The design tokens are the only theme.** The Refero/Seline tokens moved from
-  `:root` to `@theme static` with the same names, so the hand-written rules keep
-  reading them with `var()` and utilities can name them (`bg-stone-canvas`,
-  `text-display`, `rounded-lg`, `shadow-md`, `font-display`). Tailwind's default
-  palette, type scale, radii, shadows and breakpoints are cleared: a utility can
-  only name a design token.
-- **Spacing:** one step is 4px (`--spacing: 4px`), so `p-4` = `--space-16` and
-  `gap-6` = `--space-24`.
+- **The theme is the Refero export.** `@theme static` is the Tailwind v4 block
+  published on the selected style page
+  (https://styles.refero.design/style/7967c6d9-e50c-42b5-b4d1-74003ba41781),
+  copied as is, plus the steps of its **extended Design Tokens**
+  (`design/references/selected-style.tokens.json`, extracted from the data the
+  page renders its extended view from). Always read the extended tokens, never
+  the compact view. Extensions beyond the export (AA-safe text colors, teal,
+  alert, breakpoints) are marked in the CSS with their reason. Tailwind's
+  default palette, type scale, spacing, radii, shadows and breakpoints are
+  cleared: a utility can only name a design token.
+- **Names:** `font-roobert` (display, Inter Tight loaded as the substitute) and
+  `font-inter`; `text-caption` 10px, `text-label` 12px, `text-meta` 13px,
+  `text-body` 14px, `text-body-md` 15px, `text-body-lg` 16px, `text-title-sm`
+  18px, `text-subheading`, `text-heading-sm`, `text-display`, each with its own
+  line height and tracking; named radii (`rounded-buttons`, `rounded-cards`,
+  `rounded-inputs`, ...); `max-w-page` is 1200px.
+- **Spacing:** named steps from the export, so `p-16` is 16px and `gap-24` is
+  24px. The base unit is cleared, so `p-5` does not exist: off-scale values are
+  written as arbitrary values and justified.
 - **Breakpoints:** `max-sm:` equals the old `max-width: 640px` and `max-md:` the
   old `max-width: 860px` (`--breakpoint-sm: 641px`, `--breakpoint-md: 861px`).
 - **Cascade:** the hand-written rules are unlayered and still win over the

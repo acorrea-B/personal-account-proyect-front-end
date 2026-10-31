@@ -8,23 +8,27 @@
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
 
-/* The Refero/Seline tokens are the only theme: Tailwind's default palette,
-   type scale, radii and shadows are cleared so a utility can only name a
-   design token. `static` emits every token as a CSS variable, because the
-   hand-written rules still read them with var(). */
+/* The theme is the Refero "Seline Analytics" Tailwind v4 export, copied as
+   published (design/references/selected-style.md), plus the steps the
+   extended Design Tokens add (design/references/selected-style.tokens.json).
+   Tailwind's own palette, type scale, spacing, radii and shadows are cleared
+   so a utility can only name a design token. `static` emits every token as a
+   CSS variable, because the hand-written rules still read them with var().
+   Extensions beyond the export are marked "extension" with their reason. */
 @theme static {
   --color-*: initial;
   --font-*: initial;
+  --font-weight-*: initial;
   --text-*: initial;
+  --leading-*: initial;
+  --tracking-*: initial;
+  --spacing-*: initial;
   --radius-*: initial;
   --shadow-*: initial;
+  --container-*: initial;
   --breakpoint-*: initial;
 
-  /* One spacing step is 4px, so p-4 is --space-16 and gap-6 is --space-24. */
-  --spacing: 4px;
-  /* max-sm: and max-md: equal the old max-width: 640px / 860px queries. */
-  --breakpoint-sm: 641px;
-  --breakpoint-md: 861px;
+  /* Colors (export) */
   --color-stone-canvas: #fafaf9;
   --color-pure-white: #ffffff;
   --color-stone-border: #e8e6e5;
@@ -34,67 +38,148 @@
   --color-ink-black: #0c0a09;
   --color-soot: #1c1917;
   --color-sky-wash: #c1e1f7;
-  --color-sky-wash-soft: #e3f1fb;
   --color-cyan-signal: #3ba6f1;
   --color-cyan-edge: #3398e1;
 
-  /* Text-safe accent tokens. The signal cyan is a fill color: as text on
-     light surfaces it measures 2.65:1, below the WCAG 2.2 AA minimum. These
-     darker voices of the same hue carry links, field errors and icon strokes
-     (5.12:1 on white, 4.90:1 on the canvas). */
+  /* Colors (extension). The signal cyan is a fill color: as text on light
+     surfaces it measures 2.65:1, below WCAG 2.2 AA, so darker voices of the
+     same hue carry links, field errors and icon strokes (5.12:1 on white,
+     4.90:1 on the canvas). The teal is the version timeline's accent (white
+     on it ≈5.5:1). The alert red marks unmet validation conditions. The soft
+     sky wash is the auth page's gradient stop. */
+  --color-sky-wash-soft: #e3f1fb;
   --color-cyan-text: #0f6fc5;
   --color-cyan-text-strong: #0d68b8;
-  /* History accent (teal): the only non-cyan feature hue, so the version
-     timeline contrasts against the blue-and-white dashboard. White on the
-     teal keeps AA for the icon (≈5.5:1, far above the 3:1 non-text bar). */
   --color-teal-text: #0f766e;
   --color-teal-strong: #0c5c52;
   --color-teal-wash: rgba(15, 118, 110, 0.12);
-  /* The validation alert: field errors and the invalid marking (the user
-     asked for the real-time red while a condition is unmet). */
   --color-alert: #b91c1c;
 
-  /* next/font defines --font-tight-loaded and --font-inter-loaded on <html>;
-     the quoted families are the fallbacks and match the DESIGN.md
-     substitutes: Inter Tight stands in for the Roobert display face. */
-  --font-display:
-    var(--font-tight-loaded), 'Inter Tight', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
-    sans-serif;
-  --font-body:
-    var(--font-inter-loaded), 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
-    sans-serif;
+  /* Typography (export). Roobert is not licensed here: next/font loads the
+     DESIGN.md substitute (Inter Tight) and Inter, and defines
+     --font-tight-loaded / --font-inter-loaded on <html>. */
+  --font-roobert:
+    var(--font-tight-loaded), 'Roobert', 'Inter Tight', ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-inter:
+    var(--font-inter-loaded), 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, sans-serif;
 
-  --text-caption: 12px;
-  --text-body: 16px;
-  --text-body-sm: 15px;
+  /* Typography — Weights (export CSS variables) */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  /* Typography — Scale (export). Each step also sets its own line height
+     and tracking, so text-display alone gives the full step. */
+  --text-caption: 10px;
+  --leading-caption: 2.3;
+  --tracking-caption: 0px;
+  --text-caption--line-height: var(--leading-caption);
+  --text-caption--letter-spacing: var(--tracking-caption);
+  --text-body-lg: 16px;
+  --leading-body-lg: 1.69;
+  --tracking-body-lg: 0.048px;
+  --text-body-lg--line-height: var(--leading-body-lg);
+  --text-body-lg--letter-spacing: var(--tracking-body-lg);
   --text-subheading: 20px;
+  --leading-subheading: 1.2;
+  --tracking-subheading: -0.1px;
+  --text-subheading--line-height: var(--leading-subheading);
+  --text-subheading--letter-spacing: var(--tracking-subheading);
   --text-heading-sm: 32px;
+  --leading-heading-sm: 1.25;
+  --tracking-heading-sm: -0.8px;
+  --text-heading-sm--line-height: var(--leading-heading-sm);
+  --text-heading-sm--letter-spacing: var(--tracking-heading-sm);
   --text-display: 52px;
+  --leading-display: 1.12;
+  --tracking-display: -1.092px;
+  --text-display--line-height: var(--leading-display);
+  --text-display--letter-spacing: var(--tracking-display);
 
+  /* Typography — Scale (extended Design Tokens: the most frequent measured
+     Inter steps the export leaves out). label 12px is the UI label step;
+     body 14px is the dominant body step (frequency 1174); body-md 15px and
+     title-sm 18px (Roobert) complete the ladder. */
+  --text-label: 12px;
+  --leading-label: 1.33;
+  --tracking-label: 0.004em;
+  --text-label--line-height: var(--leading-label);
+  --text-label--letter-spacing: var(--tracking-label);
+  --text-meta: 13px;
+  --leading-meta: 1.54;
+  --tracking-meta: 0.004em;
+  --text-meta--line-height: var(--leading-meta);
+  --text-meta--letter-spacing: var(--tracking-meta);
+  --text-body: 14px;
+  --leading-body: 1.64;
+  --tracking-body: 0.004em;
+  --text-body--line-height: var(--leading-body);
+  --text-body--letter-spacing: var(--tracking-body);
+  --text-body-md: 15px;
+  --leading-body-md: 1.53;
+  --tracking-body-md: 0.003em;
+  --text-body-md--line-height: var(--leading-body-md);
+  --text-body-md--letter-spacing: var(--tracking-body-md);
+  --text-title-sm: 18px;
+  --leading-title-sm: 1.22;
+  --tracking-title-sm: -0.017em;
+  --text-title-sm--line-height: var(--leading-title-sm);
+  --text-title-sm--letter-spacing: var(--tracking-title-sm);
+
+  /* Spacing (export): named steps, so p-16 is 16px and gap-24 is 24px. The
+     base unit is cleared on purpose: a spacing utility can only name a step. */
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+  --spacing-48: 48px;
+  --spacing-64: 64px;
+  --spacing-80: 80px;
+  --spacing-96: 96px;
+  --spacing-160: 160px;
+
+  /* Layout (export CSS variables): max-w-page is the 1200px content width. */
+  --container-page: 1200px;
+
+  /* Border Radius (export) and the named radii (export CSS variables) */
   --radius-md: 4px;
   --radius-lg: 10px;
   --radius-2xl: 16px;
   --radius-full: 9999px;
+  --radius-tags: 9999px;
+  --radius-cards: 10px;
+  --radius-icons: 4px;
+  --radius-inputs: 6px;
+  --radius-buttons: 9999px;
+  --radius-feature-card: 16px;
 
-  --shadow-subtle: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
-  --shadow-sm: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px;
+  /* Shadows (export) */
   --shadow-md: rgba(0, 0, 0, 0.05) 0px 4px 16px 0px;
+  --shadow-sm: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px;
+  --shadow-subtle: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
   --shadow-xl: rgba(17, 12, 46, 0.12) 0px 12px 45px 0px;
+
+  /* Breakpoints (extension): max-sm: and max-md: equal the old
+     max-width: 640px / 860px queries. */
+  --breakpoint-sm: 641px;
+  --breakpoint-md: 861px;
 }
 
-/* The spacing ladder the hand-written rules read; utilities use --spacing. */
+/* Layout and surfaces (export CSS variables). */
 :root {
-  --space-4: 4px;
-  --space-8: 8px;
-  --space-12: 12px;
-  --space-16: 16px;
-  --space-24: 24px;
-  --space-32: 32px;
-  --space-40: 40px;
-  --space-48: 48px;
-  --space-64: 64px;
-  --space-80: 80px;
-  --space-96: 96px;
+  --page-max-width: 1200px;
+  --section-gap: 96px;
+  --card-padding: 24px;
+  --element-gap: 8px;
+  --surface-canvas: #fafaf9;
+  --surface-card: #ffffff;
+  --surface-floating-preview: #ffffff;
+  --surface-inverted-section: #1c1917;
 }
 
 * {
@@ -110,8 +195,8 @@ body {
   min-height: 100vh;
   background: var(--color-stone-canvas);
   color: var(--color-ink-black);
-  font-family: var(--font-body);
-  font-size: var(--text-body);
+  font-family: var(--font-inter);
+  font-size: var(--text-body-lg);
   line-height: 1.64;
   -webkit-font-smoothing: antialiased;
 }
@@ -126,7 +211,7 @@ body {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: var(--space-24);
+  padding: var(--spacing-24);
 }
 
 .auth-page {
@@ -140,14 +225,14 @@ body {
       rgba(227, 241, 251, 0) 68%
     ),
     var(--color-stone-canvas);
-  padding: var(--space-24);
+  padding: var(--spacing-24);
 }
 
 .auth-shell {
   width: 100%;
   max-width: 560px;
   display: grid;
-  gap: var(--space-24);
+  gap: var(--spacing-24);
 }
 
 .auth-card {
@@ -155,14 +240,14 @@ body {
   border: 1px solid var(--color-stone-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-subtle);
-  padding: var(--space-32);
+  padding: var(--spacing-32);
   display: grid;
-  gap: var(--space-16);
+  gap: var(--spacing-16);
 }
 
 .auth-card form {
   display: grid;
-  gap: var(--space-16);
+  gap: var(--spacing-16);
   margin: 0;
 }
 
@@ -189,7 +274,7 @@ body {
 .auth-heading {
   margin: 0;
   color: var(--color-ink-black);
-  font-family: var(--font-display);
+  font-family: var(--font-roobert);
   font-size: var(--text-heading-sm);
   font-weight: 400;
   line-height: 1.25;
@@ -199,17 +284,17 @@ body {
 .auth-subtitle {
   margin: 0;
   color: var(--color-warm-gray);
-  font-size: var(--text-body);
+  font-size: var(--text-body-lg);
   line-height: 1.64;
 }
 
 .field {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--spacing-4);
 }
 
 .field label {
-  font-size: var(--text-body);
+  font-size: var(--text-body-lg);
   color: var(--color-ink-black);
 }
 
@@ -246,7 +331,7 @@ textarea[aria-invalid='true'] {
 .form-error,
 .form-note {
   border-radius: var(--radius-lg);
-  padding: var(--space-8) var(--space-12);
+  padding: var(--spacing-8) var(--spacing-12);
   font-size: 12px;
   line-height: 1.6;
 }
@@ -277,7 +362,7 @@ textarea[aria-invalid='true'] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-4);
+  gap: var(--spacing-4);
 }
 
 .button:disabled {
@@ -312,7 +397,7 @@ textarea[aria-invalid='true'] {
 
 @media (max-width: 640px) {
   .auth-card {
-    padding: var(--space-16);
+    padding: var(--spacing-16);
   }
 
   .auth-heading {
@@ -330,9 +415,9 @@ textarea[aria-invalid='true'] {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: var(--space-64) var(--space-24);
+  padding: var(--spacing-64) var(--spacing-24);
   display: grid;
-  gap: var(--space-48);
+  gap: var(--spacing-48);
   grid-template-areas: 'copy panel';
   grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr);
   align-items: center;
@@ -359,7 +444,7 @@ textarea[aria-invalid='true'] {
 
 .landing-copy h1 {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-roobert);
   font-size: var(--text-display);
   font-weight: 400;
   line-height: 1.12;
@@ -367,16 +452,16 @@ textarea[aria-invalid='true'] {
 }
 
 .landing-copy p {
-  margin: var(--space-16) 0 0 0;
+  margin: var(--spacing-16) 0 0 0;
   color: var(--color-warm-gray);
-  font-size: var(--text-body);
+  font-size: var(--text-body-lg);
   line-height: 1.64;
 }
 
 .feature-section {
   width: 100%;
   background: var(--color-sky-wash-soft);
-  padding: var(--space-48) var(--space-24) var(--space-48);
+  padding: var(--spacing-48) var(--spacing-24) var(--spacing-48);
 }
 
 .feature-section .feature-grid {
@@ -387,12 +472,12 @@ textarea[aria-invalid='true'] {
 .landing-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-8);
+  gap: var(--spacing-8);
 }
 
 .feature-grid {
   display: grid;
-  gap: var(--space-16);
+  gap: var(--spacing-16);
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
@@ -401,14 +486,14 @@ textarea[aria-invalid='true'] {
   color: var(--color-ink-black);
   border: 1px solid var(--color-stone-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-24);
+  padding: var(--spacing-24);
   display: grid;
-  gap: var(--space-8);
+  gap: var(--spacing-8);
 }
 
 .feature-card svg {
   color: var(--color-cyan-text);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--spacing-4);
 }
 
 .feature-card .auth-subtitle {
@@ -417,7 +502,7 @@ textarea[aria-invalid='true'] {
 
 .feature-card h2 {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-roobert);
   font-size: var(--text-subheading);
   font-weight: 400;
   line-height: 1.2;
@@ -427,7 +512,7 @@ textarea[aria-invalid='true'] {
   .landing-hero {
     grid-template-areas: 'copy' 'panel';
     grid-template-columns: 1fr;
-    gap: var(--space-32);
+    gap: var(--spacing-32);
   }
 
   .landing-copy h1 {
@@ -556,14 +641,14 @@ textarea[aria-invalid='true'] {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: var(--space-16);
-  padding-bottom: var(--space-24);
+  gap: var(--spacing-16);
+  padding-bottom: var(--spacing-24);
   border-bottom: 1px solid var(--color-stone-border);
 }
 
 .skeleton-screen {
   display: grid;
-  gap: var(--space-12);
+  gap: var(--spacing-12);
 }
 
 /* Scroll reveal. Sections stay visible by default; the hidden state applies
@@ -589,17 +674,17 @@ textarea[aria-invalid='true'] {
 .site-header-inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: var(--space-16) var(--space-24);
+  padding: var(--spacing-16) var(--spacing-24);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-16);
+  gap: var(--spacing-16);
 }
 
 .site-brand {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-8);
+  gap: var(--spacing-8);
   text-decoration: none;
   border-radius: var(--radius-md);
 }
@@ -623,7 +708,7 @@ textarea[aria-invalid='true'] {
 }
 
 .site-brand-word {
-  font-family: var(--font-display);
+  font-family: var(--font-roobert);
   font-size: 19px;
   font-weight: 500;
   letter-spacing: -0.3px;
@@ -633,12 +718,12 @@ textarea[aria-invalid='true'] {
 .site-nav {
   display: flex;
   align-items: center;
-  gap: var(--space-16);
+  gap: var(--spacing-16);
 }
 
 /* Text-only entry links: the pill pair read as merged in the header. */
 .nav-link {
-  padding: var(--space-8) var(--space-8);
+  padding: var(--spacing-8) var(--spacing-8);
   font-size: 14px;
   color: var(--color-ink-black);
   text-decoration: none;
@@ -657,16 +742,16 @@ textarea[aria-invalid='true'] {
 .trust-strip {
   width: 100%;
   max-width: 1200px;
-  margin: var(--space-64) auto 0;
-  padding: 0 var(--space-24);
+  margin: var(--spacing-64) auto 0;
+  padding: 0 var(--spacing-24);
 }
 
 .trust-strip ul {
   display: grid;
-  gap: var(--space-24);
+  gap: var(--spacing-24);
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 0;
-  padding: var(--space-24);
+  padding: var(--spacing-24);
   list-style: none;
   border: 1px solid var(--color-stone-border);
   border-radius: var(--radius-2xl);
@@ -676,7 +761,7 @@ textarea[aria-invalid='true'] {
 
 .trust-strip li {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--spacing-4);
 }
 
 .trust-strip strong {
@@ -693,7 +778,7 @@ textarea[aria-invalid='true'] {
 .site-footer {
   margin-top: auto;
   border-top: 1px solid var(--color-stone-border);
-  padding: var(--space-24);
+  padding: var(--spacing-24);
 }
 
 .site-footer p {
@@ -705,7 +790,7 @@ textarea[aria-invalid='true'] {
 
 .final-action h2 {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-roobert);
   font-size: var(--text-subheading);
   font-weight: 400;
   line-height: 1.2;
@@ -718,7 +803,7 @@ textarea[aria-invalid='true'] {
 
 .eyebrow {
   margin: 0;
-  font-size: var(--text-caption);
+  font-size: var(--text-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-warm-gray);
@@ -727,16 +812,16 @@ textarea[aria-invalid='true'] {
 .final-action {
   width: 100%;
   max-width: 760px;
-  margin: var(--space-64) auto;
-  padding: 0 var(--space-24);
+  margin: var(--spacing-64) auto;
+  padding: 0 var(--spacing-24);
 }
 
 .final-action-panel {
   border-radius: var(--radius-2xl);
   background: var(--color-soot);
-  padding: var(--space-40) var(--space-32);
+  padding: var(--spacing-40) var(--spacing-32);
   display: grid;
-  gap: var(--space-16);
+  gap: var(--spacing-16);
   justify-items: center;
 }
 
@@ -755,8 +840,8 @@ textarea[aria-invalid='true'] {
   margin: 0;
   display: inline-flex;
   align-items: center;
-  gap: var(--space-8);
-  font-size: var(--text-caption);
+  gap: var(--spacing-8);
+  font-size: var(--text-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-warm-gray);
@@ -770,7 +855,7 @@ textarea[aria-invalid='true'] {
 
 .auth-form-note {
   margin: 0;
-  padding-top: var(--space-16);
+  padding-top: var(--spacing-16);
   border-top: 1px solid var(--color-stone-border);
   font-size: 12px;
   color: var(--color-warm-gray);
@@ -780,7 +865,7 @@ textarea[aria-invalid='true'] {
 .auth-steps {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-8);
+  gap: var(--spacing-8);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -791,12 +876,12 @@ textarea[aria-invalid='true'] {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-4);
-  padding: var(--space-8);
+  gap: var(--spacing-4);
+  padding: var(--spacing-8);
   border: 1px solid var(--color-stone-border);
   border-radius: var(--radius-md);
   color: var(--color-warm-gray);
-  font-size: var(--text-caption);
+  font-size: var(--text-label);
   line-height: 1;
   font-weight: 500;
 }
@@ -818,29 +903,29 @@ textarea[aria-invalid='true'] {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-16);
+  gap: var(--spacing-16);
 }
 
 .workspace-profile {
   display: grid;
-  gap: var(--space-16);
+  gap: var(--spacing-16);
 }
 
 .profile-grid {
   display: grid;
-  gap: var(--space-12);
+  gap: var(--spacing-12);
   margin: 0;
 }
 
 .profile-grid > div {
   display: grid;
-  gap: var(--space-4);
-  padding-left: var(--space-12);
+  gap: var(--spacing-4);
+  padding-left: var(--spacing-12);
   border-left: 2px solid var(--color-sky-wash);
 }
 
 .profile-grid dt {
-  font-size: var(--text-caption);
+  font-size: var(--text-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-cyan-text);
@@ -858,14 +943,14 @@ textarea[aria-invalid='true'] {
 .skill-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-8);
+  gap: var(--spacing-8);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .skill-chips li {
-  padding: var(--space-4) var(--space-12);
+  padding: var(--spacing-4) var(--spacing-12);
   border: 1px solid var(--color-stone-border);
   border-radius: var(--radius-full);
   font-size: 14px;
@@ -875,7 +960,7 @@ textarea[aria-invalid='true'] {
 .profile-links {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-16);
+  gap: var(--spacing-16);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -884,19 +969,19 @@ textarea[aria-invalid='true'] {
 .workspace-profile .form-error {
   display: grid;
   justify-items: start;
-  gap: var(--space-8);
+  gap: var(--spacing-8);
 }
 
 /* The complete-your-profile setup: one short pass of real fields. */
 .setup-form {
   display: grid;
-  gap: var(--space-16);
+  gap: var(--spacing-16);
 }
 
 /* Live counter of the api contract limits (bio = 2000). */
 .char-counter {
   margin: 0;
-  font-size: var(--text-caption);
+  font-size: var(--text-label);
   color: var(--color-warm-gray);
   text-align: right;
 }
@@ -905,7 +990,7 @@ textarea[aria-invalid='true'] {
 .location-field {
   position: relative;
   display: grid;
-  gap: var(--space-4);
+  gap: var(--spacing-4);
 }
 
 /* The in-flight marker: the spinner rides inside the input from the first
@@ -940,7 +1025,7 @@ textarea[aria-invalid='true'] {
 }
 
 .button .spinner {
-  margin-left: var(--space-8);
+  margin-left: var(--spacing-8);
 }
 
 @keyframes spinner-turn {
@@ -954,15 +1039,15 @@ textarea[aria-invalid='true'] {
    timer auto-dismisses it after 5 seconds; the ✕ dismisses it by hand. */
 .save-toast {
   position: fixed;
-  right: var(--space-24);
-  bottom: var(--space-24);
+  right: var(--spacing-24);
+  bottom: var(--spacing-24);
   z-index: 30;
   display: flex;
   align-items: center;
-  gap: var(--space-8);
-  max-width: min(480px, calc(100% - 2 * var(--space-24)));
+  gap: var(--spacing-8);
+  max-width: min(480px, calc(100% - 2 * var(--spacing-24)));
   border-radius: var(--radius-lg);
-  padding: var(--space-12) var(--space-16);
+  padding: var(--spacing-12) var(--spacing-16);
   background: var(--color-pure-white);
   border: 1px solid var(--color-cyan-text);
   color: var(--color-ink-black);
@@ -988,7 +1073,7 @@ textarea[aria-invalid='true'] {
   color: var(--color-warm-gray);
   font: inherit;
   cursor: pointer;
-  padding: 0 0 0 var(--space-8);
+  padding: 0 0 0 var(--spacing-8);
   line-height: 1;
 }
 
@@ -1023,24 +1108,24 @@ textarea[aria-invalid='true'] {
 
 .autocomplete-status {
   margin: 0;
-  font-size: var(--text-caption);
+  font-size: var(--text-label);
   color: var(--color-warm-gray);
 }
 
 /* Social and repository link rows: label first, url wide. */
 .link-editor {
   display: grid;
-  gap: var(--space-8);
+  gap: var(--spacing-8);
 }
 
 .link-row-group {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--spacing-4);
 }
 
 .link-row {
   display: grid;
-  gap: var(--space-8);
+  gap: var(--spacing-8);
   grid-template-columns: minmax(120px, 200px) minmax(0, 1fr) auto;
   align-items: center;
 }
@@ -1073,7 +1158,7 @@ textarea[aria-invalid='true'] {
   left: 0;
   right: 0;
   margin: 0;
-  padding: var(--space-4);
+  padding: var(--spacing-4);
   list-style: none;
   background: var(--color-pure-white);
   border: 1px solid var(--color-stone-border);
@@ -1112,9 +1197,9 @@ textarea[aria-invalid='true'] {
   margin: 0 auto;
   min-height: 100vh;
   display: grid;
-  gap: var(--space-32);
+  gap: var(--spacing-32);
   align-content: start;
-  padding: var(--space-24);
+  padding: var(--spacing-24);
 }
 
 .workspace-bar {
@@ -1122,14 +1207,14 @@ textarea[aria-invalid='true'] {
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: var(--space-16);
-  padding-bottom: var(--space-24);
+  gap: var(--spacing-16);
+  padding-bottom: var(--spacing-24);
   border-bottom: 1px solid var(--color-stone-border);
 }
 
 .workspace-title {
-  margin: var(--space-4) 0 var(--space-8);
-  font-family: var(--font-display);
+  margin: var(--spacing-4) 0 var(--spacing-8);
+  font-family: var(--font-roobert);
   font-size: var(--text-heading-sm);
   font-weight: 400;
   line-height: 1.25;
@@ -1143,7 +1228,7 @@ textarea[aria-invalid='true'] {
 .workspace-actions {
   display: flex;
   align-items: center;
-  gap: var(--space-12);
+  gap: var(--spacing-12);
 }
 
 .workspace-home {
@@ -1178,11 +1263,11 @@ textarea[aria-invalid='true'] {
 .account-menu-list {
   position: absolute;
   right: 0;
-  top: calc(100% + var(--space-8));
+  top: calc(100% + var(--spacing-8));
   z-index: 20;
   min-width: 200px;
   margin: 0;
-  padding: var(--space-4);
+  padding: var(--spacing-4);
   list-style: none;
   background: var(--color-pure-white);
   border: 1px solid var(--color-stone-border);
@@ -1214,7 +1299,7 @@ textarea[aria-invalid='true'] {
 
 .dashboard-grid {
   display: grid;
-  gap: var(--space-16);
+  gap: var(--spacing-16);
   grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
   align-items: start;
 }
@@ -1222,8 +1307,8 @@ textarea[aria-invalid='true'] {
 .workspace-page .profile-panel,
 .workspace-page .upcoming-panel {
   display: grid;
-  gap: var(--space-16);
-  padding: var(--space-24) var(--space-32);
+  gap: var(--spacing-16);
+  padding: var(--spacing-24) var(--spacing-32);
   border: 1px solid var(--color-stone-border);
   border-radius: var(--radius-2xl);
   background: var(--color-pure-white);
@@ -1242,7 +1327,7 @@ textarea[aria-invalid='true'] {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-16);
+  gap: var(--spacing-16);
 }
 
 .clamped-text {
@@ -1252,7 +1337,7 @@ textarea[aria-invalid='true'] {
 
 .upcoming-list {
   display: grid;
-  gap: var(--space-12);
+  gap: var(--spacing-12);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1261,8 +1346,8 @@ textarea[aria-invalid='true'] {
 .upcoming-item {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-12);
-  padding: var(--space-16);
+  gap: var(--spacing-12);
+  padding: var(--spacing-16);
   border: 1px solid var(--color-stone-border);
   border-radius: var(--radius-lg);
 }
@@ -1271,13 +1356,13 @@ textarea[aria-invalid='true'] {
   width: 20px;
   height: 20px;
   flex: none;
-  margin-top: var(--space-4);
+  margin-top: var(--spacing-4);
   color: var(--color-cyan-text);
 }
 
 .upcoming-copy {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--spacing-4);
 }
 
 .upcoming-copy strong {
@@ -1293,9 +1378,9 @@ textarea[aria-invalid='true'] {
 
 .status-chip {
   justify-self: start;
-  padding: var(--space-4) var(--space-12);
+  padding: var(--spacing-4) var(--spacing-12);
   border-radius: var(--radius-full);
-  font-size: var(--text-caption);
+  font-size: var(--text-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-warm-gray);
@@ -1304,7 +1389,7 @@ textarea[aria-invalid='true'] {
 
 /* The skills render as badges: the tinted chip is now the badge. */
 .skill-chips li {
-  padding: var(--space-4) var(--space-12);
+  padding: var(--spacing-4) var(--spacing-12);
   border: 1px solid transparent;
   border-radius: var(--radius-full);
   font-size: 14px;
@@ -1337,7 +1422,7 @@ textarea[aria-invalid='true'] {
   resize: vertical;
   max-width: 100%;
   min-height: 340px;
-  font-size: var(--text-body-sm);
+  font-size: var(--text-body-md);
   line-height: 1.6;
   white-space: pre-wrap;
 }
@@ -1345,14 +1430,14 @@ textarea[aria-invalid='true'] {
 .cv-editor-count {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
+  gap: 2px;
+  margin-top: 2px;
 }
 
 .cv-editor-counter {
   font-variant-numeric: tabular-nums;
   color: var(--color-ink-black);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-body-md);
 }
 
 .cv-editor-counter-over {
@@ -1380,8 +1465,8 @@ textarea[aria-invalid='true'] {
    multi-line preview. */
 .cv-card-actions {
   border-top: 1px solid var(--color-stone-border);
-  margin-top: var(--space-8);
-  padding-top: var(--space-12);
+  margin-top: var(--spacing-8);
+  padding-top: var(--spacing-12);
   width: 100%;
 }
 
@@ -1393,14 +1478,14 @@ textarea[aria-invalid='true'] {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--spacing-4);
 }
 
 .cv-timeline-entry {
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--space-8);
+  gap: var(--spacing-8);
 }
 
 .cv-timeline-entry::before {
@@ -1428,7 +1513,7 @@ textarea[aria-invalid='true'] {
 
 .cv-timeline-date {
   font-variant-numeric: tabular-nums;
-  font-size: var(--text-body-sm);
+  font-size: var(--text-body-md);
   color: var(--color-ink-black);
 }
 
@@ -1442,7 +1527,7 @@ textarea[aria-invalid='true'] {
   z-index: 40;
   display: grid;
   place-items: center;
-  padding: var(--space-16);
+  padding: var(--spacing-16);
   background: rgb(15 23 42 / 0.45);
   backdrop-filter: blur(2px);
 }
@@ -1452,25 +1537,25 @@ textarea[aria-invalid='true'] {
   max-height: 80vh;
   display: flex;
   flex-direction: column;
-  gap: var(--space-16);
+  gap: var(--spacing-16);
   background: var(--color-pure-white);
   border: 1px solid var(--color-stone-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
-  padding: var(--space-24);
+  padding: var(--spacing-24);
 }
 
 .cv-version-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-8);
+  gap: var(--spacing-8);
 }
 
 .cv-version-heading {
   margin: 0;
   color: var(--color-ink-black);
-  font-family: var(--font-display);
+  font-family: var(--font-roobert);
   font-size: var(--text-heading-sm);
   font-weight: 400;
   line-height: 1.25;
@@ -1483,11 +1568,11 @@ textarea[aria-invalid='true'] {
   overflow-y: auto;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  padding: var(--space-16);
+  padding: var(--spacing-16);
   border: 1px solid var(--color-stone-border);
   border-radius: var(--radius-lg);
   background: var(--color-stone-canvas);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-body-md);
   line-height: 1.7;
   color: var(--color-ink-black);
 }
@@ -1495,21 +1580,21 @@ textarea[aria-invalid='true'] {
 .cv-version-actions {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--spacing-8);
 }
 
 .cv-version-row {
   display: flex;
-  gap: var(--space-8);
+  gap: var(--spacing-8);
   flex-wrap: wrap;
 }
 
 .cv-restored-note {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--spacing-4);
   color: var(--color-ink-black);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-body-md);
 }
 
 .cv-timeline-view {
@@ -1564,9 +1649,9 @@ textarea[aria-invalid='true'] {
     --text-display: 38px;
     --text-heading-sm: 27px;
     --text-subheading: 20px;
-    --text-body: 17px;
-    --text-body-sm: 16px;
-    --text-caption: 13px;
+    --text-body-lg: 17px;
+    --text-body-md: 16px;
+    --text-label: 13px;
   }
 
   .button {
@@ -1592,7 +1677,7 @@ textarea[aria-invalid='true'] {
   .panel-head {
     flex-direction: column;
     align-items: stretch;
-    gap: var(--space-8);
+    gap: var(--spacing-8);
   }
 
   .panel-head .link {
@@ -1634,7 +1719,7 @@ textarea[aria-invalid='true'] {
     position: static;
     width: 100%;
     min-width: 0;
-    margin-top: var(--space-8);
+    margin-top: var(--spacing-8);
     box-shadow: none;
   }
 
@@ -1654,7 +1739,7 @@ textarea[aria-invalid='true'] {
   }
 
   .cv-timeline-entry {
-    gap: var(--space-8);
+    gap: var(--spacing-8);
   }
 }
 /* The language picker (i18n): one quiet look everywhere - the flat menu-row
@@ -1695,7 +1780,7 @@ textarea[aria-invalid='true'] {
 .account-menu-language {
   display: flex;
   align-items: center;
-  gap: var(--space-8);
+  gap: var(--spacing-8);
   width: 100%;
   padding: 12px 14px;
   min-height: 44px;
