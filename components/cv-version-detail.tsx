@@ -10,6 +10,7 @@ import { labels, tr, type Locale } from '@/lib/i18n';
 import { formatWhen } from './cv-timeline';
 import { CheckIcon } from './icons';
 import { Skeleton } from './skeleton';
+import { Eyebrow, dismissButton, ghostButton, inlineAlert, primaryButton } from '@/components/ui';
 
 type DetailState =
   | { status: 'loading' }
@@ -135,7 +136,7 @@ export function CvVersionDetail({
 
   return (
     <div
-      className="cv-version-backdrop"
+      className="fixed inset-0 z-40 grid place-items-center bg-[rgb(15_23_42/0.45)] p-16 backdrop-blur-[2px]"
       aria-hidden="false"
       onClick={(event) => {
         if (event.target === event.currentTarget) {
@@ -147,12 +148,15 @@ export function CvVersionDetail({
         role="dialog"
         aria-modal="true"
         aria-labelledby="cv-version-title"
-        className="cv-version-panel"
+        className="flex max-h-[80vh] w-[min(720px,100%)] flex-col gap-16 rounded-lg border border-stone-border bg-pure-white p-24 shadow-xl"
       >
-        <div className="cv-version-head">
+        <div className="flex items-start justify-between gap-8">
           <div>
-            <p className="eyebrow">{labelsT.versionDetail.eyebrow}</p>
-            <h2 id="cv-version-title" className="cv-version-heading">
+            <Eyebrow>{labelsT.versionDetail.eyebrow}</Eyebrow>
+            <h2
+              id="cv-version-title"
+              className="m-0 font-roobert text-heading-sm font-regular text-ink-black"
+            >
               {detail.status === 'ready'
                 ? tr(labelsT.versionDetail.viewHeading, {
                     date: formatWhen(detail.detail.archived_at),
@@ -160,15 +164,15 @@ export function CvVersionDetail({
                 : labelsT.versionDetail.viewFallback}
             </h2>
             {detail.status === 'ready' ? (
-              <p className="eyebrow">
+              <Eyebrow>
                 {tr(labelsT.versionDetail.origin, { origin: detail.detail.origin })}
-              </p>
+              </Eyebrow>
             ) : null}
           </div>
           <button
             ref={closeRef}
             type="button"
-            className="save-toast-dismiss"
+            className={dismissButton}
             aria-label={labelsT.versionDetail.close}
             onClick={onClose}
           >
@@ -177,8 +181,8 @@ export function CvVersionDetail({
         </div>
 
         {detail.status === 'loading' ? (
-          <div className="cv-version-content" aria-label={labelsT.versionDetail.loadingAria}>
-            <div className="skeleton-screen">
+          <div className={versionContent} aria-label={labelsT.versionDetail.loadingAria}>
+            <div className="grid gap-12">
               <Skeleton width={140} height={12} />
               <Skeleton width="100%" height={12} />
               <Skeleton width="100%" height={12} />
@@ -187,38 +191,37 @@ export function CvVersionDetail({
             </div>
           </div>
         ) : detail.status === 'error' ? (
-          <div className="cv-version-content">
-            <div role="alert" className="form-error">
+          <div className={versionContent}>
+            <div role="alert" className={inlineAlert}>
               <p>{detail.message}</p>
-              <button
-                type="button"
-                className="button button-ghost"
-                onClick={() => void loadDetail()}
-              >
+              <button type="button" className={ghostButton} onClick={() => void loadDetail()}>
                 {labelsT.cvCard.retry}
               </button>
             </div>
           </div>
         ) : (
           <>
-            <div className="cv-version-content" tabIndex={0}>
+            <div className={versionContent} tabIndex={0}>
               {detail.detail.content}
             </div>
-            <div className="cv-version-actions">
+            <div className="flex flex-col gap-8">
               {restoredSaved ? (
-                <span role="status" className="cv-restored-note">
+                <span
+                  role="status"
+                  className="flex items-center gap-4 text-(length:--text-body-md) text-ink-black"
+                >
                   <CheckIcon /> <span>{labelsT.versionDetail.restored}</span>
                 </span>
               ) : null}
               {note ? (
-                <span role="alert" className="form-error">
+                <span role="alert" className={inlineAlert}>
                   {note}
                 </span>
               ) : null}
-              <div className="cv-version-row">
+              <div className="flex flex-wrap gap-8">
                 <button
                   type="button"
-                  className="button button-primary"
+                  className={primaryButton}
                   disabled={saving || restoredSaved}
                   onClick={() => detail.status === 'ready' && void restore(detail.detail)}
                 >
@@ -238,11 +241,16 @@ export function CvVersionDetail({
   );
 }
 
+// .cv-version-content: the archived text on the canvas, scrolling inside
+// the dialog.
+const versionContent =
+  'min-h-0 flex-1 overflow-y-auto rounded-lg border border-stone-border bg-stone-canvas p-16 text-(length:--text-body-md) leading-[1.7] [overflow-wrap:anywhere] whitespace-pre-wrap text-ink-black';
+
 // The close affordance stays a plain ghost button labeled for screen
 // readers; it rides the actions row together with the restore action.
 function CloseButton({ onClose, label }: { onClose: () => void; label: string }) {
   return (
-    <button type="button" className="button button-ghost" onClick={onClose}>
+    <button type="button" className={ghostButton} onClick={onClose}>
       {label}
     </button>
   );

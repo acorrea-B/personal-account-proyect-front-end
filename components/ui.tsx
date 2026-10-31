@@ -199,12 +199,11 @@ export const primaryButton = cx(
 // .button.button-ghost: the quiet hairline action.
 export const ghostButton = cx(buttonBase, 'border-stone-border bg-transparent text-ink-black');
 
-// .workspace-page: the signed-in page column. The workspace-page class stays
-// as a hook for the descendant rules of views that have not moved yet.
+// .workspace-page: the signed-in page column.
 export function WorkspacePage({ busy, children }: { busy?: boolean; children: ReactNode }) {
   return (
     <main
-      className="workspace-page mx-auto grid min-h-screen w-full max-w-page content-start gap-32 p-24"
+      className="mx-auto grid min-h-screen w-full max-w-page content-start gap-32 p-24"
       aria-busy={busy ? 'true' : undefined}
     >
       {children}
@@ -326,3 +325,38 @@ export function StatusChip({ children }: { children: ReactNode }) {
     </span>
   );
 }
+
+// .save-toast: the confirmation that rises in the bottom-right corner.
+export function SaveToast({
+  icon: ToastIcon,
+  dismissLabel,
+  onDismiss,
+  children,
+}: {
+  icon: Icon;
+  dismissLabel: string;
+  onDismiss: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      role="status"
+      className="fixed right-24 bottom-24 z-30 flex max-w-[min(480px,calc(100%-2*var(--spacing-24)))] animate-[toast-rise_180ms_cubic-bezier(0.16,1,0.3,1)] items-center gap-8 rounded-lg border border-cyan-text bg-pure-white px-16 py-12 font-medium text-ink-black shadow-xl motion-reduce:animate-none"
+    >
+      <ToastIcon className="size-[16px] flex-none text-cyan-text" />
+      <p className="m-0">{children}</p>
+      <button type="button" className={dismissButton} aria-label={dismissLabel} onClick={onDismiss}>
+        ✕
+      </button>
+    </div>
+  );
+}
+
+// .save-toast-dismiss: the quiet ✕.
+export const dismissButton =
+  'cursor-pointer border-none bg-transparent py-0 pr-0 pl-8 [font-family:inherit] [font-size:inherit] [font-weight:inherit] leading-none text-warm-gray hover:text-ink-black';
+
+// .form-error / .form-note on an inline message (a span in an actions row).
+export const inlineAlert =
+  'rounded-lg border border-stone-muted px-12 py-8 text-[12px] leading-[1.6] text-soot';
+export const inlineNote = 'rounded-lg px-12 py-8 text-[12px] leading-[1.6] text-warm-gray';

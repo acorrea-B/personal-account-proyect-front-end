@@ -111,9 +111,7 @@ describe('CvEditorView', () => {
     await render('en');
     const t = labels('en').cvEditor;
     expect(document.querySelector('h1')?.textContent).toBe(t.title);
-    expect(document.querySelector('.workspace-identity .eyebrow')?.textContent).toBe(
-      labels('en').workspace.eyebrow,
-    );
+    expect(document.querySelector('header p')?.textContent).toBe(labels('en').workspace.eyebrow);
     const area = document.querySelector<HTMLTextAreaElement>('textarea');
     expect(area?.value).toBe('# Juan');
     expect(area?.getAttribute('aria-label')).toBe(t.textareaAria);
@@ -150,7 +148,7 @@ describe('CvEditorView', () => {
     await save();
     expect(saveCvMock).toHaveBeenCalledWith('token-1', '# Juan updated', LOADED_CV.updated_at);
     expect(document.body.textContent).toContain(labels('en').cvEditor.savedNote);
-    expect(document.querySelector('.save-toast')?.textContent).toContain(
+    expect(document.querySelector('div[role="status"]')?.textContent).toContain(
       labels('en').versionDetail.restoredNote,
     );
   });
@@ -162,7 +160,7 @@ describe('CvEditorView', () => {
     await save();
     const area = document.querySelector<HTMLTextAreaElement>('textarea');
     expect(area?.value).toBe('# Mi borrador');
-    expect(document.querySelector('.form-error')?.textContent).toContain(
+    expect(document.querySelector('[role="alert"]')?.textContent).toContain(
       labels('es').cvEditor.stale,
     );
     const reload = [...document.querySelectorAll('button')].find((button) =>
