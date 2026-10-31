@@ -159,7 +159,7 @@ export function CvVersionDetail({
             >
               {detail.status === 'ready'
                 ? tr(labelsT.versionDetail.viewHeading, {
-                    date: formatWhen(detail.detail.archived_at),
+                    date: formatWhen(detail.detail.archived_at, locale),
                   })
                 : labelsT.versionDetail.viewFallback}
             </h2>

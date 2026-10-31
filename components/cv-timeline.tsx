@@ -9,11 +9,14 @@ export type CvHistoryState =
   | { kind: 'ready'; versions: VersionSummary[] }
   | { kind: 'error'; message: string; onRetry?: () => void };
 
-// The archived_at rides as a short en-US stamp (locale pinned, minutes
-// visible so two saves on the same day read apart).
-export function formatWhen(archivedAt: string): string {
+// A timestamp as a short stamp in the tree's language (minutes visible so
+// two saves on the same day read apart): "Oct 26, 9:03 AM" on the en tree,
+// "26 oct, 9:03 a. m." on the es tree.
+const dateLocales: Record<Locale, string> = { en: 'en-US', es: 'es' };
+
+export function formatWhen(archivedAt: string, locale: Locale = 'en'): string {
   const date = new Date(archivedAt);
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(dateLocales[locale], {
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
@@ -63,7 +66,7 @@ export function CvHistoryCard({
                   className="text-(length:--text-body-md) text-ink-black tabular-nums"
                   dateTime={version.archived_at}
                 >
-                  {formatWhen(version.archived_at)}
+                  {formatWhen(version.archived_at, locale)}
                 </time>
                 {/* The view action is icon-only (the eye always means view
                       detail), separated from the timeline text row so the
@@ -72,7 +75,7 @@ export function CvHistoryCard({
                   type="button"
                   className="ml-auto inline-flex size-[28px] shrink-0 cursor-pointer items-center justify-center self-center rounded-full border-none bg-teal-text text-pure-white transition-all duration-160 ease-[ease] hover:bg-teal-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-strong disabled:cursor-default disabled:opacity-40 max-sm:size-[44px] [&_svg]:mt-0 [&_svg]:size-[15px] [&_svg]:text-pure-white max-sm:[&_svg]:size-[17px]"
                   aria-label={tr(labelsT.history.viewLabel, {
-                    date: formatWhen(version.archived_at),
+                    date: formatWhen(version.archived_at, locale),
                   })}
                   disabled={!onSelect}
                   onClick={() => onSelect?.(version.id)}

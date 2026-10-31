@@ -41,6 +41,16 @@ vi.mock('@/lib/api/suggestions', () => ({
   }),
   fetchSkillSuggestions: vi.fn().mockResolvedValue({ revision_id: null, suggestions: [] }),
   decideSkillSuggestion: vi.fn(),
+  fetchProfileSkills: vi.fn().mockResolvedValue([
+    {
+      id: '33333333-3333-4333-8333-333333333333',
+      skill_key: 'next.js',
+      display_name: 'Next.js',
+      category: 'framework',
+      claim_status: 'unverified',
+      origin: 'accepted',
+    },
+  ]),
 }));
 
 vi.mock('@/lib/auth/session', async () => ({
@@ -144,6 +154,10 @@ describe('DashboardView', () => {
     expect(document.body.textContent).toContain(t.panel.fullName);
     expect(document.body.textContent).toContain(t.panel.headline);
     expect(document.body.textContent).toContain(t.suggestions.title);
+    // Next.js came from an accepted suggestion: its chip says so to
+    // assistive tech and the legend explains the check.
+    expect(document.body.textContent).toContain(`Next.js (${t.panel.acceptedSkill})`);
+    expect(document.body.textContent).toContain(t.panel.acceptedLegend);
     const panel = document.querySelector<HTMLAnchorElement>(
       'section[aria-label] a[href*="/app/profile"]',
     );

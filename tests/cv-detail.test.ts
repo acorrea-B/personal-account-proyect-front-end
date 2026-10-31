@@ -148,7 +148,7 @@ describe('CvVersionDetail', () => {
     await render('es');
     const t = labels('es').versionDetail;
     expect(document.querySelector('#cv-version-title')?.textContent).toBe(
-      t.viewHeading.replace('{date}', formatWhen(DETAIL.archived_at)),
+      t.viewHeading.replace('{date}', formatWhen(DETAIL.archived_at, 'es')),
     );
     expect(document.body.textContent).toContain(t.restore);
     expect(document.body.textContent).toContain(t.origin.replace('{origin}', 'user'));

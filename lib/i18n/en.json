@@ -46,7 +46,9 @@
     "updatedNote": "Updated {date}",
     "updateLink": "Update profile",
     "comingUp": "Coming up",
-    "liveCard": "Profile"
+    "liveCard": "Profile",
+    "acceptedSkill": "Added from a suggestion of your CV",
+    "acceptedLegend": "✓ added from a suggestion of your CV"
   },
   "clampedText": {
     "showMore": "Show more",
