@@ -21,7 +21,7 @@ export function AuthPage({ busy, children }: { busy?: boolean; children: ReactNo
   return (
     <main
       aria-busy={busy ? 'true' : undefined}
-      className="grid min-h-screen place-items-center bg-[radial-gradient(1200px_620px_at_72%_-8%,var(--color-sky-wash-soft),rgba(227,241,251,0)_68%),var(--color-stone-canvas)] p-24"
+      className="grid min-h-screen place-items-center [background:radial-gradient(1200px_620px_at_72%_-8%,var(--color-sky-wash-soft),rgba(227,241,251,0)_68%),var(--color-stone-canvas)] p-24"
     >
       {children}
     </main>
