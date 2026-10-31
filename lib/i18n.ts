@@ -104,6 +104,8 @@ export const labelsSchema = z.object({
     conflictNote: z.string(),
   }),
   panel: z.object({
+    acceptedSkill: z.string(),
+    acceptedLegend: z.string(),
     eyebrow: z.string(),
     fullName: z.string(),
     headline: z.string(),
