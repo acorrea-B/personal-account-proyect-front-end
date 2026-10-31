@@ -143,9 +143,18 @@ export function FormMessage({ tone, children }: { tone: 'alert' | 'status'; chil
   );
 }
 
-// .button + .button-primary
-export const primaryButton =
-  'inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-4 rounded-full border border-transparent bg-cyan-signal px-[18px] py-[11px] [font-family:inherit] text-[15px] leading-none font-medium text-ink-black transition-all duration-160 ease-[ease] enabled:hover:bg-cyan-edge disabled:cursor-not-allowed disabled:opacity-50 max-sm:px-16 max-sm:text-[16px]';
+// .button: the pill every action shares (44px touch target).
+const buttonBase =
+  'inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-4 rounded-full border px-[18px] py-[11px] [font-family:inherit] text-[15px] leading-none font-medium transition-all duration-160 ease-[ease] disabled:cursor-not-allowed disabled:opacity-50 max-sm:px-16 max-sm:text-[16px]';
+
+// .button.button-primary: the cyan signal action, one per view.
+export const primaryButton = cx(
+  buttonBase,
+  'border-transparent bg-cyan-signal text-ink-black enabled:hover:bg-cyan-edge',
+);
+
+// .button.button-ghost: the quiet hairline action.
+export const ghostButton = cx(buttonBase, 'border-stone-border bg-transparent text-ink-black');
 
 // .eyebrow: the small uppercase label above a heading.
 export function Eyebrow({ children }: { children: ReactNode }) {

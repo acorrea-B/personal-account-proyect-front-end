@@ -4,8 +4,14 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-import { swapLocalePath } from '@/components/language-select';
+import { menuLanguageSelectClass, swapLocalePath } from '@/components/language-select';
+import { cx, ghostButton } from '@/components/ui';
 import { labels, type Locale } from '@/lib/i18n';
+
+// A menu row (the old .account-menu-item): a link or a button with the
+// same 44px face.
+const menuItem =
+  'flex min-h-[44px] w-full cursor-pointer items-center rounded-md border-none bg-transparent px-[14px] py-12 text-left [font-family:inherit] text-[15px] [line-height:inherit] text-ink-black no-underline hover:bg-sky-wash-soft max-sm:text-[16px]';
 
 // The Account menu: the dashboard actions (Update profile, Sign out) in
 // one dropdown, closed by an outside click or Escape. Shared by the
@@ -54,10 +60,10 @@ export function AccountMenu({ locale = 'en' }: { locale?: Locale }) {
   };
 
   return (
-    <div className="account-menu" ref={menuRef}>
+    <div className="relative max-sm:w-full" ref={menuRef}>
       <button
         type="button"
-        className="button button-ghost"
+        className={cx(ghostButton, 'max-sm:w-full')}
         aria-haspopup="menu"
         aria-expanded={menuOpen}
         onClick={() => setMenuOpen((open) => !open)}
@@ -65,11 +71,15 @@ export function AccountMenu({ locale = 'en' }: { locale?: Locale }) {
         {labelsT.account}
       </button>
       {menuOpen ? (
-        <ul className="account-menu-list" role="menu" aria-label={labelsT.account}>
+        <ul
+          className="absolute top-[calc(100%+var(--spacing-8))] right-0 z-20 m-0 min-w-[200px] list-none rounded-lg border border-stone-border bg-pure-white p-4 shadow-sm max-sm:static max-sm:mt-8 max-sm:w-full max-sm:min-w-0 max-sm:shadow-none"
+          role="menu"
+          aria-label={labelsT.account}
+        >
           <li role="none">
             <Link
               role="menuitem"
-              className="account-menu-item"
+              className={menuItem}
               href={locale === 'es' ? '/es/app/profile/' : '/app/profile/'}
             >
               {labelsT.updateProfile}
@@ -79,7 +89,7 @@ export function AccountMenu({ locale = 'en' }: { locale?: Locale }) {
             <button
               role="menuitem"
               type="button"
-              className="account-menu-item"
+              className={menuItem}
               onClick={() => {
                 setMenuOpen(false);
                 // Navigate, do NOT mutate the session in place: the mounted
@@ -93,10 +103,10 @@ export function AccountMenu({ locale = 'en' }: { locale?: Locale }) {
             </button>
           </li>
           <li role="none">
-            <label className="account-menu-language">
-              <span>{labelsT.language}</span>
+            <label className="flex min-h-[44px] w-full items-center gap-8 px-[14px] py-12 text-[15px] text-ink-black hover:bg-sky-wash-soft max-sm:text-[16px]">
+              <span className="shrink-0">{labelsT.language}</span>
               <select
-                className="language-select language-select--menu"
+                className={menuLanguageSelectClass}
                 aria-label={labelsT.language}
                 value={locale}
                 onChange={swap}
