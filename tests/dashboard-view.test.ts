@@ -34,6 +34,15 @@ vi.mock('@/lib/api/cv', async () => ({
   getVersions: (...args: unknown[]) => getVersionsMock(...args),
 }));
 
+vi.mock('@/lib/api/suggestions', () => ({
+  fetchSuggestionsSummary: vi.fn().mockResolvedValue({
+    skills: { pending: 0, revision_id: null, created_at: null },
+    cv: { pending: 0, revision_id: null, created_at: null },
+  }),
+  fetchSkillSuggestions: vi.fn().mockResolvedValue({ revision_id: null, suggestions: [] }),
+  decideSkillSuggestion: vi.fn(),
+}));
+
 vi.mock('@/lib/auth/session', async () => ({
   ...(await vi.importActual<typeof import('@/lib/auth/session')>('@/lib/auth/session')),
   loadSession: vi.fn(),
@@ -134,7 +143,7 @@ describe('DashboardView', () => {
     );
     expect(document.body.textContent).toContain(t.panel.fullName);
     expect(document.body.textContent).toContain(t.panel.headline);
-    expect(document.body.textContent).toContain(t.workspace.skillSuggestions);
+    expect(document.body.textContent).toContain(t.suggestions.title);
     const panel = document.querySelector<HTMLAnchorElement>(
       'section[aria-label] a[href*="/app/profile"]',
     );
@@ -160,7 +169,7 @@ describe('DashboardView', () => {
       'section[aria-label] a[href*="/app/profile"]',
     );
     expect(hrefOf(panel)).toBe('/es/app/profile');
-    expect(document.body.textContent).toContain(t.workspace.skillSuggestionsCopy);
+    expect(document.body.textContent).toContain(t.suggestions.none);
   });
 
   it("routes the incomplete profile to the tree's setup page", async () => {
