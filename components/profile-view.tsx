@@ -21,6 +21,8 @@ import { updateProfileRequestSchema, type Profile } from '@/lib/schemas/profile'
 import { type Locale, labels, tr } from '@/lib/i18n';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
+import { CatalogConsent } from '@/components/catalog-consent';
+import { SkillCatalogInput } from '@/components/skill-catalog-input';
 import {
   AuthCard,
   AuthForm,
@@ -626,21 +628,28 @@ export function ProfileView({ locale }: { locale: Locale }) {
                 <FieldError id="setup-location-error">{fieldErrors.location}</FieldError>
               ) : null}
 
-              <Field
-                label={t.panel.skills}
-                id="setup-skills"
-                name="skills"
-                placeholder="rust, typescript, sql"
-                value={skillsText}
-                onChange={(event) => setSkillsText(event.target.value)}
-                aria-invalid={Boolean(fieldErrors.skills)}
-                aria-describedby={fieldErrors.skills ? 'setup-skills-error' : undefined}
-              />
+              <label className="grid gap-4" htmlFor="setup-skills">
+                {t.panel.skills}
+                {accessToken ? (
+                  <SkillCatalogInput
+                    id="setup-skills"
+                    name="skills"
+                    placeholder="rust, typescript, sql"
+                    value={skillsText}
+                    onValueChange={setSkillsText}
+                    accessToken={accessToken}
+                    locale={locale}
+                    aria-invalid={Boolean(fieldErrors.skills)}
+                    aria-describedby={fieldErrors.skills ? 'setup-skills-error' : undefined}
+                  />
+                ) : null}
+              </label>
               <AuthFormNote hidden>{t.profile.skillsNote}</AuthFormNote>
               {skillsDraft.length ? <SkillChips skills={skillsDraft} /> : null}
               {fieldErrors.skills ? (
                 <FieldError id="setup-skills-error">{fieldErrors.skills}</FieldError>
               ) : null}
+              {accessToken ? <CatalogConsent accessToken={accessToken} locale={locale} /> : null}
 
               <div className="grid gap-8">
                 <AuthKicker>{t.profile.linksKicker}</AuthKicker>
