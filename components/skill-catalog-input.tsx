@@ -104,7 +104,16 @@ export function SkillCatalogInput({
   const expanded = open && options.length > 0;
 
   return (
-    <div className="relative grid">
+    <div
+      className="relative grid"
+      // The list closes only when focus leaves the whole field (input and
+      // options), never under an option the user is on.
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setOpen(false);
+        }
+      }}
+    >
       <input
         {...input}
         className={cx(inputClass, 'pr-[34px]')}
@@ -137,9 +146,6 @@ export function SkillCatalogInput({
             setOpen(false);
           }
         }}
-        onBlur={() => {
-          window.setTimeout(() => setOpen(false), 150);
-        }}
       />
       {searching ? <Spinner className="absolute top-1/2 right-[10px] -mt-[7px]" /> : null}
       {searching ? <span className="sr-only">{t.searching}</span> : null}
@@ -159,6 +165,9 @@ export function SkillCatalogInput({
             >
               <button
                 type="button"
+                // The combobox keeps the navigation (arrows, Enter): options
+                // stay out of the tab order.
+                tabIndex={-1}
                 className={cx(
                   'flex min-h-[44px] w-full cursor-pointer items-center rounded-md border-none px-[14px] py-12 text-left [font-family:inherit] text-[15px] [font-weight:inherit] [line-height:inherit] text-ink-black hover:bg-sky-wash',
                   index === highlight ? 'bg-sky-wash' : 'bg-transparent',
