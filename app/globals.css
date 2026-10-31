@@ -573,8 +573,6 @@ textarea[aria-invalid='true'] {
   border-color: var(--color-cyan-text);
 }
 
-.suggestions button.is-highlight,
-
 /* The workspace dashboard: one identity bar with the account menu, the
    profile panel and the coming-up rail. */
 .workspace-page {
