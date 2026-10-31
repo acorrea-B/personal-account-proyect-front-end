@@ -217,104 +217,11 @@ body {
   padding: var(--spacing-24);
 }
 
-.auth-card {
-  background: var(--color-pure-white);
-  border: 1px solid var(--color-stone-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-subtle);
-  padding: var(--spacing-32);
-  display: grid;
-  gap: var(--spacing-16);
-}
-
-.auth-card form {
-  display: grid;
-  gap: var(--spacing-16);
-  margin: 0;
-}
-
-/* Textareas resize by height only: the default both-directions resize
-   widens the single grid track and stretches every input of the card
-   with it - the visual break reported with the bio field. The 100% cap
-   is the belt over the dragged inline width. */
-.auth-card textarea {
-  resize: vertical;
-  max-width: 100%;
-  min-height: 96px;
-}
-
-.auth-card textarea:focus-visible {
-  outline: none;
-  border-color: var(--color-cyan-text);
-  box-shadow: 0 0 0 3px var(--color-sky-wash);
-}
-
-.auth-card textarea[aria-invalid='true'] {
-  border-color: var(--color-alert);
-}
-
 /* Any input carrying a validation problem marks red - the email field and
    every link row included, evaluated in real time while it is typed. */
 input[aria-invalid='true'],
 textarea[aria-invalid='true'] {
   border-color: var(--color-alert);
-}
-
-.form-error,
-.form-note {
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-8) var(--spacing-12);
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.form-error {
-  color: var(--color-soot);
-  border: 1px solid var(--color-stone-muted);
-}
-
-.form-note {
-  color: var(--color-warm-gray);
-}
-
-.button {
-  border-radius: var(--radius-full);
-  padding: 11px 18px;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font: inherit;
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 1;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: 160ms ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-4);
-}
-
-.button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.button-primary {
-  background: var(--color-cyan-signal);
-  color: var(--color-ink-black);
-}
-
-.button-primary:hover:not(:disabled) {
-  background: var(--color-cyan-edge);
-}
-
-.button-ghost {
-  background: transparent;
-  color: var(--color-ink-black);
-  border-color: var(--color-stone-border);
 }
 
 .link {
@@ -325,18 +232,6 @@ textarea[aria-invalid='true'] {
 .link:hover {
   color: var(--color-cyan-text-strong);
   text-decoration: underline;
-}
-
-@media (max-width: 640px) {
-  .auth-card {
-    padding: var(--spacing-16);
-  }
-}
-
-.landing-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-8);
 }
 
 .page-transition {
@@ -455,11 +350,6 @@ textarea[aria-invalid='true'] {
   }
 }
 
-.skeleton-screen {
-  display: grid;
-  gap: var(--spacing-12);
-}
-
 /* Scroll reveal. Sections stay visible by default; the hidden state applies
    only once `js` is set on <html> (app/template.tsx), so content never
    depends on JavaScript to be readable. */
@@ -476,76 +366,10 @@ textarea[aria-invalid='true'] {
   transform: none;
 }
 
-.eyebrow {
-  margin: 0;
-  font-size: var(--text-label);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-warm-gray);
-}
-
-.workspace-profile {
-  display: grid;
-  gap: var(--spacing-16);
-}
-
-.workspace-profile .form-error {
-  display: grid;
-  justify-items: start;
-  gap: var(--spacing-8);
-}
-
 @keyframes spinner-turn {
   to {
     transform: rotate(1turn);
   }
-}
-
-/* The save confirmation: a floating toast pinned to the bottom-right
-   corner, so it never rides over the centered actions row. The page
-   timer auto-dismisses it after 5 seconds; the ✕ dismisses it by hand. */
-.save-toast {
-  position: fixed;
-  right: var(--spacing-24);
-  bottom: var(--spacing-24);
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-8);
-  max-width: min(480px, calc(100% - 2 * var(--spacing-24)));
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-12) var(--spacing-16);
-  background: var(--color-pure-white);
-  border: 1px solid var(--color-cyan-text);
-  color: var(--color-ink-black);
-  font-weight: 500;
-  box-shadow: var(--shadow-xl);
-  animation: toast-rise 180ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.save-toast svg {
-  width: 16px;
-  height: 16px;
-  flex: none;
-  color: var(--color-cyan-text);
-}
-
-.save-toast p {
-  margin: 0;
-}
-
-.save-toast-dismiss {
-  background: none;
-  border: none;
-  color: var(--color-warm-gray);
-  font: inherit;
-  cursor: pointer;
-  padding: 0 0 0 var(--spacing-8);
-  line-height: 1;
-}
-
-.save-toast-dismiss:hover {
-  color: var(--color-ink-black);
 }
 
 @keyframes toast-rise {
@@ -561,176 +385,11 @@ textarea[aria-invalid='true'] {
 
 /* The reduced-motion voice keeps the toast static: only the entrance
    animation is dropped. */
-@media (prefers-reduced-motion: reduce) {
-  .save-toast {
-    animation: none;
-  }
-}
-
-/* The info notes (role=status): sky-wash tinted, distinct from alerts. */
-.form-error[role='status'] {
-  background: var(--color-sky-wash-soft);
-  border-color: var(--color-cyan-text);
-}
-
-/* The workspace dashboard: one identity bar with the account menu, the
-   profile panel and the coming-up rail. */
-.workspace-page {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  min-height: 100vh;
-  display: grid;
-  gap: var(--spacing-32);
-  align-content: start;
-  padding: var(--spacing-24);
-}
-
-.workspace-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--spacing-16);
-  padding-bottom: var(--spacing-24);
-  border-bottom: 1px solid var(--color-stone-border);
-}
-
-.workspace-title {
-  margin: var(--spacing-4) 0 var(--spacing-8);
-  font-family: var(--font-roobert);
-  font-size: var(--text-heading-sm);
-  font-weight: 400;
-  line-height: 1.25;
-  letter-spacing: -0.8px;
-  color: var(--color-ink-black);
-}
-
-/* CV editor: the text block mirrors the auth-card input rules but stands
-   tall (a cv is a document), with a tabular byte counter riding it. The
-   counter turns alert when the draft crosses the contract limit. */
-.cv-editor-card {
-  max-width: 880px;
-  margin: 0 auto;
-}
-
-.cv-editor-card textarea {
-  /* Fill the card: a textarea defaults to its intrinsic cols width (~20
-     characters) and looks tiny against an 880px card — and with the
-     vertical-only resize (the bio lesson: horizontal resize breaks the
-     card track) the user could never widen it by hand. */
-  display: block;
-  width: 100%;
-  resize: vertical;
-  max-width: 100%;
-  min-height: 340px;
-  font-size: var(--text-body-md);
-  line-height: 1.6;
-  white-space: pre-wrap;
-}
-
 .cv-editor-count {
   display: flex;
   flex-direction: column;
   gap: 2px;
   margin-top: 2px;
-}
-
-.cv-editor-counter {
-  font-variant-numeric: tabular-nums;
-  color: var(--color-ink-black);
-  font-size: var(--text-body-md);
-}
-
-.cv-editor-counter-over {
-  color: var(--color-alert);
-  font-weight: 500;
-}
-
-@media (max-width: 860px) {
-  .cv-editor-card textarea {
-    min-height: 260px;
-  }
-}
-
-/* The version detail panel (window 6): a reading surface over the
-   dashboard. The content area reads like the document the cv is —
-   pre-wrap, generous rhythm, its own scroll — and the actions row keeps
-   the restore contract answer with the user. */
-.cv-version-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  display: grid;
-  place-items: center;
-  padding: var(--spacing-16);
-  background: rgb(15 23 42 / 0.45);
-  backdrop-filter: blur(2px);
-}
-
-.cv-version-panel {
-  width: min(720px, 100%);
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-16);
-  background: var(--color-pure-white);
-  border: 1px solid var(--color-stone-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xl);
-  padding: var(--spacing-24);
-}
-
-.cv-version-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--spacing-8);
-}
-
-.cv-version-heading {
-  margin: 0;
-  color: var(--color-ink-black);
-  font-family: var(--font-roobert);
-  font-size: var(--text-heading-sm);
-  font-weight: 400;
-  line-height: 1.25;
-  letter-spacing: -0.8px;
-}
-
-.cv-version-content {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  padding: var(--spacing-16);
-  border: 1px solid var(--color-stone-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-stone-canvas);
-  font-size: var(--text-body-md);
-  line-height: 1.7;
-  color: var(--color-ink-black);
-}
-
-.cv-version-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8);
-}
-
-.cv-version-row {
-  display: flex;
-  gap: var(--spacing-8);
-  flex-wrap: wrap;
-}
-
-.cv-restored-note {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-  color: var(--color-ink-black);
-  font-size: var(--text-body-md);
 }
 
 /* The mobile token scale: on a phone the whole ladder steps down in one
@@ -745,32 +404,5 @@ textarea[aria-invalid='true'] {
     --text-body-lg: 17px;
     --text-body-md: 16px;
     --text-label: 13px;
-  }
-
-  .button {
-    width: auto;
-    padding: 11px 16px;
-    font-size: 16px;
-  }
-
-  .landing-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .landing-actions .button {
-    width: 100%;
-  }
-
-  /* The dashboard bar on a phone: the identity takes the row and the
-     account menu drops under it full-width (its absolute panel used to
-     spill off the right edge on a 402px screen). */
-  .workspace-bar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .workspace-bar .workspace-identity {
-    width: 100%;
   }
 }

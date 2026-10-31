@@ -137,7 +137,7 @@ describe('CvVersionDetail', () => {
   it('speaks the english dictionary over the detail', async () => {
     await render('en');
     const t = labels('en').versionDetail;
-    expect(document.querySelector('.cv-version-heading')?.textContent).toBe(
+    expect(document.querySelector('#cv-version-title')?.textContent).toBe(
       `Version from ${formatWhen(DETAIL.archived_at)}`,
     );
     expect(document.body.textContent).toContain(t.restore);
@@ -147,7 +147,7 @@ describe('CvVersionDetail', () => {
   it('speaks the spanish dictionary over the detail', async () => {
     await render('es');
     const t = labels('es').versionDetail;
-    expect(document.querySelector('.cv-version-heading')?.textContent).toBe(
+    expect(document.querySelector('#cv-version-title')?.textContent).toBe(
       t.viewHeading.replace('{date}', formatWhen(DETAIL.archived_at)),
     );
     expect(document.body.textContent).toContain(t.restore);
