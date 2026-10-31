@@ -110,7 +110,7 @@ describe('SkillCatalogInput', () => {
     await type('Rust, typ');
     const option = document.querySelector('[role="option"] button') as HTMLButtonElement;
     await act(async () => {
-      option.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      option.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
     expect(current).toBe('Rust, TypeScript, ');
     expect(document.querySelector('[role="listbox"]')).toBeNull();
@@ -131,6 +131,24 @@ describe('SkillCatalogInput', () => {
       await Promise.resolve();
     });
     expect(document.querySelector('[role="listbox"]')).toBeNull();
+  });
+
+  it('clears the old matches and highlight as soon as the token changes', async () => {
+    vi.mocked(searchSkillCatalog).mockResolvedValue([{ skill_key: 'go', display_name: 'Go' }]);
+    await render('');
+    await type('go');
+    await act(async () => {
+      input().dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    });
+    // A new token: before its debounced search answers, nothing stale is
+    // listed or selectable.
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+      setter?.call(input(), 'gra');
+      input().dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    expect(document.querySelector('[role="listbox"]')).toBeNull();
+    expect(input().getAttribute('aria-activedescendant')).toBeNull();
   });
 
   it('exposes the highlighted option as the active descendant', async () => {

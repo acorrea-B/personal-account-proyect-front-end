@@ -46,8 +46,12 @@ export function SkillCatalogInput({
     // Every run invalidates the search in flight, the short-token path
     // included: a late answer for an older token never repopulates the list.
     const id = ++request.current;
+    // The list always belongs to the token on screen: the old matches and
+    // their highlight leave as soon as the token changes, so Enter during
+    // the debounce never inserts a match for a name no longer typed.
+    setOptions([]);
+    setHighlight(-1);
     if (token.length < minPrefix) {
-      setOptions([]);
       setSearching(false);
       return;
     }
@@ -159,7 +163,11 @@ export function SkillCatalogInput({
                   'flex min-h-[44px] w-full cursor-pointer items-center rounded-md border-none px-[14px] py-12 text-left [font-family:inherit] text-[15px] [font-weight:inherit] [line-height:inherit] text-ink-black hover:bg-sky-wash',
                   index === highlight ? 'bg-sky-wash' : 'bg-transparent',
                 )}
-                onMouseDown={() => pick(index)}
+                // mousedown only keeps the focus in the field (the list stays
+                // open); the pick runs on click, so keyboard and assistive
+                // activation work too.
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => pick(index)}
                 onMouseEnter={() => setHighlight(index)}
               >
                 {entry.display_name}
