@@ -19,14 +19,12 @@ const mode = {
 };
 
 function respond(body: unknown, status = 200) {
-  const fetchMock = vi
-    .fn()
-    .mockResolvedValue(
-      new Response(JSON.stringify(body), {
-        status,
-        headers: { 'Content-Type': 'application/json' },
-      }),
-    );
+  const fetchMock = vi.fn().mockResolvedValue(
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { 'Content-Type': 'application/json' },
+    }),
+  );
   vi.stubGlobal('fetch', fetchMock);
   return fetchMock;
 }
