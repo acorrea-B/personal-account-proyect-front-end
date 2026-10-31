@@ -3,6 +3,7 @@
 import { type TransitionEvent, useEffect, useRef, useState } from 'react';
 
 import { labels, type Locale } from '@/lib/i18n';
+import { cx, linkClass } from '@/components/ui';
 
 // Long text renders clamped (a few lines) with a Show more / Show less
 // toggle that only appears when the text truly overflows its clamped box.
@@ -101,7 +102,10 @@ export function ClampedText({
     <div>
       <p
         ref={ref}
-        className={className ? `clamped-fold ${className}` : 'clamped-fold'}
+        className={cx(
+          'transition-[max-height] duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none',
+          className,
+        )}
         onTransitionEnd={settleFold}
         style={
           expanded
@@ -122,7 +126,7 @@ export function ClampedText({
         {text}
       </p>
       {overflows ? (
-        <button type="button" className="link" onClick={toggleFold} aria-expanded={expanded}>
+        <button type="button" className={linkClass} onClick={toggleFold} aria-expanded={expanded}>
           {expanded ? labelsT.clampedText.showLess : labelsT.clampedText.showMore}
         </button>
       ) : null}
