@@ -68,3 +68,34 @@ generated from source words match no `className` in `app/`, `components/` or
 
 Then the BC-012 flows start (skill suggestions + summary, decisions, catalog with
 consent, `PUT /v1/profile` syncing skill rows).
+
+## Outcome (2026-10-31)
+
+The migration landed in windows 2a–8b (#65–#74). `app/globals.css` went from
+1813 to about 300 lines: imports, the theme (Refero export, extended tokens,
+the documented extensions and the motion tokens with their keyframes) and a
+base layer (box sizing, html/body, scroll reveal, the mobile token scale).
+Every view renders with utilities and the shared primitives in
+`components/ui.tsx` (auth page and card, form field and messages, buttons,
+workspace page and bar, rail items, skill chips, spinner, toast, ...).
+
+How it was done, for the next migration:
+
+- **Primitives over per-view classes.** Rules shared by several views became
+  React primitives; a hand-written rule was deleted when its last consumer
+  moved, not per window.
+- **Parity includes the old cascade.** Where a more specific rule used to win
+  (the hero eyebrow under `.landing-copy p`, the status chip under the rail
+  span rule) the utilities reproduce what was rendered, not what the
+  outranked rule said. Dead selectors (`.workspace-profile`) were dropped,
+  not ported.
+- **Strict pixel diff.** Playwright captures of main and the branch at 375 /
+  768 / 1280 px, en and es, signed-in pages with a mocked session and API,
+  loading skeletons (API held), the open menu and dialog, invalid fields —
+  compared with pixelmatch at threshold 0. A 0.1 threshold hid a missing
+  gradient (Codex caught it); 0 does not.
+- **Tailwind traps met:** `bg-[...]` compiles to `background-image` (use
+  `[background:...]` for a shorthand with a color layer); two utilities on
+  the same property resolve by Tailwind's order, not class order (make them
+  mutually exclusive); the export has no zero spacing step (`--spacing-0`
+  added); `font: inherit` also inherits line height (inherit each part).

@@ -34,12 +34,14 @@ import {
   Field,
   FieldError,
   FormMessage,
+  SaveToast,
   SkillChips,
   Spinner,
   WorkspaceBar,
   WorkspacePage,
   WorkspaceTitle,
   cx,
+  contentResolve,
   ghostButton,
   inputClass,
   primaryButton,
@@ -53,7 +55,7 @@ type LinkDraft = { type: string; url: string };
 
 // A link-row input (the old .link-row input rule): the compact 14px field.
 const linkInput =
-  'rounded-inputs border border-stone-border bg-pure-white px-12 py-[10px] [font-family:inherit] text-[14px] [font-weight:inherit] [line-height:inherit] text-ink-black focus-visible:border-cyan-text! focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none';
+  'rounded-inputs border border-stone-border bg-pure-white px-12 py-[10px] [font-family:inherit] text-[14px] [font-weight:inherit] [line-height:inherit] text-ink-black aria-invalid:border-alert focus-visible:border-cyan-text! focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none';
 
 // The shared profile editor: one implementation serves both locale trees
 // with every string from the json dictionaries and the routes hanging from
@@ -356,7 +358,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
   return (
     <Page>
       {load.status === 'ready' && profile && isUpdateFlow ? (
-        <div className="content-resolve">
+        <div className={contentResolve}>
           <WorkspaceBar
             identity={
               <>
@@ -395,7 +397,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
       >
         {load.status === 'loading' ? <ProfileCardSkeleton /> : null}
         {load.status === 'ready' && profile ? (
-          <div className="content-resolve">
+          <div className={contentResolve}>
             {isUpdateFlow ? null : (
               <header className="flex items-start justify-between gap-16">
                 <div>
@@ -427,23 +429,13 @@ export function ProfileView({ locale }: { locale: Locale }) {
             )}
 
             {showToast ? (
-              <div
-                role="status"
-                className="fixed right-24 bottom-24 z-30 flex max-w-[min(480px,calc(100%-2*var(--spacing-24)))] animate-[toast-rise_180ms_cubic-bezier(0.16,1,0.3,1)] items-center gap-8 rounded-lg border border-cyan-text bg-pure-white px-16 py-12 font-medium text-ink-black shadow-xl motion-reduce:animate-none [&_svg]:size-[16px] [&_svg]:flex-none [&_svg]:text-cyan-text"
+              <SaveToast
+                icon={CheckIcon}
+                dismissLabel={t.versionDetail.dismiss}
+                onDismiss={() => setShowToast(false)}
               >
-                <CheckIcon />
-                <p className="m-0">
-                  {isUpdateFlow ? t.profile.toastUpdate : t.profile.toastOnboarding}
-                </p>
-                <button
-                  type="button"
-                  className="cursor-pointer border-none bg-transparent py-0 pr-0 pl-8 [font-family:inherit] [font-size:inherit] [font-weight:inherit] leading-none text-warm-gray hover:text-ink-black"
-                  aria-label={t.versionDetail.dismiss}
-                  onClick={() => setShowToast(false)}
-                >
-                  ✕
-                </button>
-              </div>
+                {isUpdateFlow ? t.profile.toastUpdate : t.profile.toastOnboarding}
+              </SaveToast>
             ) : null}
 
             {isUpdateFlow ? null : <AuthKicker>{t.profile.onboardingKicker}</AuthKicker>}
@@ -467,7 +459,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
         ) : null}
 
         {load.status === 'ready' && profile ? (
-          <div className="content-resolve">
+          <div className={contentResolve}>
             <AuthForm
               method="post"
               onSubmit={handleSubmit}
@@ -511,7 +503,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
               <label className="grid gap-4" htmlFor="setup-bio">
                 {t.panel.bio}
                 <textarea
-                  className="min-h-[96px] max-w-full resize-y focus-visible:border-cyan-text! focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none"
+                  className="min-h-[96px] max-w-full resize-y aria-invalid:border-alert focus-visible:border-cyan-text! focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none"
                   id="setup-bio"
                   name="bio"
                   rows={4}
