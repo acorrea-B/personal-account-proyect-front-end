@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { type SyntheticEvent, useCallback, useEffect, useState } from 'react';
+import { type SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 import { AccountMenu } from '@/components/account-menu';
 import { HomeIcon } from '@/components/icons';
@@ -109,8 +109,13 @@ export function JournalView({ locale }: { locale: Locale }) {
     [j],
   );
 
+  // The journal loads once per visit. A renewed access token (the session
+  // refreshes it in the background) must not reload it: a reload would
+  // drop the ready list while a save or a delete is completing.
+  const loaded = useRef(false);
   useEffect(() => {
-    if (isHydrated && isAuthorized && accessToken) {
+    if (isHydrated && isAuthorized && accessToken && !loaded.current) {
+      loaded.current = true;
       void loadJournal(accessToken);
     }
   }, [isHydrated, isAuthorized, accessToken, loadJournal]);

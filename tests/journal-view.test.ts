@@ -222,6 +222,26 @@ describe('JournalView', () => {
     expect((document.querySelector('fieldset') as HTMLFieldSetElement).disabled).toBe(true);
   });
 
+  it('does not reload the journal when the session renews its token', async () => {
+    vi.mocked(fetchJournalEntries).mockResolvedValue([entry(E1, 'Shipped payments.')]);
+    await render('en');
+    expect(fetchJournalEntries).toHaveBeenCalledTimes(1);
+    requireAuthMock.mockReturnValue({
+      isHydrated: true,
+      isAuthorized: true,
+      session: {
+        accessToken: 'renewed',
+        refreshToken: 'refresh',
+        user: { email: 'juan@example.com' },
+      },
+    });
+    await act(async () => {
+      root?.render(createElement(JournalView, { locale: 'en' }));
+    });
+    expect(fetchJournalEntries).toHaveBeenCalledTimes(1);
+    expect(document.body.textContent).toContain('Shipped payments.');
+  });
+
   it('deletes an entry only after the confirmation', async () => {
     vi.mocked(fetchJournalEntries).mockResolvedValue([entry(E1, 'Shipped payments.')]);
     vi.mocked(deleteJournalEntry).mockResolvedValue(undefined);
