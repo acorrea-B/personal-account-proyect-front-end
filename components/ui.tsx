@@ -145,7 +145,16 @@ export function FormMessage({ tone, children }: { tone: 'alert' | 'status'; chil
 
 // .button + .button-primary
 export const primaryButton =
-  'inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-4 rounded-full border border-transparent bg-cyan-signal px-[18px] py-[11px] [font-family:inherit] text-[15px] leading-none font-medium text-ink-black transition-all duration-160 ease-[ease] enabled:hover:bg-cyan-edge disabled:cursor-not-allowed disabled:opacity-50 max-sm:w-auto max-sm:px-16 max-sm:text-[16px]';
+  'inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-4 rounded-full border border-transparent bg-cyan-signal px-[18px] py-[11px] [font-family:inherit] text-[15px] leading-none font-medium text-ink-black transition-all duration-160 ease-[ease] enabled:hover:bg-cyan-edge disabled:cursor-not-allowed disabled:opacity-50 max-sm:px-16 max-sm:text-[16px]';
+
+// .eyebrow: the small uppercase label above a heading.
+export function Eyebrow({ children }: { children: ReactNode }) {
+  return (
+    <p className="m-0 text-(length:--text-label) tracking-[0.08em] text-warm-gray uppercase">
+      {children}
+    </p>
+  );
+}
 
 // .link
 export function TextLink(props: ComponentPropsWithoutRef<'a'>) {
