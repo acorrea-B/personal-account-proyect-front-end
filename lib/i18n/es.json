@@ -242,5 +242,21 @@
     "busy": "El servicio está ocupado; inténtalo de nuevo en un momento.",
     "retry": "Reintentar",
     "cvNew": "{count} sugerencias para tu CV de tu última revisión — la revisión llega pronto."
+  },
+  "catalogConsent": {
+    "title": "Catálogo de habilidades",
+    "intro": "Los nombres de habilidades que otras personas confirmaron ayudan a todos a escribir las suyas más rápido. Tú eliges si las tuyas se suman a esa lista anonimizada.",
+    "granted": "Compartes los nombres de tus habilidades, anonimizados.",
+    "withdrawn": "No compartes los nombres de tus habilidades.",
+    "undecided": "Aún no has elegido.",
+    "version": "Versión del consentimiento {version}",
+    "grant": "Compartir mis habilidades",
+    "withdraw": "Dejar de compartir",
+    "saving": "Guardando…",
+    "failed": "Tu elección no se guardó. Inténtalo de nuevo.",
+    "changed": "El texto del consentimiento cambió; lee la nueva versión.",
+    "loadFailed": "No se pudo cargar el consentimiento del catálogo.",
+    "retry": "Reintentar",
+    "loadingAria": "Cargando el consentimiento del catálogo"
   }
 }

@@ -242,5 +242,21 @@
     "busy": "The service is busy; please try again shortly.",
     "retry": "Try again",
     "cvNew": "{count} CV suggestions from your latest revision — review is coming soon."
+  },
+  "catalogConsent": {
+    "title": "Skill catalog",
+    "intro": "Other people's confirmed skill names help everyone type theirs faster. You choose whether yours join that de-identified list.",
+    "granted": "You share your skill names, de-identified.",
+    "withdrawn": "You do not share your skill names.",
+    "undecided": "You have not chosen yet.",
+    "version": "Consent version {version}",
+    "grant": "Share my skill names",
+    "withdraw": "Stop sharing",
+    "saving": "Saving…",
+    "failed": "Your choice was not saved. Please try again.",
+    "changed": "The consent text changed; please read the new version.",
+    "loadFailed": "The catalog consent could not be loaded.",
+    "retry": "Try again",
+    "loadingAria": "Loading the catalog consent"
   }
 }
