@@ -146,7 +146,7 @@ describe('ProfileView', () => {
     expect(document.querySelector('h1')?.textContent).toBe(t.profile.updateHeading);
     const name = document.querySelector<HTMLInputElement>('input[name="full_name"]');
     expect(name?.value).toBe('Juan Pérez');
-    const home = [...document.querySelectorAll('a.workspace-home')].map((element) =>
+    const home = [...document.querySelectorAll('header a[aria-label]')].map((element) =>
       hrefOf(element as HTMLAnchorElement),
     );
     expect(home).toContain('/app');
@@ -161,7 +161,7 @@ describe('ProfileView', () => {
     await render('es');
     const t = labels('es');
     expect(document.querySelector('h1')?.textContent).toBe(t.profile.updateHeading);
-    const home = [...document.querySelectorAll('a.workspace-home')].map((element) =>
+    const home = [...document.querySelectorAll('header a[aria-label]')].map((element) =>
       hrefOf(element as HTMLAnchorElement),
     );
     expect(home).toContain('/es/app');
@@ -189,8 +189,10 @@ describe('ProfileView', () => {
     typeInto('full_name', 'Juan Pérez');
     updateProfileMock.mockResolvedValueOnce(LIVE_PROFILE);
     await save();
-    expect(document.querySelector('.save-toast')?.textContent).toContain(t.profile.toastOnboarding);
-    const openWorkspace = [...document.querySelectorAll('a.button')].map((element) =>
+    expect(document.querySelector('div[role="status"]')?.textContent).toContain(
+      t.profile.toastOnboarding,
+    );
+    const openWorkspace = [...document.querySelectorAll('form a')].map((element) =>
       hrefOf(element as HTMLAnchorElement),
     );
     expect(openWorkspace).toContain('/app');

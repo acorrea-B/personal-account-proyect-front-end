@@ -21,12 +21,39 @@ import { updateProfileRequestSchema, type Profile } from '@/lib/schemas/profile'
 import { type Locale, labels, tr } from '@/lib/i18n';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
+import {
+  AuthCard,
+  AuthForm,
+  AuthFormNote,
+  AuthHeading,
+  AuthKicker,
+  AuthPage,
+  AuthSteps,
+  AuthSubtitle,
+  Eyebrow,
+  Field,
+  FieldError,
+  FormMessage,
+  SkillChips,
+  Spinner,
+  WorkspaceBar,
+  WorkspacePage,
+  WorkspaceTitle,
+  cx,
+  ghostButton,
+  inputClass,
+  primaryButton,
+} from '@/components/ui';
 import { Skeleton } from '@/components/skeleton';
 import { CheckIcon, HomeIcon, MailIcon, ProfileIcon, UserIcon } from '@/components/icons';
 
 type SaveState = { status: 'idle' | 'saving' | 'saved'; note?: string };
 type LoadState = { status: 'loading' | 'ready' | 'error'; profile?: Profile; error?: string };
 type LinkDraft = { type: string; url: string };
+
+// A link-row input (the old .link-row input rule): the compact 14px field.
+const linkInput =
+  'rounded-inputs border border-stone-border bg-pure-white px-12 py-[10px] [font-family:inherit] text-[14px] [font-weight:inherit] [line-height:inherit] text-ink-black focus-visible:border-cyan-text! focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none';
 
 // The shared profile editor: one implementation serves both locale trees
 // with every string from the json dictionaries and the routes hanging from
@@ -314,38 +341,51 @@ export function ProfileView({ locale }: { locale: Locale }) {
 
   if (!isHydrated || !isAuthorized) {
     return (
-      <main className="auth-page" aria-busy="true">
-        <section className="auth-shell auth-card" aria-label={t.profile.loadingAria}>
+      <AuthPage busy>
+        <AuthCard label={t.profile.loadingAria}>
           <ProfileCardSkeleton />
-        </section>
-      </main>
+        </AuthCard>
+      </AuthPage>
     );
   }
 
+  // The update flow opens inside the workspace column, onboarding on the
+  // centered auth page.
+  const Page = isUpdateFlow ? WorkspacePage : AuthPage;
+
   return (
-    <main className={isUpdateFlow ? 'workspace-page' : 'auth-page'}>
+    <Page>
       {load.status === 'ready' && profile && isUpdateFlow ? (
-        <header className="workspace-bar content-resolve">
-          <div className="workspace-identity">
-            <p className="eyebrow">{t.workspace.eyebrow}</p>
-            <p className="workspace-title">
-              {firstName ? tr(t.workspace.greeting, { name: firstName }) : t.workspace.title}
-            </p>
-            <p className="auth-subtitle">
-              {tr(t.workspace.signedInAs, { email: session?.user.email ?? '' })}
-            </p>
-          </div>
-          <div className="workspace-actions">
-            <Link className="workspace-home" href={`${base}/app/`} aria-label={t.profile.homeAria}>
-              <HomeIcon />
-            </Link>
-            <AccountMenu locale={locale} />
-          </div>
-        </header>
+        <div className="content-resolve">
+          <WorkspaceBar
+            identity={
+              <>
+                <Eyebrow>{t.workspace.eyebrow}</Eyebrow>
+                <WorkspaceTitle as="p">
+                  {firstName ? tr(t.workspace.greeting, { name: firstName }) : t.workspace.title}
+                </WorkspaceTitle>
+                <AuthSubtitle>
+                  {tr(t.workspace.signedInAs, { email: session?.user.email ?? '' })}
+                </AuthSubtitle>
+              </>
+            }
+          >
+            <div className="flex items-center gap-12">
+              <Link
+                className="inline-flex size-[40px] items-center justify-center rounded-lg border border-stone-border bg-pure-white text-ink-black hover:bg-sky-wash-soft focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] [&_svg]:size-[18px]"
+                href={`${base}/app/`}
+                aria-label={t.profile.homeAria}
+              >
+                <HomeIcon />
+              </Link>
+              <AccountMenu locale={locale} />
+            </div>
+          </WorkspaceBar>
+        </div>
       ) : null}
-      <section
-        className="auth-shell auth-card"
-        aria-label={
+      <AuthCard
+        wide={isUpdateFlow}
+        label={
           load.status === 'ready' && profile
             ? isUpdateFlow
               ? t.profile.updateAria
@@ -357,46 +397,47 @@ export function ProfileView({ locale }: { locale: Locale }) {
         {load.status === 'ready' && profile ? (
           <div className="content-resolve">
             {isUpdateFlow ? null : (
-              <header className="workspace-header">
+              <header className="flex items-start justify-between gap-16">
                 <div>
-                  <h1 className="auth-heading">{t.profile.onboardingHeading}</h1>
-                  <p className="auth-subtitle">
+                  <AuthHeading>{t.profile.onboardingHeading}</AuthHeading>
+                  <AuthSubtitle>
                     {tr(t.profile.onboardingSubtitle, { email: session?.user.email ?? '' })}
-                  </p>
+                  </AuthSubtitle>
                 </div>
                 <button
                   type="button"
-                  className="link"
+                  className="cursor-pointer border-none bg-transparent [font:inherit] text-cyan-text no-underline hover:text-cyan-text-strong hover:underline"
                   onClick={() => void signOut()}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit' }}
                 >
                   {t.signOut}
                 </button>
               </header>
             )}
-            {isUpdateFlow ? <h1 className="auth-heading">{t.profile.updateHeading}</h1> : null}
+            {isUpdateFlow ? <AuthHeading>{t.profile.updateHeading}</AuthHeading> : null}
 
             {isUpdateFlow ? null : (
-              <ol className="auth-steps" aria-label={t.profile.phasesAria}>
-                <li className="auth-step">
-                  <UserIcon className="auth-step-icon" /> {t.register.stepAccount}
-                </li>
-                <li className="auth-step">
-                  <MailIcon className="auth-step-icon" /> {t.register.stepVerify}
-                </li>
-                <li className="auth-step is-active">
-                  <ProfileIcon className="auth-step-icon" /> {t.register.stepProfile}
-                </li>
-              </ol>
+              <AuthSteps
+                label={t.profile.phasesAria}
+                steps={[
+                  { icon: UserIcon, label: t.register.stepAccount },
+                  { icon: MailIcon, label: t.register.stepVerify },
+                  { icon: ProfileIcon, label: t.register.stepProfile, active: true },
+                ]}
+              />
             )}
 
             {showToast ? (
-              <div role="status" className="save-toast">
+              <div
+                role="status"
+                className="fixed right-24 bottom-24 z-30 flex max-w-[min(480px,calc(100%-2*var(--spacing-24)))] animate-[toast-rise_180ms_cubic-bezier(0.16,1,0.3,1)] items-center gap-8 rounded-lg border border-cyan-text bg-pure-white px-16 py-12 font-medium text-ink-black shadow-xl motion-reduce:animate-none [&_svg]:size-[16px] [&_svg]:flex-none [&_svg]:text-cyan-text"
+              >
                 <CheckIcon />
-                <p>{isUpdateFlow ? t.profile.toastUpdate : t.profile.toastOnboarding}</p>
+                <p className="m-0">
+                  {isUpdateFlow ? t.profile.toastUpdate : t.profile.toastOnboarding}
+                </p>
                 <button
                   type="button"
-                  className="save-toast-dismiss"
+                  className="cursor-pointer border-none bg-transparent py-0 pr-0 pl-8 [font-family:inherit] [font-size:inherit] [font-weight:inherit] leading-none text-warm-gray hover:text-ink-black"
                   aria-label={t.versionDetail.dismiss}
                   onClick={() => setShowToast(false)}
                 >
@@ -405,21 +446,19 @@ export function ProfileView({ locale }: { locale: Locale }) {
               </div>
             ) : null}
 
-            {isUpdateFlow ? null : (
-              <p className="auth-kicker">
-                <span className="auth-kicker-icon">●</span>
-                {t.profile.onboardingKicker}
-              </p>
-            )}
+            {isUpdateFlow ? null : <AuthKicker>{t.profile.onboardingKicker}</AuthKicker>}
           </div>
         ) : null}
 
         {load.status === 'error' ? (
-          <div role="alert" className="form-error">
+          <div
+            role="alert"
+            className="rounded-lg border border-stone-muted px-12 py-8 text-[12px] leading-[1.6] text-soot"
+          >
             <p>{load.error}</p>
             <button
               type="button"
-              className="button button-ghost"
+              className={ghostButton}
               onClick={() => accessToken && loadProfile(accessToken)}
             >
               {t.cvCard.retry}
@@ -429,56 +468,50 @@ export function ProfileView({ locale }: { locale: Locale }) {
 
         {load.status === 'ready' && profile ? (
           <div className="content-resolve">
-            <form
-              className="setup-form"
+            <AuthForm
               method="post"
               onSubmit={handleSubmit}
               noValidate
               aria-label={t.profile.fieldsAria}
             >
-              <label className="field" htmlFor="setup-full-name">
-                {t.panel.fullName}
-                <input
-                  id="setup-full-name"
-                  name="full_name"
-                  autoComplete="name"
-                  maxLength={200}
-                  value={fullName}
-                  onChange={(event) => setFullName(event.target.value)}
-                  aria-invalid={Boolean(fieldErrors.full_name || nameLiveProblem)}
-                  aria-describedby={
-                    fieldErrors.full_name || nameLiveProblem ? 'setup-full-name-error' : undefined
-                  }
-                />
-              </label>
+              <Field
+                label={t.panel.fullName}
+                id="setup-full-name"
+                name="full_name"
+                autoComplete="name"
+                maxLength={200}
+                value={fullName}
+                onChange={(event) => setFullName(event.target.value)}
+                aria-invalid={Boolean(fieldErrors.full_name || nameLiveProblem)}
+                aria-describedby={
+                  fieldErrors.full_name || nameLiveProblem ? 'setup-full-name-error' : undefined
+                }
+              />
               {fieldErrors.full_name || nameLiveProblem ? (
-                <p id="setup-full-name-error" role="alert" className="field-error">
+                <FieldError id="setup-full-name-error">
                   {fieldErrors.full_name ?? nameLiveProblem}
-                </p>
+                </FieldError>
               ) : null}
 
-              <label className="field" htmlFor="setup-headline">
-                {t.panel.headline}
-                <input
-                  id="setup-headline"
-                  name="headline"
-                  placeholder={t.profile.headlinePlaceholder}
-                  maxLength={120}
-                  value={headline}
-                  onChange={(event) => setHeadline(event.target.value)}
-                  aria-invalid={Boolean(fieldErrors.headline)}
-                  aria-describedby={fieldErrors.headline ? 'setup-headline-error' : undefined}
-                />
-              </label>
+              <Field
+                label={t.panel.headline}
+                id="setup-headline"
+                name="headline"
+                placeholder={t.profile.headlinePlaceholder}
+                maxLength={120}
+                value={headline}
+                onChange={(event) => setHeadline(event.target.value)}
+                aria-invalid={Boolean(fieldErrors.headline)}
+                aria-describedby={fieldErrors.headline ? 'setup-headline-error' : undefined}
+              />
               {fieldErrors.headline ? (
-                <p id="setup-headline-error" role="alert" className="field-error">
-                  {fieldErrors.headline}
-                </p>
+                <FieldError id="setup-headline-error">{fieldErrors.headline}</FieldError>
               ) : null}
 
-              <label className="field" htmlFor="setup-bio">
+              <label className="grid gap-4" htmlFor="setup-bio">
                 {t.panel.bio}
                 <textarea
+                  className="min-h-[96px] max-w-full resize-y focus-visible:border-cyan-text! focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none"
                   id="setup-bio"
                   name="bio"
                   rows={4}
@@ -494,19 +527,21 @@ export function ProfileView({ locale }: { locale: Locale }) {
                 />
               </label>
               {fieldErrors.bio ? (
-                <p id="setup-bio-error" role="alert" className="field-error">
-                  {fieldErrors.bio}
-                </p>
+                <FieldError id="setup-bio-error">{fieldErrors.bio}</FieldError>
               ) : null}
-              <p className="char-counter" aria-hidden="true">
+              <p
+                className="m-0 text-right text-(length:--text-label) text-warm-gray"
+                aria-hidden="true"
+              >
                 {tr(t.profile.bioCounter, { current: String(bio.length), max: '2000' })}
               </p>
 
-              <div className="location-field">
-                <label className="field" htmlFor="setup-location">
+              <div className="relative grid gap-4">
+                <label className="grid gap-4" htmlFor="setup-location">
                   {t.panel.location}
-                  <div className="location-input-wrap">
+                  <div className="relative grid">
                     <input
+                      className={cx(inputClass, 'pr-[34px]')}
                       id="setup-location"
                       name="location"
                       role="combobox"
@@ -548,16 +583,22 @@ export function ProfileView({ locale }: { locale: Locale }) {
                       aria-invalid={Boolean(fieldErrors.location)}
                       aria-describedby={fieldErrors.location ? 'setup-location-error' : undefined}
                     />
-                    {isSearching ? <span className="spinner" aria-hidden="true" /> : null}
+                    {isSearching ? (
+                      <Spinner className="absolute top-1/2 right-[10px] -mt-[7px]" />
+                    ) : null}
                   </div>
                 </label>
                 {isSearching || (searched && !suggestions.length) ? (
-                  <p role="status" className="autocomplete-status">
+                  <p role="status" className="m-0 text-(length:--text-label) text-warm-gray">
                     {isSearching ? t.profile.searchingPlaces : t.profile.noPlaces}
                   </p>
                 ) : null}
                 {showSuggestions && suggestions.length ? (
-                  <ul id="setup-location-suggestions" className="suggestions" role="listbox">
+                  <ul
+                    id="setup-location-suggestions"
+                    className="absolute right-0 left-0 z-10 m-0 list-none rounded-lg border border-stone-border bg-pure-white p-4 shadow-sm"
+                    role="listbox"
+                  >
                     {suggestions.map((suggestion, index) => (
                       <li
                         key={`${suggestion}#${index}`}
@@ -566,7 +607,11 @@ export function ProfileView({ locale }: { locale: Locale }) {
                       >
                         <button
                           type="button"
-                          className={index === highlight ? 'is-highlight' : undefined}
+                          className={cx(
+                            'flex min-h-[44px] w-full cursor-pointer items-center rounded-md border-none px-[14px] py-12 text-left [font-family:inherit] text-[15px] [font-weight:inherit] [line-height:inherit] text-ink-black hover:bg-sky-wash',
+                            // One background at a time: the keyboard highlight must win.
+                            index === highlight ? 'bg-sky-wash' : 'bg-transparent',
+                          )}
                           onMouseDown={() => pickSuggestion(index)}
                           onMouseEnter={() => setHighlight(index)}
                         >
@@ -578,44 +623,27 @@ export function ProfileView({ locale }: { locale: Locale }) {
                 ) : null}
               </div>
               {fieldErrors.location ? (
-                <p id="setup-location-error" role="alert" className="field-error">
-                  {fieldErrors.location}
-                </p>
+                <FieldError id="setup-location-error">{fieldErrors.location}</FieldError>
               ) : null}
 
-              <label className="field" htmlFor="setup-skills">
-                {t.panel.skills}
-                <input
-                  id="setup-skills"
-                  name="skills"
-                  placeholder="rust, typescript, sql"
-                  value={skillsText}
-                  onChange={(event) => setSkillsText(event.target.value)}
-                  aria-invalid={Boolean(fieldErrors.skills)}
-                  aria-describedby={fieldErrors.skills ? 'setup-skills-error' : undefined}
-                />
-              </label>
-              <p className="auth-form-note" aria-hidden="true">
-                {t.profile.skillsNote}
-              </p>
-              {skillsDraft.length ? (
-                <ul className="skill-chips" aria-hidden="true">
-                  {skillsDraft.map((skill) => (
-                    <li key={skill.toLowerCase()}>{skill}</li>
-                  ))}
-                </ul>
-              ) : null}
+              <Field
+                label={t.panel.skills}
+                id="setup-skills"
+                name="skills"
+                placeholder="rust, typescript, sql"
+                value={skillsText}
+                onChange={(event) => setSkillsText(event.target.value)}
+                aria-invalid={Boolean(fieldErrors.skills)}
+                aria-describedby={fieldErrors.skills ? 'setup-skills-error' : undefined}
+              />
+              <AuthFormNote hidden>{t.profile.skillsNote}</AuthFormNote>
+              {skillsDraft.length ? <SkillChips skills={skillsDraft} /> : null}
               {fieldErrors.skills ? (
-                <p id="setup-skills-error" role="alert" className="field-error">
-                  {fieldErrors.skills}
-                </p>
+                <FieldError id="setup-skills-error">{fieldErrors.skills}</FieldError>
               ) : null}
 
-              <div className="link-editor">
-                <p className="auth-kicker">
-                  <span className="auth-kicker-icon">●</span>
-                  {t.profile.linksKicker}
-                </p>
+              <div className="grid gap-8">
+                <AuthKicker>{t.profile.linksKicker}</AuthKicker>
                 <datalist id="link-types">
                   <option value="github" />
                   <option value="linkedin" />
@@ -624,9 +652,10 @@ export function ProfileView({ locale }: { locale: Locale }) {
                   <option value="blog" />
                 </datalist>
                 {linksDraft.map((row, index) => (
-                  <div key={index} className="link-row-group">
-                    <div className="link-row">
+                  <div key={index} className="grid gap-4">
+                    <div className="grid grid-cols-[minmax(120px,200px)_minmax(0,1fr)_auto] items-center gap-8 max-sm:grid-cols-1">
                       <input
+                        className={linkInput}
                         id={`link-type-${index}`}
                         name={`link-type-${index}`}
                         list="link-types"
@@ -644,6 +673,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
                         }
                       />
                       <input
+                        className={linkInput}
                         id={`link-url-${index}`}
                         name={`link-url-${index}`}
                         type="url"
@@ -675,7 +705,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
                       />
                       <button
                         type="button"
-                        className="link"
+                        className="text-cyan-text no-underline hover:text-cyan-text-strong hover:underline"
                         aria-label={tr(t.profile.removeLinkAria, { index: String(index + 1) })}
                         onClick={() =>
                           setLinksDraft((previous) =>
@@ -687,7 +717,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
                       </button>
                     </div>
                     {rowProblems[index] ? (
-                      <p role="alert" className="field-error">
+                      <p role="alert" className="text-[12px] leading-[1.5] text-alert">
                         {rowProblems[index]}
                       </p>
                     ) : null}
@@ -696,7 +726,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
                 {linksDraft.length < 10 ? (
                   <button
                     type="button"
-                    className="button button-ghost"
+                    className={ghostButton}
                     onClick={() =>
                       setLinksDraft((previous) => [...previous, { type: '', url: '' }])
                     }
@@ -705,27 +735,21 @@ export function ProfileView({ locale }: { locale: Locale }) {
                   </button>
                 ) : null}
                 {fieldErrors.links ? (
-                  <p id="setup-links-error" role="alert" className="field-error">
-                    {fieldErrors.links}
-                  </p>
+                  <FieldError id="setup-links-error">{fieldErrors.links}</FieldError>
                 ) : null}
               </div>
 
-              {formNote ? (
-                <div role="status" className="form-error">
-                  <p>{formNote}</p>
-                </div>
-              ) : null}
+              {formNote ? <FormMessage tone="status">{formNote}</FormMessage> : null}
 
-              <div className="landing-actions">
+              <div className="flex flex-wrap gap-8 max-sm:flex-col max-sm:items-stretch">
                 <button
                   type="submit"
-                  className="button button-primary"
+                  className={cx(primaryButton, 'max-sm:w-full')}
                   disabled={save.status === 'saving' || save.status === 'saved'}
                 >
                   {save.status === 'saving' ? (
                     <>
-                      <span className="spinner" aria-hidden="true" /> {t.cvEditor.saving}
+                      <Spinner className="ml-8" /> {t.cvEditor.saving}
                     </>
                   ) : save.status === 'saved' ? (
                     t.profile.savedCheck
@@ -736,23 +760,23 @@ export function ProfileView({ locale }: { locale: Locale }) {
                   )}
                 </button>
                 {isUpdateFlow ? null : showToast ? (
-                  <Link className="button button-ghost" href={`${base}/app/`}>
+                  <Link className={cx(ghostButton, 'max-sm:w-full')} href={`${base}/app/`}>
                     {t.profile.openWorkspace}
                   </Link>
                 ) : null}
                 {isUpdateFlow ? (
                   // The persistent way back: never tied to the toast's
                   // five seconds, so the exit does not vanish with it.
-                  <Link className="button button-ghost" href={`${base}/app/`}>
+                  <Link className={cx(ghostButton, 'max-sm:w-full')} href={`${base}/app/`}>
                     <HomeIcon /> {t.cvEditor.back}
                   </Link>
                 ) : null}
               </div>
-            </form>
+            </AuthForm>
           </div>
         ) : null}
-      </section>
-    </main>
+      </AuthCard>
+    </Page>
   );
 }
 
@@ -762,7 +786,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
 // no flow is announced before its data exists.
 function ProfileCardSkeleton() {
   return (
-    <div className="skeleton-screen">
+    <div className="grid gap-12">
       <Skeleton width={190} height={28} />
       <Skeleton width={280} height={14} />
       <Skeleton width="100%" height={52} />

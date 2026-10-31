@@ -17,18 +17,37 @@ export function cx(...parts: Array<string | false | null | undefined>): string {
 }
 
 // .auth-page: the centered page with the sky wash rising from the top right.
-export function AuthPage({ children }: { children: ReactNode }) {
+export function AuthPage({ busy, children }: { busy?: boolean; children: ReactNode }) {
   return (
-    <main className="grid min-h-screen place-items-center [background:radial-gradient(1200px_620px_at_72%_-8%,var(--color-sky-wash-soft),rgba(227,241,251,0)_68%),var(--color-stone-canvas)] p-24">
+    <main
+      aria-busy={busy ? 'true' : undefined}
+      className="grid min-h-screen place-items-center [background:radial-gradient(1200px_620px_at_72%_-8%,var(--color-sky-wash-soft),rgba(227,241,251,0)_68%),var(--color-stone-canvas)] p-24"
+    >
       {children}
     </main>
   );
 }
 
 // .auth-shell.auth-card: the one white card of an auth page.
-export function AuthCard({ children }: { children: ReactNode }) {
+// wide: the card inside a workspace page (the old .workspace-page
+// .auth-shell.auth-card rule), centered at 800px.
+export function AuthCard({
+  wide,
+  label,
+  children,
+}: {
+  wide?: boolean;
+  label?: string;
+  children: ReactNode;
+}) {
   return (
-    <section className="grid w-full max-w-[560px] gap-16 rounded-lg border border-stone-border bg-pure-white p-32 shadow-subtle max-sm:p-16">
+    <section
+      aria-label={label}
+      className={cx(
+        'grid w-full gap-16 rounded-lg border border-stone-border bg-pure-white p-32 shadow-subtle max-sm:p-16',
+        wide ? 'max-w-[800px] justify-self-center' : 'max-w-[560px]',
+      )}
+    >
       {children}
     </section>
   );
@@ -57,9 +76,12 @@ export function AuthSubtitle({ children }: { children: ReactNode }) {
 }
 
 // .auth-form-note: the hairline-topped footnote of a card.
-export function AuthFormNote({ children }: { children: ReactNode }) {
+export function AuthFormNote({ hidden, children }: { hidden?: boolean; children: ReactNode }) {
   return (
-    <p className="m-0 border-t border-stone-border pt-16 text-[12px] leading-[1.6] text-warm-gray max-sm:text-[14px]">
+    <p
+      aria-hidden={hidden ? true : undefined}
+      className="m-0 border-t border-stone-border pt-16 text-[12px] leading-[1.6] text-warm-gray max-sm:text-[14px]"
+    >
       {children}
     </p>
   );
@@ -68,10 +90,19 @@ export function AuthFormNote({ children }: { children: ReactNode }) {
 type Icon = ComponentType<IconProps>;
 
 // .auth-kicker + .auth-kicker-icon
-export function AuthKicker({ icon: KickerIcon, children }: { icon: Icon; children: ReactNode }) {
+export function AuthKicker({ icon: KickerIcon, children }: { icon?: Icon; children: ReactNode }) {
   return (
     <p className="m-0 inline-flex items-center gap-8 text-(length:--text-label) tracking-[0.08em] text-warm-gray uppercase">
-      <KickerIcon className="size-[16px] text-cyan-text" /> {children}
+      {KickerIcon ? (
+        <>
+          <KickerIcon className="size-[16px] text-cyan-text" /> {children}
+        </>
+      ) : (
+        <>
+          <span className="size-[16px] text-cyan-text">●</span>
+          {children}
+        </>
+      )}
     </p>
   );
 }
@@ -79,11 +110,13 @@ export function AuthKicker({ icon: KickerIcon, children }: { icon: Icon; childre
 // .auth-steps + .auth-step (+ .is-active) + .auth-step-icon
 export function AuthSteps({
   steps,
+  label,
 }: {
   steps: Array<{ icon: Icon; label: string; active?: boolean }>;
+  label?: string;
 }) {
   return (
-    <ol className="m-0 grid list-none grid-cols-3 gap-8 p-0">
+    <ol aria-label={label} className="m-0 grid list-none grid-cols-3 gap-8 p-0">
       {steps.map(({ icon: StepIcon, label, active }) => (
         <li
           key={label}
@@ -101,6 +134,10 @@ export function AuthSteps({
   );
 }
 
+// .field input
+export const inputClass =
+  'min-h-[44px] rounded-inputs border border-stone-border bg-pure-white px-[14px] py-12 [font-family:inherit] text-[16px] [font-weight:inherit] [line-height:inherit] text-ink-black focus-visible:border-cyan-signal! focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none';
+
 // .field + .field input: the label wraps its input. A field in error keeps
 // the red border from the global input[aria-invalid] rule; focus wins over
 // it (important), as the more specific .field input:focus-visible did.
@@ -111,10 +148,7 @@ export function Field({
   return (
     <label className="grid gap-4" htmlFor={input.id}>
       {label}
-      <input
-        {...input}
-        className="min-h-[44px] rounded-inputs border border-stone-border bg-pure-white px-[14px] py-12 [font-family:inherit] text-[16px] [font-weight:inherit] [line-height:inherit] text-ink-black focus-visible:border-cyan-signal! focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none"
-      />
+      <input {...input} className={inputClass} />
     </label>
   );
 }
@@ -129,13 +163,22 @@ export function FieldError({ id, children }: { id: string; children: ReactNode }
 }
 
 // .form-error, and .form-error[role='status'] for a confirmation.
-export function FormMessage({ tone, children }: { tone: 'alert' | 'status'; children: ReactNode }) {
+export function FormMessage({
+  tone,
+  className,
+  children,
+}: {
+  tone: 'alert' | 'status';
+  className?: string;
+  children: ReactNode;
+}) {
   return (
     <div
       role={tone}
       className={cx(
         'rounded-lg border px-12 py-8 text-[12px] leading-[1.6] text-soot',
         tone === 'status' ? 'border-cyan-text bg-sky-wash-soft' : 'border-stone-muted',
+        className,
       )}
     >
       <p>{children}</p>
@@ -181,11 +224,50 @@ export function WorkspaceBar({ identity, children }: { identity: ReactNode; chil
 }
 
 // .workspace-title
-export function WorkspaceTitle({ children }: { children: ReactNode }) {
+export function WorkspaceTitle({
+  as: Tag = 'h1',
+  children,
+}: {
+  as?: 'h1' | 'p';
+  children: ReactNode;
+}) {
   return (
-    <h1 className="mx-0 mt-4 mb-8 font-roobert text-heading-sm font-regular text-ink-black">
+    <Tag className="mx-0 mt-4 mb-8 font-roobert text-heading-sm font-regular text-ink-black">
       {children}
-    </h1>
+    </Tag>
+  );
+}
+
+// .skill-chips: the skills as tinted badges.
+export function SkillChips({ skills, label }: { skills: string[]; label?: string }) {
+  return (
+    <ul
+      className="m-0 flex list-none flex-wrap gap-8 p-0"
+      aria-label={label}
+      aria-hidden={label ? undefined : true}
+    >
+      {skills.map((skill) => (
+        <li
+          key={skill.toLowerCase()}
+          className="rounded-full border border-transparent bg-sky-wash-soft px-12 py-4 text-[14px] font-medium text-cyan-text-strong"
+        >
+          {skill}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// .spinner: the 14px ring (the spinner-turn keyframes stay in globals.css).
+export function Spinner({ className }: { className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cx(
+        'inline-block size-[14px] flex-none animate-[spinner-turn_700ms_linear_infinite] rounded-full border-2 border-stone-muted border-t-cyan-text',
+        className,
+      )}
+    />
   );
 }
 

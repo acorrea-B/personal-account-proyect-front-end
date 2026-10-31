@@ -217,27 +217,6 @@ body {
   padding: var(--spacing-24);
 }
 
-.auth-page {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  background:
-    radial-gradient(
-      1200px 620px at 72% -8%,
-      var(--color-sky-wash-soft),
-      rgba(227, 241, 251, 0) 68%
-    ),
-    var(--color-stone-canvas);
-  padding: var(--spacing-24);
-}
-
-.auth-shell {
-  width: 100%;
-  max-width: 560px;
-  display: grid;
-  gap: var(--spacing-24);
-}
-
 .auth-card {
   background: var(--color-pure-white);
   border: 1px solid var(--color-stone-border);
@@ -272,56 +251,6 @@ body {
 
 .auth-card textarea[aria-invalid='true'] {
   border-color: var(--color-alert);
-}
-
-.auth-heading {
-  margin: 0;
-  color: var(--color-ink-black);
-  font-family: var(--font-roobert);
-  font-size: var(--text-heading-sm);
-  font-weight: 400;
-  line-height: 1.25;
-  letter-spacing: -0.8px;
-}
-
-.auth-subtitle {
-  margin: 0;
-  color: var(--color-warm-gray);
-  font-size: var(--text-body-lg);
-  line-height: 1.64;
-}
-
-.field {
-  display: grid;
-  gap: var(--spacing-4);
-}
-
-.field label {
-  font-size: var(--text-body-lg);
-  color: var(--color-ink-black);
-}
-
-.field input {
-  font: inherit;
-  font-size: 16px;
-  border-radius: 6px;
-  border: 1px solid var(--color-stone-border);
-  padding: 12px 14px;
-  min-height: 44px;
-  color: var(--color-ink-black);
-  background: var(--color-pure-white);
-}
-
-.field input:focus-visible {
-  outline: none;
-  border-color: var(--color-cyan-signal);
-  box-shadow: 0 0 0 3px var(--color-sky-wash);
-}
-
-.field-error {
-  color: var(--color-alert);
-  font-size: 12px;
-  line-height: 1.5;
 }
 
 /* Any input carrying a validation problem marks red - the email field and
@@ -401,10 +330,6 @@ textarea[aria-invalid='true'] {
 @media (max-width: 640px) {
   .auth-card {
     padding: var(--spacing-16);
-  }
-
-  .auth-heading {
-    font-size: var(--text-subheading);
   }
 }
 
@@ -568,23 +493,6 @@ textarea[aria-invalid='true'] {
   color: var(--color-warm-gray);
 }
 
-.auth-kicker {
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-8);
-  font-size: var(--text-label);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-warm-gray);
-}
-
-.auth-kicker-icon {
-  width: 16px;
-  height: 16px;
-  color: var(--color-cyan-text);
-}
-
 .auth-form-note {
   margin: 0;
   padding-top: var(--spacing-16);
@@ -592,50 +500,6 @@ textarea[aria-invalid='true'] {
   font-size: 12px;
   color: var(--color-warm-gray);
   line-height: 1.6;
-}
-
-.auth-steps {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--spacing-8);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.auth-step {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-4);
-  padding: var(--spacing-8);
-  border: 1px solid var(--color-stone-border);
-  border-radius: var(--radius-md);
-  color: var(--color-warm-gray);
-  font-size: var(--text-label);
-  line-height: 1;
-  font-weight: 500;
-}
-
-.auth-step.is-active {
-  color: var(--color-ink-black);
-  background: var(--color-cyan-signal);
-  border-color: var(--color-cyan-signal);
-}
-
-.auth-step-icon {
-  width: 16px;
-  height: 16px;
-}
-
-/* The private workspace: the profile lives in one card, rendered exactly as
-   the api holds it. */
-.workspace-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--spacing-16);
 }
 
 .workspace-profile {
@@ -702,62 +566,6 @@ textarea[aria-invalid='true'] {
   display: grid;
   justify-items: start;
   gap: var(--spacing-8);
-}
-
-/* The complete-your-profile setup: one short pass of real fields. */
-.setup-form {
-  display: grid;
-  gap: var(--spacing-16);
-}
-
-/* Live counter of the api contract limits (bio = 2000). */
-.char-counter {
-  margin: 0;
-  font-size: var(--text-label);
-  color: var(--color-warm-gray);
-  text-align: right;
-}
-
-/* Location autocomplete: the suggestions hang from the field. */
-.location-field {
-  position: relative;
-  display: grid;
-  gap: var(--spacing-4);
-}
-
-/* The in-flight marker: the spinner rides inside the input from the first
-   keystroke, so the autocomplete action is always visible. */
-.location-input-wrap {
-  position: relative;
-  display: grid;
-}
-
-.location-input-wrap input {
-  padding-right: 34px;
-}
-
-/* The in-flight marker, shared: the location field rides it inside the
-   input; the save button shows it inline next to its label. */
-.spinner {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  flex: none;
-  border: 2px solid var(--color-stone-muted);
-  border-top-color: var(--color-cyan-text);
-  border-radius: 50%;
-  animation: spinner-turn 700ms linear infinite;
-}
-
-.location-input-wrap .spinner {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  margin-top: -7px;
-}
-
-.button .spinner {
-  margin-left: var(--spacing-8);
 }
 
 @keyframes spinner-turn {
@@ -838,89 +646,6 @@ textarea[aria-invalid='true'] {
   border-color: var(--color-cyan-text);
 }
 
-.autocomplete-status {
-  margin: 0;
-  font-size: var(--text-label);
-  color: var(--color-warm-gray);
-}
-
-/* Social and repository link rows: label first, url wide. */
-.link-editor {
-  display: grid;
-  gap: var(--spacing-8);
-}
-
-.link-row-group {
-  display: grid;
-  gap: var(--spacing-4);
-}
-
-.link-row {
-  display: grid;
-  gap: var(--spacing-8);
-  grid-template-columns: minmax(120px, 200px) minmax(0, 1fr) auto;
-  align-items: center;
-}
-
-.link-row input {
-  font: inherit;
-  font-size: 14px;
-  border-radius: 6px;
-  border: 1px solid var(--color-stone-border);
-  padding: 10px 12px;
-  color: var(--color-ink-black);
-  background: var(--color-pure-white);
-}
-
-.link-row input:focus-visible {
-  outline: none;
-  border-color: var(--color-cyan-text);
-  box-shadow: 0 0 0 3px var(--color-sky-wash);
-}
-
-@media (max-width: 640px) {
-  .link-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-.suggestions {
-  position: absolute;
-  z-index: 10;
-  left: 0;
-  right: 0;
-  margin: 0;
-  padding: var(--spacing-4);
-  list-style: none;
-  background: var(--color-pure-white);
-  border: 1px solid var(--color-stone-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-}
-
-.suggestions button {
-  display: block;
-  width: 100%;
-  padding: 12px 14px;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  font: inherit;
-  font-size: 15px;
-  text-align: left;
-  background: none;
-  border: none;
-  border-radius: var(--radius-md);
-  color: var(--color-ink-black);
-  cursor: pointer;
-}
-
-.suggestions button.is-highlight,
-.suggestions button:hover {
-  background: var(--color-sky-wash);
-  color: var(--color-ink-black);
-}
-
 /* The workspace dashboard: one identity bar with the account menu, the
    profile panel and the coming-up rail. */
 .workspace-page {
@@ -963,31 +688,6 @@ textarea[aria-invalid='true'] {
   gap: var(--spacing-12);
 }
 
-.workspace-home {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--color-stone-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-pure-white);
-  color: var(--color-ink-black);
-}
-
-.workspace-home:hover {
-  background: var(--color-sky-wash-soft);
-}
-
-.workspace-home:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-sky-wash);
-}
-
-.workspace-home svg {
-  width: 18px;
-  height: 18px;
-}
-
 .dashboard-grid {
   display: grid;
   gap: var(--spacing-16);
@@ -1003,15 +703,6 @@ textarea[aria-invalid='true'] {
   border: 1px solid var(--color-stone-border);
   border-radius: var(--radius-2xl);
   background: var(--color-pure-white);
-}
-
-/* The update-profile flow opens inside the dashboard shell: the edit
-   card sits centered on the rail and keeps a form width — wider than
-   the registration card, honest to the two-track form it hosts. */
-.workspace-page .auth-shell.auth-card {
-  justify-self: center;
-  width: 100%;
-  max-width: 800px;
 }
 
 .panel-head {
