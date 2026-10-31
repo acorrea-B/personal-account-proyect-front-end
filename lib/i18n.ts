@@ -236,6 +236,7 @@ export const labelsSchema = z.object({
     profileFallback: z.string(),
   }),
   cvEditor: z.object({
+    byteCounter: z.string(),
     title: z.string(),
     loadingAria: z.string(),
     currentVersionSaved: z.string(),

@@ -149,7 +149,8 @@
     "saving": "Guardando…",
     "saved": "Guardado",
     "save": "Guardar CV",
-    "back": "Volver al espacio"
+    "back": "Volver al espacio",
+    "byteCounter": "{bytes} / {max} bytes"
   },
   "landing": {
     "brandAria": "Perfil Profesional inicio",

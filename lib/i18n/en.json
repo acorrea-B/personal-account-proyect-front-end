@@ -149,7 +149,8 @@
     "saving": "Saving…",
     "saved": "Saved",
     "save": "Save cv",
-    "back": "Back to workspace"
+    "back": "Back to workspace",
+    "byteCounter": "{bytes} / {max} bytes"
   },
   "landing": {
     "brandAria": "Professional Profile home",
