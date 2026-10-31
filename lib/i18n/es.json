@@ -310,6 +310,8 @@
     "busy": "El servicio está ocupado; inténtalo de nuevo en un momento.",
     "retry": "Reintentar",
     "back": "Volver a mi espacio",
-    "loadingAria": "Cargando tu diario"
+    "loadingAria": "Cargando tu diario",
+    "railCopy": "Anota lo que hiciste; tus entradas respaldan tus habilidades.",
+    "open": "Abrir diario"
   }
 }

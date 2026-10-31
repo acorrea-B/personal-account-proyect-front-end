@@ -310,6 +310,8 @@
     "busy": "The service is busy; please try again shortly.",
     "retry": "Try again",
     "back": "Back to workspace",
-    "loadingAria": "Loading your journal"
+    "loadingAria": "Loading your journal",
+    "railCopy": "Write down what you did; your entries back your skills.",
+    "open": "Open journal"
   }
 }
