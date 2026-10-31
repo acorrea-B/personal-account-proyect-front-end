@@ -171,6 +171,57 @@ describe('JournalView', () => {
     expect(document.querySelector('[role="status"]')?.textContent).toBe(j.saved);
   });
 
+  it('keeps an entry saved while a delete is in flight', async () => {
+    vi.mocked(fetchJournalEntries).mockResolvedValue([entry(E1, 'Shipped payments.')]);
+    let finishDelete: () => void = () => {};
+    vi.mocked(deleteJournalEntry).mockReturnValue(
+      new Promise<void>((resolve) => {
+        finishDelete = resolve;
+      }),
+    );
+    vi.mocked(createJournalEntry).mockResolvedValue(entry(E2, 'Led the incident review.'));
+    await render('en');
+    const j = labels('en').journal;
+    await click(
+      (button) => button.getAttribute('aria-label')?.startsWith('Delete the entry') ?? false,
+    );
+    await click(byText(j.deleteConfirm));
+    await act(async () => {
+      const area = document.querySelector('textarea') as HTMLTextAreaElement;
+      const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set;
+      setter?.call(area, 'Led the incident review.');
+      area.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await click(byText(j.save));
+    await act(async () => {
+      finishDelete();
+    });
+    const list = document.querySelector(`ul[aria-label="${j.listAria}"]`)?.textContent ?? '';
+    expect(list).toContain('Led the incident review.');
+    expect(list).not.toContain('Shipped payments.');
+  });
+
+  it('freezes the composer while its entry saves', async () => {
+    vi.mocked(fetchJournalEntries).mockResolvedValue([]);
+    vi.mocked(confirmJournalConsent).mockResolvedValue({
+      user_id: '11111111-1111-4111-8111-111111111111',
+      consent_version: 'journal-v1',
+      confirmed_at: '2026-10-31T10:00:00Z',
+    });
+    vi.mocked(createJournalEntry).mockReturnValue(new Promise(() => {}));
+    await render('en');
+    const j = labels('en').journal;
+    await click(byText(j.consentConfirm));
+    await act(async () => {
+      const area = document.querySelector('textarea') as HTMLTextAreaElement;
+      const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set;
+      setter?.call(area, 'Draft');
+      area.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await click(byText(j.save));
+    expect((document.querySelector('fieldset') as HTMLFieldSetElement).disabled).toBe(true);
+  });
+
   it('deletes an entry only after the confirmation', async () => {
     vi.mocked(fetchJournalEntries).mockResolvedValue([entry(E1, 'Shipped payments.')]);
     vi.mocked(deleteJournalEntry).mockResolvedValue(undefined);

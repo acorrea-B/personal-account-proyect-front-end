@@ -75,6 +75,7 @@ export function JournalView({ locale }: { locale: Locale }) {
   const [linked, setLinked] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ tone: 'alert' | 'status'; text: string } | null>(null);
 
   const loadJournal = useCallback(
@@ -114,6 +115,14 @@ export function JournalView({ locale }: { locale: Locale }) {
     }
   }, [isHydrated, isAuthorized, accessToken, loadJournal]);
 
+  // Every mutation lands on the latest list (a save and a delete may
+  // overlap), never on the copy captured when the request started.
+  function updateEntries(change: (entries: JournalEntry[]) => JournalEntry[]) {
+    setLoad((current) =>
+      current.status === 'ready' ? { ...current, entries: change(current.entries) } : current,
+    );
+  }
+
   async function confirm() {
     if (load.status !== 'ready' || !accessToken) {
       return;
@@ -122,7 +131,9 @@ export function JournalView({ locale }: { locale: Locale }) {
     setNotice(null);
     try {
       await confirmJournalConsent(accessToken, load.consent.version);
-      setLoad({ ...load, consented: true });
+      setLoad((current) =>
+        current.status === 'ready' ? { ...current, consented: true } : current,
+      );
     } catch {
       setNotice({ tone: 'alert', text: j.consentFailed });
     } finally {
@@ -145,7 +156,7 @@ export function JournalView({ locale }: { locale: Locale }) {
         linked_skill_ids: linked,
         consent_version: load.consent.version,
       });
-      setLoad({ ...load, entries: [entry, ...load.entries] });
+      updateEntries((entries) => [entry, ...entries]);
       setText('');
       setDay('');
       setLinked([]);
@@ -162,18 +173,20 @@ export function JournalView({ locale }: { locale: Locale }) {
       return;
     }
     setNotice(null);
+    setDeleting(id);
     try {
       await deleteJournalEntry(accessToken, id);
-      setLoad({ ...load, entries: load.entries.filter((entry) => entry.id !== id) });
+      updateEntries((entries) => entries.filter((entry) => entry.id !== id));
     } catch (error) {
       if (error instanceof ProblemError && error.problem.status === 404) {
         // Already gone (another tab): the list catches up.
-        setLoad({ ...load, entries: load.entries.filter((entry) => entry.id !== id) });
+        updateEntries((entries) => entries.filter((entry) => entry.id !== id));
       } else {
         setNotice({ tone: 'alert', text: j.deleteFailed });
       }
     } finally {
       setPendingDelete(null);
+      setDeleting(null);
     }
   }
 
@@ -256,83 +269,87 @@ export function JournalView({ locale }: { locale: Locale }) {
             <section className={workspacePanel} aria-label={j.composerLabel}>
               <p className="m-0 text-[14px] leading-[1.6] text-warm-gray">{j.intro}</p>
               <form className="m-0 grid gap-16" onSubmit={(event) => void save(event)}>
-                <label className="grid gap-4" htmlFor="journal-text">
-                  {j.composerLabel}
-                  <textarea
-                    id="journal-text"
-                    rows={5}
-                    maxLength={journalTextMax}
-                    value={text}
-                    placeholder={j.composerPlaceholder}
-                    onChange={(event) => setText(event.target.value)}
-                    aria-describedby="journal-counter"
-                    className="min-h-[120px] w-full max-w-full resize-y rounded-inputs border border-stone-border bg-pure-white px-[14px] py-12 [font-family:inherit] text-[16px] leading-[1.6] text-ink-black focus-visible:border-cyan-signal focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none"
-                  />
-                </label>
-                <p
-                  id="journal-counter"
-                  className="m-0 text-right text-(length:--text-label) text-warm-gray"
-                >
-                  {tr(j.counter, { count: String(text.length), max: String(journalTextMax) })}
-                </p>
-                <div className="flex flex-wrap items-end gap-16">
-                  <label className="grid gap-4" htmlFor="journal-day">
-                    {j.dateLabel}
-                    <input
-                      id="journal-day"
-                      type="date"
-                      value={day}
-                      onChange={(event) => setDay(event.target.value)}
-                      className="min-h-[44px] rounded-inputs border border-stone-border bg-pure-white px-12 [font-family:inherit] text-[16px] text-ink-black focus-visible:border-cyan-signal focus-visible:outline-none"
+                {/* The composer is frozen while its entry saves, so nothing
+                    typed meanwhile is lost when the fields clear. */}
+                <fieldset disabled={saving} className="m-0 grid gap-16 border-none p-0">
+                  <label className="grid gap-4" htmlFor="journal-text">
+                    {j.composerLabel}
+                    <textarea
+                      id="journal-text"
+                      rows={5}
+                      maxLength={journalTextMax}
+                      value={text}
+                      placeholder={j.composerPlaceholder}
+                      onChange={(event) => setText(event.target.value)}
+                      aria-describedby="journal-counter"
+                      className="min-h-[120px] w-full max-w-full resize-y rounded-inputs border border-stone-border bg-pure-white px-[14px] py-12 [font-family:inherit] text-[16px] leading-[1.6] text-ink-black focus-visible:border-cyan-signal focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none"
                     />
                   </label>
-                  <label
-                    className="flex min-h-[44px] items-center gap-8"
-                    htmlFor="journal-evidence"
+                  <p
+                    id="journal-counter"
+                    className="m-0 text-right text-(length:--text-label) text-warm-gray"
                   >
-                    <input
-                      id="journal-evidence"
-                      type="checkbox"
-                      checked={asEvidence}
-                      onChange={(event) => setAsEvidence(event.target.checked)}
-                      className="size-[18px] accent-cyan-signal"
-                    />
-                    {j.evidenceLabel}
-                  </label>
-                </div>
-                {load.skills.length ? (
-                  <fieldset className="m-0 grid gap-8 border-none p-0">
-                    <legend className="mb-8 p-0">{j.skillsLegend}</legend>
-                    <div className="flex flex-wrap gap-8">
-                      {load.skills.map((skill) => {
-                        const on = linked.includes(skill.id);
-                        return (
-                          <button
-                            key={skill.id}
-                            type="button"
-                            aria-pressed={on}
-                            onClick={() =>
-                              setLinked((previous) =>
+                    {tr(j.counter, { count: String(text.length), max: String(journalTextMax) })}
+                  </p>
+                  <div className="flex flex-wrap items-end gap-16">
+                    <label className="grid gap-4" htmlFor="journal-day">
+                      {j.dateLabel}
+                      <input
+                        id="journal-day"
+                        type="date"
+                        value={day}
+                        onChange={(event) => setDay(event.target.value)}
+                        className="min-h-[44px] rounded-inputs border border-stone-border bg-pure-white px-12 [font-family:inherit] text-[16px] text-ink-black focus-visible:border-cyan-signal focus-visible:outline-none"
+                      />
+                    </label>
+                    <label
+                      className="flex min-h-[44px] items-center gap-8"
+                      htmlFor="journal-evidence"
+                    >
+                      <input
+                        id="journal-evidence"
+                        type="checkbox"
+                        checked={asEvidence}
+                        onChange={(event) => setAsEvidence(event.target.checked)}
+                        className="size-[18px] accent-cyan-signal"
+                      />
+                      {j.evidenceLabel}
+                    </label>
+                  </div>
+                  {load.skills.length ? (
+                    <fieldset className="m-0 grid gap-8 border-none p-0">
+                      <legend className="mb-8 p-0">{j.skillsLegend}</legend>
+                      <div className="flex flex-wrap gap-8">
+                        {load.skills.map((skill) => {
+                          const on = linked.includes(skill.id);
+                          return (
+                            <button
+                              key={skill.id}
+                              type="button"
+                              aria-pressed={on}
+                              onClick={() =>
+                                setLinked((previous) =>
+                                  on
+                                    ? previous.filter((id) => id !== skill.id)
+                                    : [...previous, skill.id],
+                                )
+                              }
+                              className={cx(
+                                'min-h-[36px] cursor-pointer rounded-full border px-12 py-4 [font-family:inherit] text-[14px] font-medium',
                                 on
-                                  ? previous.filter((id) => id !== skill.id)
-                                  : [...previous, skill.id],
-                              )
-                            }
-                            className={cx(
-                              'min-h-[36px] cursor-pointer rounded-full border px-12 py-4 [font-family:inherit] text-[14px] font-medium',
-                              on
-                                ? 'border-cyan-edge bg-sky-wash-soft text-cyan-text-strong'
-                                : 'border-stone-border bg-transparent text-warm-gray',
-                            )}
-                          >
-                            {on ? '✓ ' : ''}
-                            {skill.display_name}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </fieldset>
-                ) : null}
+                                  ? 'border-cyan-edge bg-sky-wash-soft text-cyan-text-strong'
+                                  : 'border-stone-border bg-transparent text-warm-gray',
+                              )}
+                            >
+                              {on ? '✓ ' : ''}
+                              {skill.display_name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </fieldset>
+                  ) : null}
+                </fieldset>
                 <div className="flex flex-wrap gap-8 max-sm:flex-col max-sm:items-stretch">
                   <button
                     type="submit"
@@ -387,6 +404,7 @@ export function JournalView({ locale }: { locale: Locale }) {
                             <button
                               type="button"
                               className={ghostButton}
+                              disabled={deleting !== null}
                               onClick={() => void remove(entry.id)}
                             >
                               {j.deleteConfirm}
@@ -405,6 +423,7 @@ export function JournalView({ locale }: { locale: Locale }) {
                               type="button"
                               className="cursor-pointer border-none bg-transparent p-0 [font-family:inherit] text-[14px] text-cyan-text hover:text-cyan-text-strong hover:underline"
                               aria-label={tr(j.deleteAria, { date: when })}
+                              disabled={deleting !== null}
                               onClick={() => setPendingDelete(entry.id)}
                             >
                               {j.delete}
