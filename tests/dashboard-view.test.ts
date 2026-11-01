@@ -169,7 +169,7 @@ describe('DashboardView', () => {
     expect(document.body.textContent).toContain(t.metrics.none);
     expect(document.body.textContent).toContain(t.home.evolutionTitle);
     expect(document.body.textContent).toContain(t.home.noMode);
-    expect(document.body.textContent).toContain(t.activity.empty);
+    expect(document.querySelector(`section[aria-label="${t.activity.title}"]`)).not.toBeNull();
     expect(document.body.textContent).not.toContain(t.panel.fullName);
     expect(document.querySelector('nav a[aria-current="page"]')?.textContent).toBe(t.nav.home);
     expect(document.querySelector('main > a')).toBeNull();

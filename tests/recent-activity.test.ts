@@ -3,13 +3,13 @@ import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/lib/api/cv', () => ({ getVersions: vi.fn() }));
+vi.mock('@/lib/api/cv', () => ({ getVersions: vi.fn(), fetchCvText: vi.fn() }));
 vi.mock('@/lib/api/journal', () => ({ fetchJournalEntries: vi.fn() }));
 vi.mock('@/lib/api/evolution', () => ({ fetchEvolutionHistory: vi.fn() }));
 
-import { RecentActivity, activityLimit } from '../components/recent-activity';
+import { RecentActivity, activityLimit, cvSaves } from '../components/recent-activity';
 import { ProblemError } from '@/lib/api/client';
-import { getVersions } from '@/lib/api/cv';
+import { fetchCvText, getVersions } from '@/lib/api/cv';
 import { fetchEvolutionHistory } from '@/lib/api/evolution';
 import { fetchJournalEntries } from '@/lib/api/journal';
 import { labels, tr } from '../lib/i18n';
@@ -59,6 +59,9 @@ beforeEach(() => {
   container = document.createElement('div');
   document.body.appendChild(container);
   vi.mocked(getVersions).mockReset().mockResolvedValue([]);
+  vi.mocked(fetchCvText)
+    .mockReset()
+    .mockRejectedValue(new ProblemError({ status: 404 }));
   vi.mocked(fetchJournalEntries).mockReset().mockResolvedValue([]);
   vi.mocked(fetchEvolutionHistory).mockReset().mockResolvedValue([]);
 });
@@ -116,5 +119,26 @@ describe('RecentActivity', () => {
     await render('token-1');
     await render('token-2');
     expect(getVersions).toHaveBeenCalledTimes(1);
+  });
+  it('lists the first cv save, which leaves no archived version', async () => {
+    vi.mocked(fetchCvText).mockResolvedValue({
+      id: uuid(9),
+      content: '# Juan',
+      created_at: '2026-10-01T10:00:00Z',
+      updated_at: '2026-10-30T10:00:00Z',
+    });
+    await render();
+    expect(rows()).toEqual([labels('es').activity.cvSaved]);
+    expect(document.body.textContent).not.toContain(labels('es').activity.partial);
+  });
+});
+
+describe('cvSaves', () => {
+  it('counts the current save and the archive it made once', () => {
+    expect(
+      cvSaves('2026-10-28T10:00:00.400Z', ['2026-10-28T10:00:00Z', '2026-09-01T10:00:00Z']),
+    ).toEqual(['2026-10-28T10:00:00.400Z', '2026-09-01T10:00:00Z']);
+    expect(cvSaves(null, [])).toEqual([]);
+    expect(cvSaves('2026-10-30T10:00:00Z', [])).toEqual(['2026-10-30T10:00:00Z']);
   });
 });

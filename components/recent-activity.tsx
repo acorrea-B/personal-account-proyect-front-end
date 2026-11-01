@@ -5,7 +5,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { formatWhen } from '@/components/cv-timeline';
 import { Skeleton } from '@/components/skeleton';
 import { workspacePanel } from '@/components/ui';
-import { getVersions } from '@/lib/api/cv';
+import { ProblemError } from '@/lib/api/client';
+import { fetchCvText, getVersions } from '@/lib/api/cv';
 import { fetchEvolutionHistory } from '@/lib/api/evolution';
 import { fetchJournalEntries } from '@/lib/api/journal';
 import { type Locale, labels, tr } from '@/lib/i18n';
@@ -15,6 +16,24 @@ export type ActivityItem = { id: string; at: string; text: string };
 // How many events the home lists, and how many each source contributes
 // at most (the newest of each).
 export const activityLimit = 5;
+
+// The moments the cv was saved: the current cv's newest save, plus the
+// moment each archived version was replaced (a later save). The newest
+// archive and the current save are usually the same save, so stamps one
+// second apart or less count once; newest first, at most the limit.
+export function cvSaves(currentSavedAt: string | null, archivedAt: string[]): string[] {
+  const stamps = [...(currentSavedAt ? [currentSavedAt] : []), ...archivedAt].sort(
+    (left, right) => Date.parse(right) - Date.parse(left),
+  );
+  const saves: string[] = [];
+  for (const stamp of stamps) {
+    const last = saves[saves.length - 1];
+    if (!last || Date.parse(last) - Date.parse(stamp) > 1000) {
+      saves.push(stamp);
+    }
+  }
+  return saves.slice(0, activityLimit);
+}
 
 type ActivityState =
   { kind: 'loading' } | { kind: 'ready'; items: ActivityItem[]; partial: boolean };
@@ -32,19 +51,23 @@ export function RecentActivity({ accessToken, locale }: { accessToken: string; l
 
   const load = useCallback(async () => {
     const token = tokenRef.current;
-    const [versions, entries, checks] = await Promise.allSettled([
+    const [current, versions, entries, checks] = await Promise.allSettled([
+      // The current cv carries its newest save; a 404 is "no cv yet".
+      fetchCvText(token).catch((error: unknown) => {
+        if (error instanceof ProblemError && error.problem.status === 404) {
+          return null;
+        }
+        throw error;
+      }),
       getVersions(token),
       fetchJournalEntries(token, activityLimit),
       fetchEvolutionHistory(token, activityLimit),
     ]);
     const items: ActivityItem[] = [
-      ...(versions.status === 'fulfilled'
-        ? versions.value.slice(0, activityLimit).map((version) => ({
-            id: `cv-${version.id}`,
-            at: version.archived_at,
-            text: a.cvSaved,
-          }))
-        : []),
+      ...cvSaves(
+        current.status === 'fulfilled' ? (current.value?.updated_at ?? null) : null,
+        versions.status === 'fulfilled' ? versions.value.map((version) => version.archived_at) : [],
+      ).map((at) => ({ id: `cv-${at}`, at, text: a.cvSaved })),
       ...(entries.status === 'fulfilled'
         ? entries.value.map((entry) => ({
             id: `journal-${entry.id}`,
@@ -65,7 +88,7 @@ export function RecentActivity({ accessToken, locale }: { accessToken: string; l
     setState({
       kind: 'ready',
       items,
-      partial: [versions, entries, checks].some((result) => result.status === 'rejected'),
+      partial: [current, versions, entries, checks].some((result) => result.status === 'rejected'),
     });
   }, [a, t.evolution]);
 
