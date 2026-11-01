@@ -228,4 +228,30 @@ describe('DashboardView', () => {
     const t = labels('es');
     expect(document.body.textContent).toContain('teapot overflow' + t.workspace.detailSuffix);
   });
+
+  it('does not reload the dashboard when the session renews its token', async () => {
+    authorizedSession();
+    fetchProfileMock.mockResolvedValue(PROFILE);
+    await render('en');
+    const calls = fetchProfileMock.mock.calls.length;
+    requireAuthMock.mockReturnValue({
+      isHydrated: true,
+      isAuthorized: true,
+      session: {
+        accessToken: 'token-2',
+        refreshToken: 'refresh-1',
+        user: {
+          id: 'user-1',
+          email: 'juan@example.com',
+          verified: true,
+          created_at: '2026-10-25T00:00:00.000Z',
+        },
+      },
+    });
+    // Same mounted dashboard, new token (a background renewal).
+    await act(async () => {
+      root?.render(createElement(DashboardView, { locale: 'en' }));
+    });
+    expect(fetchProfileMock.mock.calls.length).toBe(calls);
+  });
 });
