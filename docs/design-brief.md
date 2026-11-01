@@ -1,5 +1,16 @@
 # Design brief — personal-account-proyect-front-end
 
+> **Dirección UI/UX vigente — 2026-11-01:** mejorar composición, representación de
+> información y variedad cromática con el skill
+> [design-professional-ui](../.agents/skills/design-professional-ui/SKILL.md).
+> Conservar Seline como base y permitir extensiones semánticas documentadas para
+> evidencia, revisión y errores, así como superficies con distinta jerarquía.
+> Esta dirección reemplaza las prohibiciones absolutas de otros acentos, el uso
+> obligatorio de texto blanco sobre cian y la aplicación rígida de reglas de
+> landing a pantallas privadas. Comprobar contraste, tarea y datos reales.
+> El resto del brief se conserva como contexto histórico y se contrasta con la
+> implementación actual; los archivos de Refero permanecen como referencia de origen.
+
 **Created**: 2026-10-25
 **Status**: proposed — pending approval to scaffold and implement
 **Selected visual reference**: Seline Analytics

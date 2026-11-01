@@ -1,0 +1,4 @@
+interface:
+  display_name: "Diseñar perfiles profesionales"
+  short_description: "Criterio UI/UX para color, cards y flujos claros"
+  default_prompt: "Usa $design-professional-ui para mejorar la composición, las cards y el color de esta pantalla según su tarea principal."

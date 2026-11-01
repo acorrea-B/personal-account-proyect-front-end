@@ -1,5 +1,13 @@
 # Visual polish iteration specification
 
+> **Actualización de dirección — 2026-11-01:** aplicar
+> [design-professional-ui](../../.agents/skills/design-professional-ui/SKILL.md)
+> para decidir composición, anatomía de cards, superficies y color semántico.
+> Las restricciones absolutas de un solo acento y texto blanco sobre cian de
+> esta retrospectiva quedan sustituidas por la dirección vigente de
+> [design-brief.md](../design-brief.md). Conservar las demás lecciones como
+> contexto y verificar el código actual antes de aplicarlas.
+
 This note records the cost of the extended landing/auth visual iteration and converts it into a fixed specification set. Future UI work must define these points before implementation.
 
 ## Spec, point by point
