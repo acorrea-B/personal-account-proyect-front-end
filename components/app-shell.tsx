@@ -52,6 +52,10 @@ export function AppNav({ locale }: { locale: Locale }) {
   const base = locale === 'es' ? '/es' : '';
   const active = activeSection(usePathname());
   const pending = usePendingSuggestions();
+  // Each section marks what waits in it: skills in the profile, CV
+  // improvements on the CV page.
+  const marked = (key: Section) =>
+    key === 'profile' ? pending.skills : key === 'cv' ? pending.cv : 0;
   return (
     <nav aria-label={t.label} className="min-w-0">
       <ul className="m-0 grid list-none gap-4 p-0 max-md:flex max-md:flex-wrap">
@@ -71,13 +75,15 @@ export function AppNav({ locale }: { locale: Locale }) {
               >
                 <ItemIcon className="size-[18px] flex-none" />
                 {t[key]}
-                {key === 'profile' && pending > 0 ? (
+                {marked(key) > 0 ? (
                   <>
                     <span aria-hidden="true" className="relative ml-auto flex size-[10px]">
                       <span className="absolute inline-flex size-full animate-ping rounded-full bg-cyan-signal opacity-60 motion-reduce:animate-none" />
                       <span className="relative inline-flex size-[10px] rounded-full bg-cyan-signal" />
                     </span>
-                    <span className="sr-only">{tr(t.pendingAria, { count: String(pending) })}</span>
+                    <span className="sr-only">
+                      {tr(t.pendingAria, { count: String(marked(key)) })}
+                    </span>
                   </>
                 ) : null}
               </Link>
