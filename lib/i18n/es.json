@@ -397,7 +397,7 @@
     "limit": "Límite recomendado: {limit}",
     "evidence": "Evidencia confirmada",
     "evidenceOf": "de {total} entradas del diario",
-    "confirmPending": "Confirmar las {count} pendientes",
+    "confirmPending": "{count} sin usar como evidencia · Abrir el diario",
     "notMeasured": "Aún no medido",
     "deltaShort": "{points} pts",
     "up": "Subió {points} puntos desde la revisión anterior",
