@@ -311,13 +311,26 @@ describe('SuggestionsTour', () => {
     );
     await press(t.finish);
     // Finished: the review entry stays, with the CV steps only.
-    expect(document.body.textContent).toContain(tr(t.summaryCount, { count: '2' }));
+    // Only the applied improvement counts as chosen; the skipped one does not.
+    expect(document.body.textContent).toContain(tr(t.summaryCount, { count: '1' }));
     await press(t.review);
     const dialog = document.querySelector('[role="dialog"]');
     expect(dialog?.textContent).toContain(tr(t.progress, { step: '1', total: '3' }));
     expect(dialog?.textContent).toContain(t.applied);
     await press(t.close);
     expect(document.body.textContent).toContain(t.review);
+  });
+
+  it('shows no chosen count when every improvement was skipped', async () => {
+    window.localStorage.setItem(
+      'profile.tour.cvChoices',
+      JSON.stringify({ revision: REV, choices: { Summary: 'skip' } }),
+    );
+    serve([suggestion('Summary', 'AllSupported')], []);
+    await render('en');
+    const t = labels('en').tour;
+    expect(document.body.textContent).toContain(t.review);
+    expect(document.body.textContent).not.toContain(tr(t.summaryCount, { count: '1' }));
   });
 
   it('stays hidden when the suggestions cannot load', async () => {

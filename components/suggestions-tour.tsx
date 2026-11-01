@@ -223,6 +223,9 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
   const decided = advice.filter(
     (item) => item.kind === 'suggestion' && choices[item.suggestion.suggestion_id],
   ).length;
+  const appliedCount = advice.filter(
+    (item) => item.kind === 'suggestion' && choices[item.suggestion.suggestion_id] === 'apply',
+  ).length;
 
   // Records the choice for a suggestion (kept for the next CV version) and
   // moves on.
@@ -312,7 +315,7 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     <>
       {reviewable ? (
         <p className="m-0 flex flex-wrap items-center gap-8 text-[14px] text-warm-gray">
-          {tr(t.summaryCount, { count: String(decided) })}
+          {appliedCount ? tr(t.summaryCount, { count: String(appliedCount) }) : null}
           <button
             ref={startRef}
             type="button"
