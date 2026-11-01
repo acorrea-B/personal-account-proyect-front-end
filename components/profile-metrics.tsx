@@ -78,13 +78,45 @@ function Delta({ points, rate, locale }: { points: number | null; rate: Rate; lo
   );
 }
 
-function Tile({ children }: { children: ReactNode }) {
+type Tone = 'cyan' | 'teal' | 'alert' | 'sky';
+
+// Each tile wears its own tint: a soft wash fading into white and a 3px
+// accent on top, so the four numbers read as four things at a glance.
+const toneClass: Record<Tone, string> = {
+  cyan: 'border-t-cyan-text-strong bg-[linear-gradient(180deg,var(--color-sky-wash-soft),var(--color-pure-white)_70%)]',
+  teal: 'border-t-teal-text bg-[linear-gradient(180deg,var(--color-teal-wash),var(--color-pure-white)_70%)]',
+  alert:
+    'border-t-alert bg-[linear-gradient(180deg,rgba(185,28,28,0.08),var(--color-pure-white)_70%)]',
+  sky: 'border-t-cyan-signal bg-[linear-gradient(180deg,var(--color-sky-wash),var(--color-pure-white)_75%)]',
+};
+
+function Tile({
+  children,
+  tone = 'cyan',
+  order = 0,
+}: {
+  children: ReactNode;
+  tone?: Tone;
+  order?: number;
+}) {
   return (
-    <div className="grid content-start gap-8 rounded-2xl border border-stone-border bg-pure-white p-16">
+    <div
+      className={cx(
+        'grid animate-tile-in content-start gap-8 rounded-2xl border border-t-[3px] border-stone-border p-16 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-[box-shadow,transform] duration-300 ease-out hover:-translate-y-[2px] hover:shadow-[0_10px_24px_rgba(13,104,184,0.10)] motion-reduce:animate-none motion-reduce:transition-none motion-reduce:hover:translate-y-0',
+        toneClass[tone],
+      )}
+      style={{ animationDelay: `${order * 90}ms` }}
+    >
       {children}
     </div>
   );
 }
+
+const rateTone: Record<Rate, Tone> = {
+  completeness_score: 'cyan',
+  claim_supported_rate: 'teal',
+  over_claimed_rate: 'cyan',
+};
 
 // One rate as a stat tile with its meter (label and value in text tokens,
 // the fill on a lighter track of the same ramp).
@@ -94,20 +126,22 @@ function RateTile({
   current,
   previous,
   locale,
+  order,
 }: {
   rate: Rate;
   label: string;
   current: ProfileMetricsOutput;
   previous: ProfileMetricsOutput | null;
   locale: Locale;
+  order: number;
 }) {
   const t = labels(locale).metrics;
   const value = current[rate];
   const measured = typeof value === 'number';
   const alert = rate === 'over_claimed_rate' && measured && value > overClaimedLimit;
   return (
-    <Tile>
-      <span className="text-[13px] text-warm-gray">{label}</span>
+    <Tile tone={alert ? 'alert' : rateTone[rate]} order={order}>
+      <span className="text-[13px] font-medium text-soot">{label}</span>
       <div className="flex flex-wrap items-baseline gap-8">
         <span className="font-roobert text-[28px] leading-[1.1] font-semibold text-ink-black tabular-nums">
           {measured ? percent(value, locale) : t.notMeasured}
@@ -128,8 +162,18 @@ function RateTile({
       >
         {measured ? (
           <div
-            className={cx('h-full rounded-full', alert ? 'bg-alert' : 'bg-cyan-text-strong')}
-            style={{ width: `${Math.max(value * 100, value > 0 ? 2 : 0)}%` }}
+            className={cx(
+              'h-full origin-left animate-meter-grow rounded-full motion-reduce:animate-none',
+              alert
+                ? 'bg-alert'
+                : rate === 'claim_supported_rate'
+                  ? 'bg-teal-text'
+                  : 'bg-cyan-text-strong',
+            )}
+            style={{
+              width: `${Math.max(value * 100, value > 0 ? 2 : 0)}%`,
+              animationDelay: `${order * 90 + 150}ms`,
+            }}
           />
         ) : null}
       </div>
@@ -174,7 +218,8 @@ function TrendChart({
         </div>
         <div className="relative mx-16 h-[160px]" aria-hidden="true">
           <svg
-            className="absolute inset-0 block size-full overflow-visible"
+            key={rate}
+            className="absolute inset-0 block size-full animate-reveal-x overflow-visible motion-reduce:animate-none"
             viewBox="0 0 100 100"
             preserveAspectRatio="none"
           >
@@ -201,6 +246,17 @@ function TrendChart({
               y2="100"
               stroke="var(--color-stone-muted)"
               vectorEffect="non-scaling-stroke"
+            />
+            <defs>
+              <linearGradient id={`trend-fill-${rate}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--color-cyan-signal)" stopOpacity="0.22" />
+                <stop offset="100%" stopColor="var(--color-cyan-signal)" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <polygon
+              points={`${line} ${x(last)},100 ${x(0)},100`}
+              fill={`url(#trend-fill-${rate})`}
+              className="animate-content-resolve motion-reduce:animate-none"
             />
             <polyline
               points={line}
@@ -347,9 +403,10 @@ export function ProfileMetrics({ accessToken, locale }: { accessToken: string; l
     <div className="grid gap-16">
       <section aria-label={t.title} className="grid gap-8">
         <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-12">
-          {rates.map((item) => (
+          {rates.map((item, index) => (
             <RateTile
               key={item.key}
+              order={index}
               rate={item.key}
               label={t[item.label]}
               current={current.metrics}
@@ -357,8 +414,8 @@ export function ProfileMetrics({ accessToken, locale }: { accessToken: string; l
               locale={locale}
             />
           ))}
-          <Tile>
-            <span className="text-[13px] text-warm-gray">{t.aiOutput}</span>
+          <Tile tone="sky" order={rates.length}>
+            <span className="text-[13px] font-medium text-soot">{t.aiOutput}</span>
             <div className="flex flex-wrap items-baseline gap-8">
               <span className="font-roobert text-[28px] leading-[1.1] font-semibold text-ink-black tabular-nums">
                 {`${counts.supported}/${counts.total}`}

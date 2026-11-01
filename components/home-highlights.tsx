@@ -175,7 +175,13 @@ export function HomeHighlights({
 
   return (
     <div className={grid}>
-      <section className={workspacePanel} aria-label={h.nextEyebrow}>
+      <section
+        className={cx(
+          workspacePanel,
+          'animate-tile-in border-cyan-edge/40 bg-[linear-gradient(135deg,var(--color-sky-wash-soft),var(--color-pure-white)_65%)] motion-reduce:animate-none',
+        )}
+        aria-label={h.nextEyebrow}
+      >
         <span className="text-(length:--text-label) font-semibold tracking-[0.08em] text-cyan-text uppercase">
           {h.nextEyebrow}
         </span>
@@ -190,7 +196,13 @@ export function HomeHighlights({
         </div>
       </section>
 
-      <section className={workspacePanel} aria-label={h.evolutionEyebrow}>
+      <section
+        className={cx(
+          workspacePanel,
+          'animate-tile-in bg-[linear-gradient(135deg,var(--color-teal-wash),var(--color-pure-white)_60%)] [animation-delay:90ms] motion-reduce:animate-none',
+        )}
+        aria-label={h.evolutionEyebrow}
+      >
         <div className="flex flex-wrap items-center justify-between gap-8">
           <Eyebrow>{h.evolutionEyebrow}</Eyebrow>
           {state.lastCheck ? (
@@ -230,7 +242,7 @@ export function HomeHighlights({
                 className="h-[6px] overflow-hidden rounded-full bg-teal-wash"
               >
                 <div
-                  className="h-full rounded-full bg-teal-text"
+                  className="h-full origin-left animate-meter-grow rounded-full bg-teal-text motion-reduce:animate-none"
                   style={{ width: `${(month / mode.horizon_months) * 100}%` }}
                 />
               </div>
