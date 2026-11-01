@@ -328,7 +328,7 @@
     "mustEvolveHint": "Crecer es necesario: mi rol o el mercado lo exigen.",
     "targetRole": "Rol objetivo",
     "targetPlaceholder": "p. ej. Staff platform engineer",
-    "horizon": "Horizonte",
+    "horizon": "Horizonte (meses, 1–36)",
     "rationale": "Por qué (opcional)",
     "declare": "Declarar mi modo",
     "declaring": "Guardando…",
