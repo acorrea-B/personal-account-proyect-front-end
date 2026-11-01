@@ -27,6 +27,15 @@ vi.mock('@/lib/api/cv', async () => ({
   getVersions: (...args: unknown[]) => getVersionsMock(...args),
 }));
 
+// The tour and the AI card have their own tests; here they are markers, so
+// the page's own fetches stay the only ones mocked.
+vi.mock('@/components/suggestions-tour', () => ({
+  SuggestionsTour: () => createElement('div', { 'data-testid': 'cv-tour' }),
+}));
+vi.mock('@/components/ai-suggestions-card', () => ({
+  AiSuggestionsCard: () => createElement('div', { 'data-testid': 'cv-ai-card' }),
+}));
+
 import { ProblemError } from '@/lib/api/client';
 import { maxCvContentBytes } from '@/lib/schemas/cv';
 import { labels, tr } from '@/lib/i18n';
@@ -131,6 +140,15 @@ describe('CvEditorView', () => {
       link.textContent?.includes(t.back),
     );
     expect((back?.getAttribute('href') ?? '').replace(/\/+$/, '')).toBe('/app');
+  });
+
+  it('keeps the CV improvements with the CV: the tour first, the AI card after the editor', async () => {
+    await render('es');
+    const tour = document.querySelector('[data-testid="cv-tour"]') as HTMLElement;
+    const card = document.querySelector('[data-testid="cv-ai-card"]') as HTMLElement;
+    const editor = document.querySelector('textarea') as HTMLElement;
+    expect(tour.compareDocumentPosition(editor)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(editor.compareDocumentPosition(card)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
   it('opens the loaded cv with the dictionary chrome on the es tree', async () => {

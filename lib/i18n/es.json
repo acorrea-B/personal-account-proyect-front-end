@@ -233,7 +233,7 @@
     "loadFailed": "No se pudieron cargar las sugerencias.",
     "busy": "El servicio está ocupado; inténtalo de nuevo en un momento.",
     "retry": "Reintentar",
-    "cvNew": "{count} sugerencias para tu CV de tu última revisión — la revisión llega pronto.",
+    "cvNew": "{count} mejoras para tu CV te esperan en la página del CV.",
     "showEvidence": "Ver evidencia",
     "showMore": "Ver {count} más"
   },

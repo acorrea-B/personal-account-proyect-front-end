@@ -10,8 +10,10 @@ import { type Locale, labels, tr } from '@/lib/i18n';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
 import { AppShell } from '@/components/app-shell';
+import { AiSuggestionsCard } from '@/components/ai-suggestions-card';
 import { CvHistoryPanel } from '@/components/cv-history-panel';
 import { formatWhen } from '@/components/cv-timeline';
+import { SuggestionsTour } from '@/components/suggestions-tour';
 import {
   AuthForm,
   Eyebrow,
@@ -220,6 +222,12 @@ export function CvEditorView({ locale }: { locale: Locale }) {
           <AccountMenu locale={locale} />
         </WorkspaceBar>
 
+        {/* The CV improvements live with the CV: the invitation to walk them
+            first, the full list of AI suggestions after the editor. */}
+        {accessToken && load.status === 'ready' ? (
+          <SuggestionsTour accessToken={accessToken} locale={locale} />
+        ) : null}
+
         <div className={cvGrid}>
           {load.status === 'error' ? (
             <section className={editorCard}>
@@ -331,6 +339,10 @@ export function CvEditorView({ locale }: { locale: Locale }) {
             />
           ) : null}
         </div>
+
+        {accessToken && load.status === 'ready' ? (
+          <AiSuggestionsCard accessToken={accessToken} locale={locale} />
+        ) : null}
       </div>
 
       {showToast ? (

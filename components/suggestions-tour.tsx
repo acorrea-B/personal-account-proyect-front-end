@@ -285,7 +285,7 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
       {inviting ? (
         <section
           aria-label={t.bannerTitle}
-          className="grid animate-content-resolve gap-12 rounded-2xl border border-cyan-edge bg-[linear-gradient(120deg,var(--color-sky-wash-soft),var(--color-pure-white)_70%)] p-24 motion-reduce:animate-none sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+          className="grid animate-content-resolve gap-12 rounded-2xl border border-sky-wash bg-sky-wash-soft p-24 motion-reduce:animate-none sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
         >
           <div className="grid gap-4">
             <h2 className="m-0 font-roobert text-title-sm font-medium text-ink-black">
