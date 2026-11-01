@@ -64,25 +64,28 @@ afterEach(() => {
 
 describe('pendingCount', () => {
   it('counts the pending skills and the CV suggestions of a revision not walked yet', () => {
-    expect(pendingCount(summary(2, 3), null)).toBe(5);
-    expect(pendingCount(summary(2, 3), 'rev-cv-1')).toBe(2);
-    expect(pendingCount(summary(0, 3, null), null)).toBe(0);
+    expect(pendingCount(summary(2, 3), null)).toEqual({ skills: 2, cv: 3 });
+    expect(pendingCount(summary(2, 3), 'rev-cv-1')).toEqual({ skills: 2, cv: 0 });
+    expect(pendingCount(summary(0, 3, null), null)).toEqual({ skills: 0, cv: 0 });
   });
 });
 
 describe('the profile marker', () => {
-  const marker = () => {
-    const profile = [...document.querySelectorAll('nav a')].find((link) =>
-      link.getAttribute('href')?.endsWith('/app/profile'),
+  const markerOf = (path: string) => {
+    const link = [...document.querySelectorAll('nav a')].find((anchor) =>
+      anchor.getAttribute('href')?.endsWith(path),
     );
-    return profile?.querySelector('.sr-only')?.textContent ?? null;
+    return link?.querySelector('.sr-only')?.textContent ?? null;
   };
+  const marker = () => markerOf('/app/profile');
 
   it('marks the profile while suggestions wait there', async () => {
     session = { accessToken: 'token' };
     vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(2, 3));
     await render('es');
-    expect(marker()).toBe(tr(labels('es').nav.pendingAria, { count: '5' }));
+    // Skills mark the profile; the CV improvements mark the CV page.
+    expect(marker()).toBe(tr(labels('es').nav.pendingAria, { count: '2' }));
+    expect(markerOf('/app/cv')).toBe(tr(labels('es').nav.pendingAria, { count: '3' }));
     expect(fetchSuggestionsSummary).toHaveBeenCalledWith('token');
   });
 
@@ -102,6 +105,7 @@ describe('the profile marker', () => {
     markCvRevisionSeen('rev-cv-1');
     vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(0, 3));
     await render('en');
+    expect(markerOf('/app/cv')).toBeNull();
     expect(marker()).toBeNull();
   });
 
