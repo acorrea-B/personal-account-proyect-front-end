@@ -9,8 +9,24 @@ vi.mock('next/navigation', () => ({
   usePathname: () => pathname,
 }));
 
+let session: { accessToken: string } | null = null;
+// The menu reads the stored session; it never starts a session lifecycle.
+vi.mock('@/lib/auth/session', () => ({
+  loadSession: () => session,
+  sessionSavedEvent: 'auth:session-saved',
+}));
+
+vi.mock('@/lib/api/suggestions', () => ({ fetchSuggestionsSummary: vi.fn() }));
+
 import { AppShell, activeSection } from '../components/app-shell';
-import { labels, type Locale } from '../lib/i18n';
+import { fetchSuggestionsSummary } from '@/lib/api/suggestions';
+import { labels, tr, type Locale } from '../lib/i18n';
+import { announceSuggestionsChanged, pendingCount } from '../lib/suggestions-signal';
+
+const summary = (skills: number, cv: number, cvRevision: string | null = 'rev-cv-1') => ({
+  skills: { pending: skills, revision_id: 'rev-skills', created_at: null },
+  cv: { pending: cv, revision_id: cvRevision, created_at: null },
+});
 
 (globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -37,6 +53,68 @@ afterEach(() => {
   root = null;
   container = null;
   pathname = '/app/';
+  session = null;
+  window.localStorage.clear();
+  vi.mocked(fetchSuggestionsSummary).mockReset();
+});
+
+describe('pendingCount', () => {
+  it('counts the pending skill suggestions', () => {
+    expect(pendingCount(summary(2, 3))).toBe(2);
+    expect(pendingCount(summary(0, 3))).toBe(0);
+  });
+});
+
+describe('the profile marker', () => {
+  const marker = () => {
+    const profile = [...document.querySelectorAll('nav a')].find((link) =>
+      link.getAttribute('href')?.endsWith('/app/profile'),
+    );
+    return profile?.querySelector('.sr-only')?.textContent ?? null;
+  };
+
+  it('marks the profile while suggestions wait there', async () => {
+    session = { accessToken: 'token' };
+    vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(2, 3));
+    await render('es');
+    expect(marker()).toBe(tr(labels('es').nav.pendingAria, { count: '2' }));
+    expect(fetchSuggestionsSummary).toHaveBeenCalledWith('token');
+  });
+
+  it('reads the count again after a decision and clears when none wait', async () => {
+    session = { accessToken: 'token' };
+    vi.mocked(fetchSuggestionsSummary).mockResolvedValueOnce(summary(1, 0));
+    await render('en');
+    expect(marker()).toBe(tr(labels('en').nav.pendingAria, { count: '1' }));
+    vi.mocked(fetchSuggestionsSummary).mockResolvedValueOnce(summary(0, 0));
+    await act(async () => announceSuggestionsChanged());
+    expect(fetchSuggestionsSummary).toHaveBeenCalledTimes(2);
+    expect(marker()).toBeNull();
+  });
+
+  it('reads the count again once the page refreshes its session', async () => {
+    // An expired stored token: the page refreshes it after the shell mounts.
+    vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(2, 0));
+    await render('en');
+    expect(fetchSuggestionsSummary).not.toHaveBeenCalled();
+    session = { accessToken: 'fresh' };
+    await act(async () => {
+      window.dispatchEvent(new Event('auth:session-saved'));
+    });
+    expect(fetchSuggestionsSummary).toHaveBeenCalledWith('fresh');
+    expect(marker()).toBe(tr(labels('en').nav.pendingAria, { count: '2' }));
+  });
+
+  it('stays quiet without a session or when the summary fails', async () => {
+    await render('en');
+    expect(fetchSuggestionsSummary).not.toHaveBeenCalled();
+    act(() => root?.unmount());
+    session = { accessToken: 'token' };
+    vi.mocked(fetchSuggestionsSummary).mockRejectedValue(new Error('down'));
+    await render('en');
+    expect(marker()).toBeNull();
+    expect(document.querySelector('[role="alert"]')).toBeNull();
+  });
 });
 
 describe('activeSection', () => {

@@ -14,7 +14,8 @@ import {
   type IconProps,
 } from '@/components/icons';
 import { cx, linkClass } from '@/components/ui';
-import { type Locale, labels } from '@/lib/i18n';
+import { type Locale, labels, tr } from '@/lib/i18n';
+import { usePendingSuggestions } from '@/lib/suggestions-signal';
 
 type Section = 'home' | 'profile' | 'cv' | 'journal' | 'evolution';
 
@@ -43,11 +44,14 @@ export function activeSection(pathname: string | null): Section | null {
 
 // The workspace menu: every signed-in page carries it, so any flow is one
 // step from the others. A column beside the content on wide screens; on a
-// phone it sits above the content as a row of wrapping buttons.
+// phone it sits above the content as a row of wrapping buttons. The profile
+// item carries a marker while suggestions wait there (a call to action,
+// with its count in text for assistive tech).
 export function AppNav({ locale }: { locale: Locale }) {
   const t = labels(locale).nav;
   const base = locale === 'es' ? '/es' : '';
   const active = activeSection(usePathname());
+  const pending = usePendingSuggestions();
   return (
     <nav aria-label={t.label} className="min-w-0">
       <ul className="m-0 grid list-none gap-4 p-0 max-md:flex max-md:flex-wrap">
@@ -67,6 +71,15 @@ export function AppNav({ locale }: { locale: Locale }) {
               >
                 <ItemIcon className="size-[18px] flex-none" />
                 {t[key]}
+                {key === 'profile' && pending > 0 ? (
+                  <>
+                    <span aria-hidden="true" className="relative ml-auto flex size-[10px]">
+                      <span className="absolute inline-flex size-full animate-ping rounded-full bg-cyan-signal opacity-60 motion-reduce:animate-none" />
+                      <span className="relative inline-flex size-[10px] rounded-full bg-cyan-signal" />
+                    </span>
+                    <span className="sr-only">{tr(t.pendingAria, { count: String(pending) })}</span>
+                  </>
+                ) : null}
               </Link>
             </li>
           );
