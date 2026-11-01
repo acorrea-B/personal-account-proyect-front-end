@@ -19,10 +19,12 @@ vi.mock('@/lib/auth/useRequireAuth', () => ({
 
 const fetchCvMock = vi.fn();
 const saveCvMock = vi.fn();
+const getVersionsMock = vi.fn();
 vi.mock('@/lib/api/cv', async () => ({
   ...(await vi.importActual<typeof import('@/lib/api/cv')>('@/lib/api/cv')),
   fetchCvText: (...args: unknown[]) => fetchCvMock(...args),
   saveCvText: (...args: unknown[]) => saveCvMock(...args),
+  getVersions: (...args: unknown[]) => getVersionsMock(...args),
 }));
 
 import { ProblemError } from '@/lib/api/client';
@@ -69,6 +71,7 @@ describe('CvEditorView', () => {
     fetchCvMock.mockReset();
     saveCvMock.mockReset();
     fetchCvMock.mockResolvedValue(LOADED_CV);
+    getVersionsMock.mockReset().mockResolvedValue([]);
     requireAuthMock.mockReturnValue({
       isHydrated: true,
       isAuthorized: true,
@@ -191,5 +194,45 @@ describe('CvEditorView', () => {
     saveCvMock.mockRejectedValueOnce(new ProblemError({ status: 429, title: 'rate limited' }));
     await save();
     expect(document.body.textContent).toContain(labels('en').cvEditor.saveRateCapped);
+  });
+  it('keeps the draft when the session renews its token', async () => {
+    await render('en');
+    const area = document.querySelector<HTMLTextAreaElement>('textarea') as HTMLTextAreaElement;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set?.call(
+        area,
+        '# Juan, draft',
+      );
+      area.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    requireAuthMock.mockReturnValue({
+      isHydrated: true,
+      isAuthorized: true,
+      session: { accessToken: 'token-2', refreshToken: 'refresh-2', user: { email: 'j@e.co' } },
+    });
+    await act(async () => {
+      root?.render(createElement(CvEditorView, { locale: 'en' }));
+    });
+    expect(fetchCvMock).toHaveBeenCalledTimes(1);
+    expect(document.querySelector('textarea')?.value).toBe('# Juan, draft');
+  });
+
+  it('lists the version history beside the editor and reads it again after an archiving save', async () => {
+    saveCvMock.mockResolvedValue({
+      cv: { id: LOADED_CV.id, updated_at: '2026-10-31T12:00:00.000Z' },
+      previous_version_archived: true,
+    });
+    await render('en');
+    expect(getVersionsMock).toHaveBeenCalledTimes(1);
+    expect(
+      document.querySelector(`aside[aria-label="${labels('en').history.title}"]`),
+    ).not.toBeNull();
+    await act(async () => {
+      document
+        .querySelector('form')
+        ?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+    expect(saveCvMock).toHaveBeenCalled();
+    expect(getVersionsMock).toHaveBeenCalledTimes(2);
   });
 });

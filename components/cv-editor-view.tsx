@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ProblemError } from '@/lib/api/client';
 import { fetchCvText, saveCvText } from '@/lib/api/cv';
@@ -10,6 +10,7 @@ import { type Locale, labels, tr } from '@/lib/i18n';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
 import { AppShell } from '@/components/app-shell';
+import { CvHistoryPanel } from '@/components/cv-history-panel';
 import {
   AuthForm,
   Eyebrow,
@@ -58,6 +59,9 @@ export function CvEditorView({ locale }: { locale: Locale }) {
   // The save toast mirrors the profile card: pinned to the bottom of the
   // viewport for five seconds, hand-dismissable meanwhile.
   const [showToast, setShowToast] = useState(false);
+  // Bumped when a save archives the previous version: the history beside
+  // the editor reads the versions again.
+  const [historyKey, setHistoryKey] = useState(0);
 
   useEffect(() => {
     if (!showToast) {
@@ -116,8 +120,12 @@ export function CvEditorView({ locale }: { locale: Locale }) {
     [t],
   );
 
+  // Loads once per visit: the session renews the access token in the
+  // background, and reloading on it would replace the draft being typed.
+  const loaded = useRef(false);
   useEffect(() => {
-    if (isHydrated && isAuthorized && accessToken) {
+    if (isHydrated && isAuthorized && accessToken && !loaded.current) {
+      loaded.current = true;
       loadCv(accessToken);
     }
   }, [isHydrated, isAuthorized, accessToken, loadCv]);
@@ -134,6 +142,9 @@ export function CvEditorView({ locale }: { locale: Locale }) {
       const savedMeta = await saveCvText(accessToken, content, meta?.updated_at);
       setMeta(savedMeta.cv);
       setNote(savedMeta.previous_version_archived ? t.cvEditor.savedNote : null);
+      if (savedMeta.previous_version_archived) {
+        setHistoryKey((key) => key + 1);
+      }
       setStale(false);
       setShowToast(true);
       setSave({ status: 'saved' });
@@ -208,99 +219,115 @@ export function CvEditorView({ locale }: { locale: Locale }) {
           <AccountMenu locale={locale} />
         </WorkspaceBar>
 
-        {load.status === 'error' ? (
-          <section className={editorCard}>
-            <div role="alert" className={inlineAlert}>
-              <p>{load.message}</p>
-              <button
-                type="button"
-                className={ghostButton}
-                onClick={() => accessToken && loadCv(accessToken)}
-              >
-                {t.cvCard.retry}
-              </button>
-            </div>
-          </section>
-        ) : (
-          <section className={editorCard} aria-label={t.cvEditor.title}>
-            {load.status === 'ready' ? (
-              <AuthForm
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  void saveCv();
-                }}
-              >
-                <Eyebrow>
-                  {meta
-                    ? tr(t.cvEditor.currentVersionSaved, { date: meta.updated_at })
-                    : t.cvEditor.firstVersion}
-                </Eyebrow>
-                <div>
-                  <textarea
-                    className="block min-h-[340px] w-full max-w-full resize-y text-(length:--text-body-md) leading-[1.6] whitespace-pre-wrap aria-invalid:border-alert focus-visible:border-cyan-text! focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none max-md:min-h-[260px]"
-                    value={content}
-                    onChange={(event) => setContent(event.target.value)}
-                    rows={18}
-                    aria-label={t.cvEditor.textareaAria}
-                    aria-describedby="cv-byte-counter"
-                    aria-invalid={overLimit}
-                    placeholder={t.cvEditor.placeholder}
-                  />
-                  <p>
-                    <span
-                      id="cv-byte-counter"
-                      className={cx(
-                        'text-(length:--text-body-md) tabular-nums',
-                        overLimit ? 'font-medium text-alert' : 'text-ink-black',
-                      )}
-                    >
-                      {tr(t.cvEditor.byteCounter, {
-                        bytes: String(bytes),
-                        max: String(maxCvContentBytes),
-                      })}
-                    </span>
-                    {note ? (
-                      <span role="status" className={inlineNote}>
-                        {note}
+        <div className={cvGrid}>
+          {load.status === 'error' ? (
+            <section className={editorCard}>
+              <div role="alert" className={inlineAlert}>
+                <p>{load.message}</p>
+                <button
+                  type="button"
+                  className={ghostButton}
+                  onClick={() => accessToken && loadCv(accessToken)}
+                >
+                  {t.cvCard.retry}
+                </button>
+              </div>
+            </section>
+          ) : (
+            <section className={editorCard} aria-label={t.cvEditor.title}>
+              {load.status === 'ready' ? (
+                <AuthForm
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void saveCv();
+                  }}
+                >
+                  <Eyebrow>
+                    {meta
+                      ? tr(t.cvEditor.currentVersionSaved, { date: meta.updated_at })
+                      : t.cvEditor.firstVersion}
+                  </Eyebrow>
+                  <div>
+                    <textarea
+                      className="block min-h-[340px] w-full max-w-full resize-y text-(length:--text-body-md) leading-[1.6] whitespace-pre-wrap aria-invalid:border-alert focus-visible:border-cyan-text! focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none max-md:min-h-[260px]"
+                      value={content}
+                      onChange={(event) => setContent(event.target.value)}
+                      rows={18}
+                      aria-label={t.cvEditor.textareaAria}
+                      aria-describedby="cv-byte-counter"
+                      aria-invalid={overLimit}
+                      placeholder={t.cvEditor.placeholder}
+                    />
+                    <p>
+                      <span
+                        id="cv-byte-counter"
+                        className={cx(
+                          'text-(length:--text-body-md) tabular-nums',
+                          overLimit ? 'font-medium text-alert' : 'text-ink-black',
+                        )}
+                      >
+                        {tr(t.cvEditor.byteCounter, {
+                          bytes: String(bytes),
+                          max: String(maxCvContentBytes),
+                        })}
                       </span>
-                    ) : null}
-                    {stale ? (
-                      <span role="alert" className={inlineAlert}>
-                        {t.cvEditor.stale}
-                        <button
-                          type="button"
-                          className={ghostButton}
-                          onClick={() => accessToken && loadCv(accessToken)}
-                        >
-                          {t.cvEditor.reloadAction}
-                        </button>
-                      </span>
-                    ) : null}
-                  </p>
-                </div>
+                      {note ? (
+                        <span role="status" className={inlineNote}>
+                          {note}
+                        </span>
+                      ) : null}
+                      {stale ? (
+                        <span role="alert" className={inlineAlert}>
+                          {t.cvEditor.stale}
+                          <button
+                            type="button"
+                            className={ghostButton}
+                            onClick={() => accessToken && loadCv(accessToken)}
+                          >
+                            {t.cvEditor.reloadAction}
+                          </button>
+                        </span>
+                      ) : null}
+                    </p>
+                  </div>
 
-                <div className="flex flex-wrap gap-8 max-sm:flex-col max-sm:items-stretch">
-                  <button
-                    type="submit"
-                    className={cx(primaryButton, 'max-sm:w-full')}
-                    disabled={save.status === 'saving' || overLimit}
-                  >
-                    {save.status === 'saving'
-                      ? t.cvEditor.saving
-                      : save.status === 'saved'
-                        ? t.cvEditor.saved
-                        : t.cvEditor.save}
-                  </button>
-                  {/* The persistent way back: never tied to the toast's
+                  <div className="flex flex-wrap gap-8 max-sm:flex-col max-sm:items-stretch">
+                    <button
+                      type="submit"
+                      className={cx(primaryButton, 'max-sm:w-full')}
+                      disabled={save.status === 'saving' || overLimit}
+                    >
+                      {save.status === 'saving'
+                        ? t.cvEditor.saving
+                        : save.status === 'saved'
+                          ? t.cvEditor.saved
+                          : t.cvEditor.save}
+                    </button>
+                    {/* The persistent way back: never tied to the toast's
                       five seconds, so the exit does not vanish with it. */}
-                  <Link className={cx(ghostButton, 'max-sm:w-full')} href={`${base}/app/`}>
-                    <HomeIcon /> {t.cvEditor.back}
-                  </Link>
-                </div>
-              </AuthForm>
-            ) : null}
-          </section>
-        )}
+                    <Link className={cx(ghostButton, 'max-sm:w-full')} href={`${base}/app/`}>
+                      <HomeIcon /> {t.cvEditor.back}
+                    </Link>
+                  </div>
+                </AuthForm>
+              ) : null}
+            </section>
+          )}
+          {accessToken ? (
+            <CvHistoryPanel
+              accessToken={accessToken}
+              locale={locale}
+              currentUpdatedAt={meta?.updated_at}
+              refreshKey={historyKey}
+              onRestored={() => {
+                setHistoryKey((key) => key + 1);
+                if (accessToken) {
+                  void loadCv(accessToken);
+                }
+              }}
+            />
+          ) : null}
+        </div>
       </div>
 
       {showToast ? (
@@ -325,3 +352,7 @@ const editorCard =
 function readFallback(error: unknown): string | undefined {
   return error instanceof ProblemError ? (error.problem.detail ?? error.problem.title) : undefined;
 }
+
+// The editor beside its version history; stacked under 860px.
+const cvGrid =
+  'grid grid-cols-[minmax(0,1.6fr)_minmax(260px,0.9fr)] items-start gap-16 max-md:grid-cols-1';
