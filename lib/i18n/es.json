@@ -346,5 +346,21 @@
     "structural": "Brecha estructural",
     "unmeasurable": "Aún no medible",
     "action": "Siguiente: {action} · {target}"
+  },
+  "health": {
+    "title": "Salud del perfil",
+    "asOf": "De la revisión del {date}",
+    "completeness": "Completitud",
+    "supported": "Afirmaciones respaldadas por evidencia",
+    "overClaimed": "Afirmaciones por encima de la evidencia",
+    "overClaimedHigh": "Revisa estas afirmaciones",
+    "entries": "Entradas del diario",
+    "confirmed": "Confirmadas como evidencia",
+    "notMeasured": "Aún no medido",
+    "none": "Aún no hay revisión — el harness calcula esto cuando tu perfil tenga una revisión.",
+    "pending": "El benchmark de tu última revisión aún no está listo.",
+    "loadFailed": "No se pudo cargar la salud de tu perfil.",
+    "retry": "Reintentar",
+    "loadingAria": "Cargando la salud de tu perfil"
   }
 }

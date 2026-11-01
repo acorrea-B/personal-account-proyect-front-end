@@ -346,5 +346,21 @@
     "structural": "Structural gap",
     "unmeasurable": "Not measurable yet",
     "action": "Next: {action} · {target}"
+  },
+  "health": {
+    "title": "Profile health",
+    "asOf": "From the revision of {date}",
+    "completeness": "Completeness",
+    "supported": "Claims backed by evidence",
+    "overClaimed": "Claims above the evidence",
+    "overClaimedHigh": "Review these claims",
+    "entries": "Journal entries",
+    "confirmed": "Confirmed as evidence",
+    "notMeasured": "Not measured yet",
+    "none": "No revision yet — the harness computes this once your profile has a revision.",
+    "pending": "The benchmark of your latest revision is not ready yet.",
+    "loadFailed": "Your profile health could not be loaded.",
+    "retry": "Try again",
+    "loadingAria": "Loading your profile health"
   }
 }
