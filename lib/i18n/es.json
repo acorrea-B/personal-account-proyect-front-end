@@ -111,6 +111,15 @@
     "heading": "Cerrando sesión",
     "subtitle": "Terminando tu sesión en este dispositivo."
   },
+  "nav": {
+    "label": "Secciones",
+    "home": "Inicio",
+    "profile": "Perfil",
+    "cv": "CV",
+    "journal": "Diario",
+    "evolution": "Evolución",
+    "back": "Volver al inicio"
+  },
   "workspace": {
     "eyebrow": "Tu espacio",
     "greeting": "Hola, {name}.",

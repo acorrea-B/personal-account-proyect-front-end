@@ -111,6 +111,15 @@
     "heading": "Signing out",
     "subtitle": "Ending your session on this device."
   },
+  "nav": {
+    "label": "Sections",
+    "home": "Home",
+    "profile": "Profile",
+    "cv": "CV",
+    "journal": "Journal",
+    "evolution": "Evolution",
+    "back": "Back to home"
+  },
   "workspace": {
     "eyebrow": "Your workspace",
     "greeting": "Hello, {name}.",
