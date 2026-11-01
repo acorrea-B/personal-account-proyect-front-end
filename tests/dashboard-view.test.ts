@@ -34,8 +34,10 @@ vi.mock('@/lib/api/cv', async () => ({
   getVersions: (...args: unknown[]) => getVersionsMock(...args),
 }));
 
-vi.mock('@/lib/api/benchmark', () => ({
-  fetchBenchmarkTrend: vi.fn().mockResolvedValue([]),
+vi.mock('@/lib/api/harness', () => ({
+  fetchHarnessOutputs: vi
+    .fn()
+    .mockResolvedValue({ runAt: null, metrics: [], cvSuggestions: null, level: null, roles: [] }),
 }));
 
 vi.mock('@/lib/api/evolution', () => ({
@@ -166,7 +168,7 @@ describe('DashboardView', () => {
     );
     // The home summarizes: the metrics, the next step (here: declare the
     // evolution) and the evolution card; the flows live on their pages.
-    expect(document.body.textContent).toContain(t.metrics.none);
+    expect(document.body.textContent).toContain(t.metrics.noRun);
     expect(document.body.textContent).toContain(t.home.evolutionTitle);
     expect(document.body.textContent).toContain(t.home.noMode);
     expect(document.querySelector(`section[aria-label="${t.activity.title}"]`)).not.toBeNull();

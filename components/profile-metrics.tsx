@@ -5,12 +5,12 @@ import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 
 import { Skeleton } from '@/components/skeleton';
 import { cx, ghostButton, linkClass, workspacePanel } from '@/components/ui';
-import { type BenchmarkPoint, fetchBenchmarkTrend } from '@/lib/api/benchmark';
+import { type MetricsPoint, fetchHarnessOutputs } from '@/lib/api/harness';
 import { type Locale, labels, tr } from '@/lib/i18n';
-import type { Benchmark } from '@/lib/schemas/benchmark';
+import type { ProfileMetricsOutput } from '@/lib/schemas/harness';
 
 type MetricsState =
-  { kind: 'loading' } | { kind: 'error' } | { kind: 'ready'; points: BenchmarkPoint[] };
+  { kind: 'loading' } | { kind: 'error' } | { kind: 'ready'; points: MetricsPoint[] };
 
 type Rate = 'completeness_score' | 'claim_supported_rate' | 'over_claimed_rate';
 
@@ -97,8 +97,8 @@ function RateTile({
 }: {
   rate: Rate;
   label: string;
-  current: Benchmark;
-  previous: Benchmark | null;
+  current: ProfileMetricsOutput;
+  previous: ProfileMetricsOutput | null;
   locale: Locale;
 }) {
   const t = labels(locale).metrics;
@@ -246,7 +246,7 @@ function TrendChart({
         <caption>{tr(t.trendTitle, { metric: label })}</caption>
         <thead>
           <tr>
-            <th scope="col">{t.revision}</th>
+            <th scope="col">{t.run}</th>
             <th scope="col">{t.value}</th>
           </tr>
         </thead>
@@ -263,9 +263,10 @@ function TrendChart({
   );
 }
 
-// The home's numbers (BC-002/BC-007): the newest measured benchmark as stat
-// tiles with the change since the previous measured revision, and the
-// chosen rate across the newest revisions. It loads once per visit.
+// The home's numbers: the newest harness run's metrics (profile-metrics,
+// read from the profile revisions) as stat tiles with the change since the
+// previous run, how much of the AI output verification backed, and the
+// chosen rate across the newest runs. It loads once per visit.
 export function ProfileMetrics({ accessToken, locale }: { accessToken: string; locale: Locale }) {
   const t = labels(locale).metrics;
   const base = locale === 'es' ? '/es' : '';
@@ -277,7 +278,7 @@ export function ProfileMetrics({ accessToken, locale }: { accessToken: string; l
   const load = useCallback(async () => {
     setState({ kind: 'loading' });
     try {
-      setState({ kind: 'ready', points: await fetchBenchmarkTrend(tokenRef.current) });
+      setState({ kind: 'ready', points: (await fetchHarnessOutputs(tokenRef.current)).metrics });
     } catch {
       setState({ kind: 'error' });
     }
@@ -323,27 +324,23 @@ export function ProfileMetrics({ accessToken, locale }: { accessToken: string; l
     );
   }
 
-  const measured = state.points.filter(
-    (point): point is { revision: BenchmarkPoint['revision']; benchmark: Benchmark } =>
-      point.benchmark !== null,
-  );
-  if (!measured.length) {
+  const points = state.points;
+  if (!points.length) {
     return (
       <section className={workspacePanel} aria-label={t.title}>
-        <p className="m-0 text-[14px] text-warm-gray">{state.points.length ? t.pending : t.none}</p>
+        <p className="m-0 text-[14px] text-warm-gray">{t.noRun}</p>
       </section>
     );
   }
 
-  const current = measured[measured.length - 1];
-  const previous = measured.length > 1 ? measured[measured.length - 2].benchmark : null;
-  const newestPending = state.points[state.points.length - 1].benchmark === null;
-  const unconfirmed =
-    current.benchmark.journal_entries_count - current.benchmark.journal_confirmed_count;
+  const current = points[points.length - 1];
+  const previous = points.length > 1 ? points[points.length - 2].metrics : null;
+  const counts = current.metrics.suggestions;
+  const ai = labels(locale).ai;
   const selected = rates.find((item) => item.key === rate) ?? rates[0];
-  const series = measured.flatMap((point) => {
-    const value = point.benchmark[selected.key];
-    return typeof value === 'number' ? [{ at: point.revision.created_at, value }] : [];
+  const series = points.flatMap((point) => {
+    const value = point.metrics[selected.key];
+    return typeof value === 'number' ? [{ at: point.at, value }] : [];
   });
 
   return (
@@ -355,36 +352,40 @@ export function ProfileMetrics({ accessToken, locale }: { accessToken: string; l
               key={item.key}
               rate={item.key}
               label={t[item.label]}
-              current={current.benchmark}
+              current={current.metrics}
               previous={previous}
               locale={locale}
             />
           ))}
           <Tile>
-            <span className="text-[13px] text-warm-gray">{t.evidence}</span>
+            <span className="text-[13px] text-warm-gray">{t.aiOutput}</span>
             <div className="flex flex-wrap items-baseline gap-8">
               <span className="font-roobert text-[28px] leading-[1.1] font-semibold text-ink-black tabular-nums">
-                {new Intl.NumberFormat(numberLocale(locale)).format(
-                  current.benchmark.journal_confirmed_count,
-                )}
+                {`${counts.supported}/${counts.total}`}
               </span>
-              <span className="text-[13px] text-warm-gray">
-                {tr(t.evidenceOf, { total: String(current.benchmark.journal_entries_count) })}
+              <span className="sr-only">
+                {tr(t.aiOutputOf, {
+                  supported: String(counts.supported),
+                  total: String(counts.total),
+                })}
               </span>
             </div>
-            {unconfirmed > 0 ? (
-              <Link
-                className={cx(linkClass, 'text-[13px] font-medium')}
-                href={`${base}/app/journal/`}
-              >
-                {tr(t.confirmPending, { count: String(unconfirmed) })}
-              </Link>
-            ) : null}
+            <span className="text-[12px] text-warm-gray">
+              {[
+                tr(ai.qualityPartial, { count: String(counts.partial) }),
+                tr(ai.qualityBlocked, { count: String(counts.blocked) }),
+              ].join(' · ')}
+            </span>
+            <Link
+              className={cx(linkClass, 'text-[13px] font-medium')}
+              href={`${base}/app/profile/`}
+            >
+              {ai.title}
+            </Link>
           </Tile>
         </div>
         <p className="m-0 text-[12px] text-warm-gray">
-          {tr(t.asOf, { date: shortDay(current.revision.created_at, locale) })}
-          {newestPending ? ` · ${t.pending}` : ''}
+          {tr(t.asOfRun, { date: shortDay(current.at, locale) })}
         </p>
       </section>
 
@@ -427,7 +428,7 @@ export function ProfileMetrics({ accessToken, locale }: { accessToken: string; l
             locale={locale}
           />
         ) : (
-          <p className="m-0 text-[14px] text-warm-gray">{t.trendNote}</p>
+          <p className="m-0 text-[14px] text-warm-gray">{t.trendNoteRuns}</p>
         )}
       </section>
     </div>
