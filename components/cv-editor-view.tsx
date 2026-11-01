@@ -12,6 +12,7 @@ import { AccountMenu } from '@/components/account-menu';
 import { AppShell } from '@/components/app-shell';
 import { AiSuggestionsCard } from '@/components/ai-suggestions-card';
 import { CvHistoryPanel } from '@/components/cv-history-panel';
+import { formatWhen } from '@/components/cv-timeline';
 import { SuggestionsTour } from '@/components/suggestions-tour';
 import {
   AuthForm,
@@ -252,7 +253,9 @@ export function CvEditorView({ locale }: { locale: Locale }) {
                 >
                   <Eyebrow>
                     {meta
-                      ? tr(t.cvEditor.currentVersionSaved, { date: meta.updated_at })
+                      ? tr(t.cvEditor.currentVersionSaved, {
+                          date: formatWhen(meta.updated_at, locale),
+                        })
                       : t.cvEditor.firstVersion}
                   </Eyebrow>
                   <div>

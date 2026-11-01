@@ -38,7 +38,8 @@ vi.mock('@/components/ai-suggestions-card', () => ({
 
 import { ProblemError } from '@/lib/api/client';
 import { maxCvContentBytes } from '@/lib/schemas/cv';
-import { labels } from '@/lib/i18n';
+import { labels, tr } from '@/lib/i18n';
+import { formatWhen } from '../components/cv-timeline';
 import { CvEditorView } from '../components/cv-editor-view';
 
 (globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
@@ -130,6 +131,11 @@ describe('CvEditorView', () => {
     expect(document.body.textContent).toContain(
       `${LOADED_CV.content.length} / ${maxCvContentBytes} bytes`,
     );
+    // The saved moment reads as a date, never the raw ISO stamp.
+    expect(document.body.textContent).toContain(
+      tr(t.currentVersionSaved, { date: formatWhen(LOADED_CV.updated_at, 'en') }),
+    );
+    expect(document.body.textContent).not.toContain(LOADED_CV.updated_at);
     const back = [...document.querySelectorAll('a')].find((link) =>
       link.textContent?.includes(t.back),
     );
