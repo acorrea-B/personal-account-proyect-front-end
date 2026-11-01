@@ -1,7 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ProblemError } from '../lib/api/client';
-import { fetchBenchmark, fetchLatestBenchmark, fetchLatestRevision } from '../lib/api/benchmark';
+import {
+  fetchBenchmark,
+  fetchBenchmarkTrend,
+  fetchLatestBenchmark,
+  fetchLatestRevision,
+  trendWindow,
+} from '../lib/api/benchmark';
 
 const REV = '11111111-1111-4111-8111-111111111111';
 const revision = {
@@ -80,5 +86,41 @@ describe('benchmark client', () => {
     const latest = await fetchLatestBenchmark('token');
     expect(latest?.revision.id).toBe(REV);
     expect(latest?.benchmark?.journal_confirmed_count).toBe(4);
+  });
+  it('reads the trend of the newest revisions oldest first, bounded to the window', async () => {
+    const revisions = Array.from({ length: trendWindow + 2 }, (_, index) => ({
+      ...revision,
+      id: `11111111-1111-4111-8111-${String(index).padStart(12, '0')}`,
+      created_at: `2026-10-${String(30 - index).padStart(2, '0')}T10:00:00Z`,
+    }));
+    const fetchMock = vi.fn((url: string) => {
+      if (url.endsWith('/v1/profile/revisions')) {
+        return Promise.resolve(json({ revisions }));
+      }
+      const id = new URL(url, 'http://local').searchParams.get('revision');
+      // The newest revision has no benchmark yet (the contract's 404).
+      return Promise.resolve(
+        id === revisions[0].id ? json({ status: 404 }, 404) : json({ ...benchmark, revision: id }),
+      );
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const trend = await fetchBenchmarkTrend('token');
+    expect(trend).toHaveLength(trendWindow);
+    expect(fetchMock).toHaveBeenCalledTimes(trendWindow + 1);
+    expect(trend.map((point) => point.revision.id)).toEqual(
+      revisions
+        .slice(0, trendWindow)
+        .map((item) => item.id)
+        .reverse(),
+    );
+    expect(trend[trendWindow - 1].benchmark).toBeNull();
+    expect(trend[0].benchmark?.revision).toBe(revisions[trendWindow - 1].id);
+  });
+
+  it('reads no trend before the first revision', async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(json({ revisions: [] }));
+    vi.stubGlobal('fetch', fetchMock);
+    expect(await fetchBenchmarkTrend('token')).toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
