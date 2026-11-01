@@ -43,10 +43,14 @@ export function SkillSuggestionsCard({
   accessToken,
   locale,
   onAccepted,
+  onBusyChange,
 }: {
   accessToken: string;
   locale: Locale;
-  onAccepted: (skill: string) => void;
+  onAccepted: (skill: string) => void | Promise<void>;
+  // Told when a decision starts and when it (and the host's onAccepted)
+  // finished: a host form holds its save meanwhile.
+  onBusyChange?: (busy: boolean) => void;
 }) {
   const t = labels(locale).suggestions;
   const sections = labels(locale).cvSections;
@@ -100,6 +104,7 @@ export function SkillSuggestionsCard({
       return;
     }
     setDeciding(suggestion.skill_key);
+    onBusyChange?.(true);
     setNotice(null);
     try {
       await decideSkillSuggestion(accessToken, suggestion.skill_key, decision, state.revisionId);
@@ -115,7 +120,7 @@ export function SkillSuggestionsCard({
         },
       });
       if (decision === 'accepted') {
-        onAccepted(suggestion.display_name);
+        await onAccepted(suggestion.display_name);
       }
     } catch (error) {
       if (error instanceof ProblemError && error.problem.status === 404) {
@@ -129,6 +134,7 @@ export function SkillSuggestionsCard({
       }
     } finally {
       setDeciding(null);
+      onBusyChange?.(false);
     }
   }
 

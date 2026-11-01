@@ -179,16 +179,37 @@ export function ProfileView({ locale }: { locale: Locale }) {
   }, []);
 
   // A suggestion accepted beside the form: the server added the skill, so
-  // the form gains it without losing what the user is typing, and the
-  // profile's version moves forward so the next save is not a conflict.
+  // the form gains it without losing what the user is typing. The save
+  // waits while a decision syncs (`syncing`). The profile's version only
+  // moves forward when the server copy differs from the loaded one by the
+  // skills alone; a remote edit of any other field keeps the old version,
+  // so the next save meets the optimistic lock instead of overwriting it.
+  const [syncing, setSyncing] = useState(false);
+  const syncingRef = useRef(false);
+  const holdSave = useCallback((busy: boolean) => {
+    syncingRef.current = busy;
+    setSyncing(busy);
+  }, []);
+  const profileRef = useRef<Profile | null>(null);
+  profileRef.current = profile;
   const acceptSuggestion = useCallback(async (skill: string) => {
     setSkillsText((current) => withSkill(current, skill));
-    try {
-      if (tokenRef.current) {
-        setProfile(await fetchProfile(tokenRef.current));
+    const token = tokenRef.current;
+    if (!token) {
+      return;
+    }
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        const fresh = await fetchProfile(token);
+        const known = profileRef.current;
+        if (known && sameBesidesSkills(known, fresh)) {
+          setProfile(fresh);
+        }
+        return;
+      } catch {
+        // one more try; then the known version stays and a save meets the
+        // optimistic lock
       }
-    } catch {
-      // keep the known version; a conflict on save reloads the profile
     }
   }, []);
 
@@ -313,6 +334,9 @@ export function ProfileView({ locale }: { locale: Locale }) {
 
   async function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (syncingRef.current) {
+      return;
+    }
     setFormNote(null);
     setFieldErrors({});
 
@@ -445,7 +469,8 @@ export function ProfileView({ locale }: { locale: Locale }) {
                 <SkillSuggestionsCard
                   accessToken={accessToken}
                   locale={locale}
-                  onAccepted={(skill) => void acceptSuggestion(skill)}
+                  onAccepted={acceptSuggestion}
+                  onBusyChange={holdSave}
                 />
               </ul>
             </aside>
@@ -828,7 +853,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
                   <button
                     type="submit"
                     className={cx(primaryButton, 'max-sm:w-full')}
-                    disabled={save.status === 'saving' || save.status === 'saved'}
+                    disabled={save.status === 'saving' || save.status === 'saved' || syncing}
                   >
                     {save.status === 'saving' ? (
                       <>
@@ -915,5 +940,17 @@ function ProfileColumns({ aside, children }: { aside: ReactNode; children: React
       {children}
       {aside}
     </div>
+  );
+}
+
+// Whether two copies of the profile agree on everything but the skills
+// (and the version stamp): an accepted suggestion changes only those.
+export function sameBesidesSkills(a: Profile, b: Profile): boolean {
+  return (
+    a.full_name === b.full_name &&
+    (a.headline ?? null) === (b.headline ?? null) &&
+    (a.bio ?? null) === (b.bio ?? null) &&
+    (a.location ?? null) === (b.location ?? null) &&
+    JSON.stringify(a.links ?? []) === JSON.stringify(b.links ?? [])
   );
 }
