@@ -33,6 +33,7 @@ import { AppShell } from '@/components/app-shell';
 import { CatalogConsent } from '@/components/catalog-consent';
 import { SkillCatalogInput } from '@/components/skill-catalog-input';
 import { SkillSuggestionsCard } from '@/components/skill-suggestions-card';
+import { SuggestionsTour } from '@/components/suggestions-tour';
 import {
   AuthCard,
   AuthForm,
@@ -460,6 +461,9 @@ export function ProfileView({ locale }: { locale: Locale }) {
             <AccountMenu locale={locale} />
           </WorkspaceBar>
         </div>
+      ) : null}
+      {isUpdateFlow && load.status === 'ready' && accessToken ? (
+        <SuggestionsTour accessToken={accessToken} locale={locale} />
       ) : null}
       <ProfileColumns
         aside={
