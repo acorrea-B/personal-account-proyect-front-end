@@ -205,4 +205,24 @@ describe('SkillSuggestionsCard', () => {
     await click(t.retry);
     expect(document.body.textContent).toContain(tr(t.cvNew, { count: '4' }));
   });
+
+  it('does not reload when the session renews its access token', async () => {
+    vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(1));
+    vi.mocked(fetchSkillSuggestions).mockResolvedValue({
+      revision_id: REVISION,
+      suggestions: [rust],
+    });
+    await render('en');
+    expect(fetchSkillSuggestions).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      root?.render(
+        createElement(
+          'ul',
+          null,
+          createElement(SkillSuggestionsCard, { accessToken: 'renewed', locale: 'en', onAccepted }),
+        ),
+      );
+    });
+    expect(fetchSkillSuggestions).toHaveBeenCalledTimes(1);
+  });
 });
