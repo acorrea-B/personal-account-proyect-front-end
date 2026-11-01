@@ -30,7 +30,12 @@ import {
 import { fetchProfileSkills } from '@/lib/api/suggestions';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { type Locale, labels, tr } from '@/lib/i18n';
-import { journalTextMax, type JournalConsent, type JournalEntry } from '@/lib/schemas/journal';
+import {
+  journalListMax,
+  journalTextMax,
+  type JournalConsent,
+  type JournalEntry,
+} from '@/lib/schemas/journal';
 import type { ProfileSkill } from '@/lib/schemas/suggestions';
 
 // An entry happened on a day (stored as that day at 00:00 UTC): it reads
@@ -43,6 +48,8 @@ function formatDay(iso: string, locale: Locale): string {
     timeZone: 'UTC',
   }).format(new Date(iso));
 }
+
+const journalPage = 50;
 
 type JournalLoad =
   | { status: 'loading' }
@@ -76,6 +83,13 @@ export function JournalView({ locale }: { locale: Locale }) {
   const [saving, setSaving] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  // The api lists the newest entries up to a limit (at most 200, no cursor):
+  // the view starts at 50 and widens on demand.
+  const [limit, setLimit] = useState(journalPage);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  // Whether the last read filled its page: deleting an entry shrinks the
+  // shown list but never hides older entries that still exist.
+  const [hasMore, setHasMore] = useState(false);
   const [notice, setNotice] = useState<{ tone: 'alert' | 'status'; text: string } | null>(null);
 
   const loadJournal = useCallback(
@@ -84,10 +98,11 @@ export function JournalView({ locale }: { locale: Locale }) {
       try {
         const [consent, entries, skills] = await Promise.all([
           fetchJournalConsent(token),
-          fetchJournalEntries(token),
+          fetchJournalEntries(token, journalPage),
           // The skill links are optional: a failed read just offers none.
           fetchProfileSkills(token).catch(() => [] as ProfileSkill[]),
         ]);
+        setHasMore(entries.length >= journalPage);
         setLoad({
           status: 'ready',
           consent,
@@ -119,6 +134,24 @@ export function JournalView({ locale }: { locale: Locale }) {
       void loadJournal(accessToken);
     }
   }, [isHydrated, isAuthorized, accessToken, loadJournal]);
+
+  async function showOlder() {
+    if (!accessToken) {
+      return;
+    }
+    const next = Math.min(limit + journalPage, journalListMax);
+    setLoadingOlder(true);
+    try {
+      const entries = await fetchJournalEntries(accessToken, next);
+      updateEntries(() => entries);
+      setLimit(next);
+      setHasMore(entries.length >= next);
+    } catch {
+      setNotice({ tone: 'alert', text: j.loadFailed });
+    } finally {
+      setLoadingOlder(false);
+    }
+  }
 
   // Every mutation lands on the latest list (a save and a delete may
   // overlap), never on the copy captured when the request started.
@@ -276,7 +309,10 @@ export function JournalView({ locale }: { locale: Locale }) {
               <form className="m-0 grid gap-16" onSubmit={(event) => void save(event)}>
                 {/* The composer is frozen while its entry saves, so nothing
                     typed meanwhile is lost when the fields clear. */}
-                <fieldset disabled={saving} className="m-0 grid gap-16 border-none p-0">
+                <fieldset
+                  disabled={saving || loadingOlder}
+                  className="m-0 grid gap-16 border-none p-0"
+                >
                   <label className="grid gap-4" htmlFor="journal-text">
                     {j.composerLabel}
                     <textarea
@@ -359,7 +395,7 @@ export function JournalView({ locale }: { locale: Locale }) {
                   <button
                     type="submit"
                     className={cx(primaryButton, 'max-sm:w-full')}
-                    disabled={saving || !text.trim()}
+                    disabled={saving || loadingOlder || !text.trim()}
                   >
                     {saving ? j.saving : j.save}
                   </button>
@@ -409,7 +445,7 @@ export function JournalView({ locale }: { locale: Locale }) {
                             <button
                               type="button"
                               className={ghostButton}
-                              disabled={deleting !== null}
+                              disabled={deleting !== null || loadingOlder}
                               onClick={() => void remove(entry.id)}
                             >
                               {j.deleteConfirm}
@@ -428,7 +464,7 @@ export function JournalView({ locale }: { locale: Locale }) {
                               type="button"
                               className="cursor-pointer border-none bg-transparent p-0 [font-family:inherit] text-[14px] text-cyan-text hover:text-cyan-text-strong hover:underline"
                               aria-label={tr(j.deleteAria, { date: when })}
-                              disabled={deleting !== null}
+                              disabled={deleting !== null || loadingOlder}
                               onClick={() => setPendingDelete(entry.id)}
                             >
                               {j.delete}
@@ -442,6 +478,23 @@ export function JournalView({ locale }: { locale: Locale }) {
               ) : (
                 <p className="m-0 text-[14px] text-warm-gray">{j.empty}</p>
               )}
+              {hasMore && limit < journalListMax ? (
+                <div>
+                  <button
+                    type="button"
+                    className={ghostButton}
+                    // Paging and mutations never overlap: the wider read
+                    // replaces the list, so it waits for saves and deletes.
+                    disabled={loadingOlder || saving || deleting !== null}
+                    onClick={() => void showOlder()}
+                  >
+                    {j.showOlder}
+                  </button>
+                </div>
+              ) : null}
+              {load.entries.length >= journalListMax ? (
+                <p className="m-0 text-(length:--text-label) text-warm-gray">{j.limitNote}</p>
+              ) : null}
             </section>
           </>
         )}

@@ -81,6 +81,8 @@ export const labelsSchema = z.object({
     additional: z.string(),
   }),
   journal: z.object({
+    showOlder: z.string(),
+    limitNote: z.string(),
     railCopy: z.string(),
     open: z.string(),
     title: z.string(),
