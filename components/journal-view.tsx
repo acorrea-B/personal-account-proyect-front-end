@@ -4,13 +4,13 @@ import Link from 'next/link';
 import { type SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 import { AccountMenu } from '@/components/account-menu';
+import { AppShell } from '@/components/app-shell';
 import { HomeIcon } from '@/components/icons';
 import { Skeleton } from '@/components/skeleton';
 import {
   AuthKicker,
   Eyebrow,
   WorkspaceBar,
-  WorkspacePage,
   WorkspaceTitle,
   contentResolve,
   cx,
@@ -243,7 +243,7 @@ export function JournalView({ locale }: { locale: Locale }) {
 
   if (!isHydrated || !isAuthorized || load.status === 'loading') {
     return (
-      <WorkspacePage busy>
+      <AppShell locale={locale} back busy>
         {bar}
         <section className={workspacePanel} aria-label={j.loadingAria}>
           <div className="grid gap-12">
@@ -252,7 +252,7 @@ export function JournalView({ locale }: { locale: Locale }) {
             <Skeleton width="60%" height={14} />
           </div>
         </section>
-      </WorkspacePage>
+      </AppShell>
     );
   }
 
@@ -262,7 +262,7 @@ export function JournalView({ locale }: { locale: Locale }) {
       : null;
 
   return (
-    <WorkspacePage>
+    <AppShell locale={locale} back>
       <div className={cx(contentResolve, 'grid gap-32')}>
         {bar}
 
@@ -508,6 +508,6 @@ export function JournalView({ locale }: { locale: Locale }) {
           </p>
         ) : null}
       </div>
-    </WorkspacePage>
+    </AppShell>
   );
 }

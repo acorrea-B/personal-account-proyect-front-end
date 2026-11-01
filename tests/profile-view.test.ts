@@ -9,7 +9,7 @@ const routerStub = { push: pushMock, replace: replaceMock };
 
 vi.mock('next/navigation', () => ({
   useRouter: () => routerStub,
-  usePathname: () => null,
+  usePathname: () => '/app/profile/',
 }));
 
 const requireAuthMock = vi.fn();
@@ -158,10 +158,13 @@ describe('ProfileView', () => {
     expect(document.querySelector('h1')?.textContent).toBe(t.profile.updateHeading);
     const name = document.querySelector<HTMLInputElement>('input[name="full_name"]');
     expect(name?.value).toBe('Juan Pérez');
-    const home = [...document.querySelectorAll('header a[aria-label]')].map((element) =>
-      hrefOf(element as HTMLAnchorElement),
-    );
-    expect(home).toContain('/app');
+    // The way home is the shell's back link and the menu's current-free
+    // home entry.
+    const back = document.querySelector<HTMLAnchorElement>('main > a');
+    expect(back && hrefOf(back)).toBe('/app');
+    expect(back?.textContent).toBe(t.nav.back);
+    const current = document.querySelector('nav a[aria-current="page"]');
+    expect(current?.textContent).toBe(t.nav.profile);
     expect(document.body.textContent).toContain(t.profile.updateCta);
     expect(document.body.textContent).toContain(
       t.workspace.signedInAs.replace('{email}', 'juan@example.com'),
@@ -173,10 +176,13 @@ describe('ProfileView', () => {
     await render('es');
     const t = labels('es');
     expect(document.querySelector('h1')?.textContent).toBe(t.profile.updateHeading);
-    const home = [...document.querySelectorAll('header a[aria-label]')].map((element) =>
-      hrefOf(element as HTMLAnchorElement),
-    );
-    expect(home).toContain('/es/app');
+    // The way home is the shell's back link and the menu's current-free
+    // home entry.
+    const back = document.querySelector<HTMLAnchorElement>('main > a');
+    expect(back && hrefOf(back)).toBe('/es/app');
+    expect(back?.textContent).toBe(t.nav.back);
+    const current = document.querySelector('nav a[aria-current="page"]');
+    expect(current?.textContent).toBe(t.nav.profile);
     expect(document.body.textContent).toContain(t.profile.updateCta);
   });
 

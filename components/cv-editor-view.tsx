@@ -9,12 +9,12 @@ import { maxCvContentBytes, type CvMeta } from '@/lib/schemas/cv';
 import { type Locale, labels, tr } from '@/lib/i18n';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
+import { AppShell } from '@/components/app-shell';
 import {
   AuthForm,
   Eyebrow,
   SaveToast,
   WorkspaceBar,
-  WorkspacePage,
   WorkspaceTitle,
   cx,
   contentResolve,
@@ -171,7 +171,7 @@ export function CvEditorView({ locale }: { locale: Locale }) {
 
   if (!isHydrated || !isAuthorized || load.status === 'loading') {
     return (
-      <WorkspacePage busy>
+      <AppShell locale={locale} back busy>
         <div className={contentResolve}>
           <WorkspaceBar
             identity={
@@ -190,12 +190,12 @@ export function CvEditorView({ locale }: { locale: Locale }) {
             </div>
           </section>
         </div>
-      </WorkspacePage>
+      </AppShell>
     );
   }
 
   return (
-    <WorkspacePage>
+    <AppShell locale={locale} back>
       <div className={contentResolve}>
         <WorkspaceBar
           identity={
@@ -312,7 +312,7 @@ export function CvEditorView({ locale }: { locale: Locale }) {
           {t.versionDetail.restoredNote}
         </SaveToast>
       ) : null}
-    </WorkspacePage>
+    </AppShell>
   );
 }
 
