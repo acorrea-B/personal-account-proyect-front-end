@@ -45,10 +45,14 @@ const runs = (points: ReturnType<typeof point>[]) =>
 let root: Root | null = null;
 let container: HTMLDivElement | null = null;
 
-async function render(locale: Locale = 'en', token = 'token') {
+async function render(
+  locale: Locale = 'en',
+  token = 'token',
+  between?: ReturnType<typeof createElement>,
+) {
   await act(async () => {
     root ??= createRoot(container as HTMLDivElement);
-    root.render(createElement(ProfileMetrics, { accessToken: token, locale }));
+    root.render(createElement(ProfileMetrics, { accessToken: token, locale, between }));
   });
 }
 
@@ -154,6 +158,51 @@ describe('ProfileMetrics', () => {
     const t = labels('en').metrics;
     expect(document.body.textContent).toContain(t.overClaimedHigh);
     expect(document.body.textContent).toContain(t.trendNoteRuns);
+  });
+
+  it('states the limit and what waits for review in words, not only color', async () => {
+    runs([
+      point(1, { completeness: 0.6, supported: 0.5, over: 0.2 }),
+      point(
+        28,
+        { completeness: 0.72, supported: 0.64, over: 0.18 },
+        {
+          total: 5,
+          supported: 1,
+          partial: 3,
+          blocked: 1,
+          inferred: 0,
+        },
+      ),
+    ]);
+    await render('es');
+    const t = labels('es').metrics;
+    const text = document.body.textContent ?? '';
+    const limit = new Intl.NumberFormat('es', { style: 'percent' }).format(0.2);
+    expect(text).toContain(tr(t.belowLimit, { limit }));
+    expect(text).toContain(tr(t.aiPending, { count: '3' }));
+    expect(text).toContain(tr(t.sinceRun, { date: '1 oct' }));
+    // The over-claimed meter names its limit for assistive tech.
+    const over = [...document.querySelectorAll('[role="meter"]')][2];
+    expect(over.getAttribute('aria-label')).toContain(tr(t.limit, { limit }));
+  });
+
+  it('places the home highlights between the numbers and their trend, in every state', async () => {
+    runs([
+      point(1, { completeness: 0.6, supported: 0.5, over: 0.2 }),
+      point(28, { completeness: 0.72, supported: 0.64, over: 0.18 }),
+    ]);
+    await render('en', 'token', createElement('p', { id: 'between' }, 'highlights'));
+    const between = document.getElementById('between') as HTMLElement;
+    const tiles = document.querySelector(`section[aria-label="${labels('en').metrics.title}"]`);
+    const trend = document.querySelector('figure');
+    expect(tiles?.compareDocumentPosition(between)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(between.compareDocumentPosition(trend as Node)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    act(() => root?.unmount());
+    root = null;
+    runs([]);
+    await render('en', 'token', createElement('p', { id: 'between' }, 'highlights'));
+    expect(document.getElementById('between')).not.toBeNull();
   });
 
   it('says when the harness has not run yet', async () => {

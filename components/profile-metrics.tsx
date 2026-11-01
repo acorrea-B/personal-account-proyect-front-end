@@ -78,33 +78,15 @@ function Delta({ points, rate, locale }: { points: number | null; rate: Rate; lo
   );
 }
 
-type Tone = 'cyan' | 'teal' | 'alert' | 'sky';
-
-// Each tile wears its own tint: a soft wash fading into white and a 3px
-// accent on top, so the four numbers read as four things at a glance.
-const toneClass: Record<Tone, string> = {
-  cyan: 'border-t-cyan-text-strong bg-[linear-gradient(180deg,var(--color-sky-wash-soft),var(--color-pure-white)_70%)]',
-  teal: 'border-t-teal-text bg-[linear-gradient(180deg,var(--color-teal-wash),var(--color-pure-white)_70%)]',
-  alert:
-    'border-t-alert bg-[linear-gradient(180deg,rgba(185,28,28,0.08),var(--color-pure-white)_70%)]',
-  sky: 'border-t-cyan-signal bg-[linear-gradient(180deg,var(--color-sky-wash),var(--color-pure-white)_75%)]',
-};
-
-function Tile({
-  children,
-  tone = 'cyan',
-  order = 0,
-}: {
-  children: ReactNode;
-  tone?: Tone;
-  order?: number;
-}) {
+// The indicators are comparable, so they share one neutral anatomy
+// (design-professional-ui): label, leading number, change, meter, and a
+// state line. Color carries meaning only: a soft teal chip for a proven
+// favorable state, amber for what waits for review, alert past a limit;
+// every state also says so in words and with an icon.
+function Tile({ children, order = 0 }: { children: ReactNode; order?: number }) {
   return (
     <div
-      className={cx(
-        'grid animate-tile-in content-start gap-8 rounded-2xl border border-t-[3px] border-stone-border p-16 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-[box-shadow,transform] duration-300 ease-out hover:-translate-y-[2px] hover:shadow-[0_10px_24px_rgba(13,104,184,0.10)] motion-reduce:animate-none motion-reduce:transition-none motion-reduce:hover:translate-y-0',
-        toneClass[tone],
-      )}
+      className="grid animate-tile-in content-start gap-8 rounded-2xl border border-stone-border bg-pure-white p-16 motion-reduce:animate-none"
       style={{ animationDelay: `${order * 90}ms` }}
     >
       {children}
@@ -112,11 +94,46 @@ function Tile({
   );
 }
 
-const rateTone: Record<Rate, Tone> = {
-  completeness_score: 'cyan',
-  claim_supported_rate: 'teal',
-  over_claimed_rate: 'cyan',
+type Chip = 'favorable' | 'pending' | 'alert';
+
+const chipClass: Record<Chip, string> = {
+  favorable: 'bg-teal-wash-soft text-teal-text',
+  pending: 'bg-amber-wash text-amber-text',
+  alert: 'bg-[rgba(185,28,28,0.08)] text-alert',
 };
+
+function StateChip({ tone, children }: { tone: Chip; children: ReactNode }) {
+  return (
+    <span
+      className={cx(
+        'inline-flex items-center gap-4 justify-self-start rounded-full px-8 py-[3px] text-[12px] font-medium',
+        chipClass[tone],
+      )}
+    >
+      <svg
+        aria-hidden="true"
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        {tone === 'favorable' ? (
+          <path d="M5 12l5 5L20 7" />
+        ) : (
+          <>
+            <circle cx="12" cy="12" r="9" />
+            <path d={tone === 'pending' ? 'M12 7v5l3 2' : 'M12 7v6M12 16.5v.5'} />
+          </>
+        )}
+      </svg>
+      {children}
+    </span>
+  );
+}
 
 // One rate as a stat tile with its meter (label and value in text tokens,
 // the fill on a lighter track of the same ramp).
@@ -127,6 +144,7 @@ function RateTile({
   previous,
   locale,
   order,
+  since,
 }: {
   rate: Rate;
   label: string;
@@ -134,52 +152,68 @@ function RateTile({
   previous: ProfileMetricsOutput | null;
   locale: Locale;
   order: number;
+  // The date of the run the change is measured from, when there is one.
+  since: string | null;
 }) {
   const t = labels(locale).metrics;
   const value = current[rate];
   const measured = typeof value === 'number';
   const alert = rate === 'over_claimed_rate' && measured && value > overClaimedLimit;
   return (
-    <Tile tone={alert ? 'alert' : rateTone[rate]} order={order}>
-      <span className="text-[13px] font-medium text-soot">{label}</span>
+    <Tile order={order}>
+      <span className="text-[13px] text-warm-gray">{label}</span>
       <div className="flex flex-wrap items-baseline gap-8">
         <span className="font-roobert text-[28px] leading-[1.1] font-semibold text-ink-black tabular-nums">
           {measured ? percent(value, locale) : t.notMeasured}
         </span>
         <Delta points={deltaPoints(value, previous?.[rate])} rate={rate} locale={locale} />
       </div>
-      <div
-        role="meter"
-        aria-label={label}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={measured ? Math.round(value * 100) : undefined}
-        aria-valuetext={measured ? percent(value, locale) : t.notMeasured}
-        className={cx(
-          'h-[6px] overflow-hidden rounded-full',
-          alert ? 'bg-[rgba(185,28,28,0.12)]' : 'bg-sky-wash-soft',
-        )}
-      >
-        {measured ? (
-          <div
-            className={cx(
-              'h-full origin-left animate-meter-grow rounded-full motion-reduce:animate-none',
-              alert
-                ? 'bg-alert'
-                : rate === 'claim_supported_rate'
-                  ? 'bg-teal-text'
-                  : 'bg-cyan-text-strong',
-            )}
-            style={{
-              width: `${Math.max(value * 100, value > 0 ? 2 : 0)}%`,
-              animationDelay: `${order * 90 + 150}ms`,
-            }}
+      <div className="relative">
+        <div
+          role="meter"
+          aria-label={
+            rate === 'over_claimed_rate'
+              ? `${label} · ${tr(t.limit, { limit: percent(overClaimedLimit, locale) })}`
+              : label
+          }
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={measured ? Math.round(value * 100) : undefined}
+          aria-valuetext={measured ? percent(value, locale) : t.notMeasured}
+          className="h-[6px] overflow-hidden rounded-full bg-sky-wash-soft"
+        >
+          {measured ? (
+            <div
+              className={cx(
+                'h-full origin-left animate-meter-grow rounded-full motion-reduce:animate-none',
+                alert ? 'bg-alert' : 'bg-cyan-text-strong',
+              )}
+              style={{
+                width: `${Math.max(value * 100, value > 0 ? 2 : 0)}%`,
+                animationDelay: `${order * 90 + 150}ms`,
+              }}
+            />
+          ) : null}
+        </div>
+        {rate === 'over_claimed_rate' ? (
+          <span
+            aria-hidden="true"
+            className="absolute -top-[3px] h-[12px] w-[2px] rounded-[1px] bg-warm-gray"
+            style={{ left: `${overClaimedLimit * 100}%` }}
           />
         ) : null}
       </div>
-      {rate === 'over_claimed_rate' ? (
-        <span className={cx('text-[12px]', alert ? 'font-medium text-alert' : 'text-warm-gray')}>
-          {alert ? t.overClaimedHigh : tr(t.limit, { limit: percent(overClaimedLimit, locale) })}
+      {rate === 'over_claimed_rate' && measured ? (
+        alert ? (
+          <StateChip tone="alert">{t.overClaimedHigh}</StateChip>
+        ) : (
+          <StateChip tone="favorable">
+            {tr(t.belowLimit, { limit: percent(overClaimedLimit, locale) })}
+          </StateChip>
+        )
+      ) : since && previous ? (
+        <span className="text-[12px] text-warm-gray">
+          {tr(t.sinceRun, { date: shortDay(since, locale) })}
         </span>
       ) : null}
     </Tile>
@@ -323,7 +357,17 @@ function TrendChart({
 // read from the profile revisions) as stat tiles with the change since the
 // previous run, how much of the AI output verification backed, and the
 // chosen rate across the newest runs. It loads once per visit.
-export function ProfileMetrics({ accessToken, locale }: { accessToken: string; locale: Locale }) {
+export function ProfileMetrics({
+  accessToken,
+  locale,
+  between,
+}: {
+  accessToken: string;
+  locale: Locale;
+  // What the home places between the numbers and their trend (the next
+  // step and the evolution summary), so the indicators lead the page.
+  between?: ReactNode;
+}) {
   const t = labels(locale).metrics;
   const base = locale === 'es' ? '/es' : '';
   const [state, setState] = useState<MetricsState>({ kind: 'loading' });
@@ -348,8 +392,17 @@ export function ProfileMetrics({ accessToken, locale }: { accessToken: string; l
     }
   }, [load]);
 
+  // The next step and evolution stay on the page whatever the numbers do
+  // (loading, failed, or no run yet).
+  const withBetween = (node: ReactNode) => (
+    <div className="grid gap-32">
+      {node}
+      {between}
+    </div>
+  );
+
   if (state.kind === 'loading') {
-    return (
+    return withBetween(
       <section
         aria-label={t.loadingAria}
         className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-12"
@@ -361,12 +414,12 @@ export function ProfileMetrics({ accessToken, locale }: { accessToken: string; l
             <Skeleton width="100%" height={6} />
           </Tile>
         ))}
-      </section>
+      </section>,
     );
   }
 
   if (state.kind === 'error') {
-    return (
+    return withBetween(
       <section className={workspacePanel} aria-label={t.title}>
         <p role="alert" className="m-0 text-[14px] text-soot">
           {t.loadFailed}
@@ -376,21 +429,23 @@ export function ProfileMetrics({ accessToken, locale }: { accessToken: string; l
             {t.retry}
           </button>
         </div>
-      </section>
+      </section>,
     );
   }
 
   const points = state.points;
   if (!points.length) {
-    return (
+    return withBetween(
       <section className={workspacePanel} aria-label={t.title}>
         <p className="m-0 text-[14px] text-warm-gray">{t.noRun}</p>
-      </section>
+      </section>,
     );
   }
 
   const current = points[points.length - 1];
   const previous = points.length > 1 ? points[points.length - 2].metrics : null;
+  const previousAt = points.length > 1 ? points[points.length - 2].at : null;
+  const toReview = current.metrics.suggestions.partial + current.metrics.suggestions.inferred;
   const counts = current.metrics.suggestions;
   const ai = labels(locale).ai;
   const selected = rates.find((item) => item.key === rate) ?? rates[0];
@@ -400,13 +455,14 @@ export function ProfileMetrics({ accessToken, locale }: { accessToken: string; l
   });
 
   return (
-    <div className="grid gap-16">
+    <div className="grid gap-32">
       <section aria-label={t.title} className="grid gap-8">
         <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-12">
           {rates.map((item, index) => (
             <RateTile
               key={item.key}
               order={index}
+              since={previousAt}
               rate={item.key}
               label={t[item.label]}
               current={current.metrics}
@@ -414,8 +470,8 @@ export function ProfileMetrics({ accessToken, locale }: { accessToken: string; l
               locale={locale}
             />
           ))}
-          <Tile tone="sky" order={rates.length}>
-            <span className="text-[13px] font-medium text-soot">{t.aiOutput}</span>
+          <Tile order={rates.length}>
+            <span className="text-[13px] text-warm-gray">{t.aiOutput}</span>
             <div className="flex flex-wrap items-baseline gap-8">
               <span className="font-roobert text-[28px] leading-[1.1] font-semibold text-ink-black tabular-nums">
                 {`${counts.supported}/${counts.total}`}
@@ -427,6 +483,9 @@ export function ProfileMetrics({ accessToken, locale }: { accessToken: string; l
                 })}
               </span>
             </div>
+            {toReview > 0 ? (
+              <StateChip tone="pending">{tr(t.aiPending, { count: String(toReview) })}</StateChip>
+            ) : null}
             <span className="text-[12px] text-warm-gray">
               {[
                 tr(ai.qualityPartial, { count: String(counts.partial) }),
@@ -445,6 +504,8 @@ export function ProfileMetrics({ accessToken, locale }: { accessToken: string; l
           {tr(t.asOfRun, { date: shortDay(current.at, locale) })}
         </p>
       </section>
+
+      {between}
 
       <section
         className={workspacePanel}
