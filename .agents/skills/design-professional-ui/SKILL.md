@@ -52,7 +52,7 @@ Leer [cards y datos](references/cards-and-data.md) para métricas, IA, CV, histo
 - Diferenciar anatomías de identidad, siguiente paso, indicador, evidencia, actividad y edición. Mantener el mismo patrón para la misma función entre rutas.
 - Mostrar números con etiqueta, unidad, periodo/revisión y explicación disponible. No inventar puntuaciones, objetivos, tendencias ni porcentajes para llenar espacio.
 - Distinguir cero, sin datos, no evaluado, pendiente y fallo. No trazar una tendencia con una sola observación.
-- Mantener procedencia y verificación visibles en sugerencias de IA. Permitir revisión antes de aplicar y conservar la decisión de la persona.
+- Mantener procedencia y verificación visibles en sugerencias de IA. Permitir revisión antes de aplicar y conservar la decisión de la persona. Mostrar evidencia solo al nivel que entregue la API; no inventar citas, fuentes ni fragmentos respaldados por separado si solo existe un motivo general.
 - Reducir contenido inicial si es extenso, con acceso claro al detalle. No ocultar advertencias ni acciones necesarias en tooltips.
 
 ## 5. Usar color como sistema
