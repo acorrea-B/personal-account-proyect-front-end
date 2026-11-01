@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { fetchSuggestionsSummary } from '@/lib/api/suggestions';
-import { loadSession } from '@/lib/auth/session';
+import { loadSession, sessionSavedEvent } from '@/lib/auth/session';
 import type { SuggestionsSummary } from '@/lib/schemas/suggestions';
 
 // Announced after the user decides a suggestion, so every view that counts
@@ -23,7 +23,8 @@ export function pendingCount(summary: SuggestionsSummary): number {
 // without starting a session lifecycle of its own: the page owns token
 // refresh, and a second lifecycle would rotate the refresh token under it.
 // 0 without a session or when the summary cannot be read (the marker is a
-// hint, never an error); read on mount and again after each decision.
+// hint, never an error); read on mount, after each decision and whenever
+// the page stores a refreshed session.
 export function usePendingSuggestions(): number {
   const [count, setCount] = useState(0);
 
@@ -54,10 +55,14 @@ export function usePendingSuggestions(): number {
       cancel();
       cancel = read();
     };
+    // A refreshed session (the page renewing an expired token) and a
+    // decision both mean the count may have changed.
     window.addEventListener(suggestionsChangedEvent, onChange);
+    window.addEventListener(sessionSavedEvent, onChange);
     return () => {
       cancel();
       window.removeEventListener(suggestionsChangedEvent, onChange);
+      window.removeEventListener(sessionSavedEvent, onChange);
     };
   }, [read]);
 
