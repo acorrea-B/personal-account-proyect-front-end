@@ -196,8 +196,13 @@ export function DashboardView({ locale }: { locale: Locale }) {
 
         {load.status === 'ready' && accessToken ? (
           <>
-            <ProfileMetrics accessToken={accessToken} locale={locale} />
-            <HomeHighlights accessToken={accessToken} locale={locale} hasCv={hasCv !== false} />
+            <ProfileMetrics
+              accessToken={accessToken}
+              locale={locale}
+              between={
+                <HomeHighlights accessToken={accessToken} locale={locale} hasCv={hasCv !== false} />
+              }
+            />
             <RecentActivity accessToken={accessToken} locale={locale} />
           </>
         ) : null}
