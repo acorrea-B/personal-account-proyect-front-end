@@ -400,7 +400,10 @@
     "noRun": "No harness run yet: your numbers appear after the first one.",
     "asOfRun": "From the harness run of {date}",
     "trendNoteRuns": "The trend appears once two harness runs are measured.",
-    "run": "Run"
+    "run": "Run",
+    "sinceRun": "Since the run of {date}",
+    "belowLimit": "Below the {limit} limit",
+    "aiPending": "{count} to review"
   },
   "home": {
     "nextEyebrow": "Next step",
@@ -424,7 +427,9 @@
     "openEvolution": "See the checks",
     "loadFailed": "This summary could not be loaded.",
     "retry": "Try again",
-    "loadingAria": "Loading your next step"
+    "loadingAria": "Loading your next step",
+    "nextHint": "You decide which ones to add",
+    "lastCheck": "Last check: {date}"
   },
   "activity": {
     "title": "Recent activity",
@@ -434,7 +439,10 @@
     "check": "The harness checked your evolution: {verdict}",
     "empty": "Your activity shows up here as you use your workspace.",
     "partial": "Part of your activity could not be loaded.",
-    "loadingAria": "Loading your recent activity"
+    "loadingAria": "Loading your recent activity",
+    "kindCv": "CV",
+    "kindJournal": "Journal",
+    "kindCheck": "Evolution"
   },
   "ai": {
     "title": "AI suggestions for your CV",
