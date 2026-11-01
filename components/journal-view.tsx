@@ -87,6 +87,9 @@ export function JournalView({ locale }: { locale: Locale }) {
   // the view starts at 50 and widens on demand.
   const [limit, setLimit] = useState(journalPage);
   const [loadingOlder, setLoadingOlder] = useState(false);
+  // Whether the last read filled its page: deleting an entry shrinks the
+  // shown list but never hides older entries that still exist.
+  const [hasMore, setHasMore] = useState(false);
   const [notice, setNotice] = useState<{ tone: 'alert' | 'status'; text: string } | null>(null);
 
   const loadJournal = useCallback(
@@ -99,6 +102,7 @@ export function JournalView({ locale }: { locale: Locale }) {
           // The skill links are optional: a failed read just offers none.
           fetchProfileSkills(token).catch(() => [] as ProfileSkill[]),
         ]);
+        setHasMore(entries.length >= journalPage);
         setLoad({
           status: 'ready',
           consent,
@@ -141,6 +145,7 @@ export function JournalView({ locale }: { locale: Locale }) {
       const entries = await fetchJournalEntries(accessToken, next);
       updateEntries(() => entries);
       setLimit(next);
+      setHasMore(entries.length >= next);
     } catch {
       setNotice({ tone: 'alert', text: j.loadFailed });
     } finally {
@@ -304,7 +309,10 @@ export function JournalView({ locale }: { locale: Locale }) {
               <form className="m-0 grid gap-16" onSubmit={(event) => void save(event)}>
                 {/* The composer is frozen while its entry saves, so nothing
                     typed meanwhile is lost when the fields clear. */}
-                <fieldset disabled={saving} className="m-0 grid gap-16 border-none p-0">
+                <fieldset
+                  disabled={saving || loadingOlder}
+                  className="m-0 grid gap-16 border-none p-0"
+                >
                   <label className="grid gap-4" htmlFor="journal-text">
                     {j.composerLabel}
                     <textarea
@@ -387,7 +395,7 @@ export function JournalView({ locale }: { locale: Locale }) {
                   <button
                     type="submit"
                     className={cx(primaryButton, 'max-sm:w-full')}
-                    disabled={saving || !text.trim()}
+                    disabled={saving || loadingOlder || !text.trim()}
                   >
                     {saving ? j.saving : j.save}
                   </button>
@@ -437,7 +445,7 @@ export function JournalView({ locale }: { locale: Locale }) {
                             <button
                               type="button"
                               className={ghostButton}
-                              disabled={deleting !== null}
+                              disabled={deleting !== null || loadingOlder}
                               onClick={() => void remove(entry.id)}
                             >
                               {j.deleteConfirm}
@@ -456,7 +464,7 @@ export function JournalView({ locale }: { locale: Locale }) {
                               type="button"
                               className="cursor-pointer border-none bg-transparent p-0 [font-family:inherit] text-[14px] text-cyan-text hover:text-cyan-text-strong hover:underline"
                               aria-label={tr(j.deleteAria, { date: when })}
-                              disabled={deleting !== null}
+                              disabled={deleting !== null || loadingOlder}
                               onClick={() => setPendingDelete(entry.id)}
                             >
                               {j.delete}
@@ -470,12 +478,14 @@ export function JournalView({ locale }: { locale: Locale }) {
               ) : (
                 <p className="m-0 text-[14px] text-warm-gray">{j.empty}</p>
               )}
-              {load.entries.length >= limit && limit < journalListMax ? (
+              {hasMore && limit < journalListMax ? (
                 <div>
                   <button
                     type="button"
                     className={ghostButton}
-                    disabled={loadingOlder}
+                    // Paging and mutations never overlap: the wider read
+                    // replaces the list, so it waits for saves and deletes.
+                    disabled={loadingOlder || saving || deleting !== null}
                     onClick={() => void showOlder()}
                   >
                     {j.showOlder}

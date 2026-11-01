@@ -282,4 +282,28 @@ describe('JournalView', () => {
     expect(document.querySelectorAll(`ul[aria-label="${j.listAria}"] > li`)).toHaveLength(60);
     expect(document.body.textContent).not.toContain(j.showOlder);
   });
+
+  it('keeps older entries reachable after a delete and pauses mutations while paging', async () => {
+    const page = (count: number) =>
+      Array.from({ length: count }, (_, index) =>
+        entry(`44444444-4444-4444-8444-${String(index).padStart(12, '0')}`, `Entry ${index}`),
+      );
+    vi.mocked(fetchJournalEntries).mockResolvedValueOnce(page(50));
+    vi.mocked(deleteJournalEntry).mockResolvedValue(undefined);
+    await render('en');
+    const j = labels('en').journal;
+    await click(
+      (button) => button.getAttribute('aria-label')?.startsWith('Delete the entry') ?? false,
+    );
+    await click(byText(j.deleteConfirm));
+    expect(document.querySelectorAll(`ul[aria-label="${j.listAria}"] > li`)).toHaveLength(49);
+    expect(document.body.textContent).toContain(j.showOlder);
+    vi.mocked(fetchJournalEntries).mockReturnValueOnce(new Promise(() => {}));
+    await click(byText(j.showOlder));
+    const deletes = [...document.querySelectorAll('button')].filter((button) =>
+      button.getAttribute('aria-label')?.startsWith('Delete the entry'),
+    );
+    expect(deletes.every((button) => button.disabled)).toBe(true);
+    expect((document.querySelector('fieldset') as HTMLFieldSetElement).disabled).toBe(true);
+  });
 });
