@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Skeleton } from '@/components/skeleton';
 import { AuthKicker, cx, ghostButton, inlineAlert, outlineButton } from '@/components/ui';
@@ -30,8 +30,14 @@ export function CatalogConsent({ accessToken, locale }: { accessToken: string; l
     }
   }, [accessToken]);
 
+  // Loads once per visit: a renewed access token (the session refreshes it
+  // in the background) must not reload under a decision in flight.
+  const loaded = useRef(false);
   useEffect(() => {
-    void load();
+    if (!loaded.current) {
+      loaded.current = true;
+      void load();
+    }
   }, [load]);
 
   async function decide(granted: boolean) {
