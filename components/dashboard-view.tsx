@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type ReactNode, useCallback, useEffect, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 
 import { ProblemError } from '@/lib/api/client';
 import { fetchCvText, getVersions } from '@/lib/api/cv';
@@ -37,6 +37,7 @@ import { CvHistoryCard, formatWhen, type CvHistoryState } from '@/components/cv-
 import { CvVersionDetail } from '@/components/cv-version-detail';
 import { Skeleton } from '@/components/skeleton';
 import { SkillSuggestionsCard } from '@/components/skill-suggestions-card';
+import { EvolutionCard } from '@/components/evolution-card';
 import { CheckIcon } from '@/components/icons';
 
 type WorkspaceLoad =
@@ -58,6 +59,10 @@ export function DashboardView({ locale }: { locale: Locale }) {
   const router = useRouter();
   const { isHydrated, isAuthorized, session } = useRequireAuth();
   const accessToken = session?.accessToken ?? null;
+  // The token a retry uses is the current one: a retry pressed after a
+  // background renewal must not resend the token of the failed request.
+  const tokenRef = useRef(accessToken);
+  tokenRef.current = accessToken;
 
   const [load, setLoad] = useState<WorkspaceLoad>({ status: 'loading' });
   const [cvCard, setCvCard] = useState<CvCardState>({ kind: 'loading' });
@@ -89,7 +94,7 @@ export function DashboardView({ locale }: { locale: Locale }) {
             setCvCard({
               kind: 'error',
               message: t.workspace.cvRateCapped,
-              onRetry: () => loadCv(token),
+              onRetry: () => loadCv(tokenRef.current ?? token),
             });
             return;
           }
@@ -97,7 +102,7 @@ export function DashboardView({ locale }: { locale: Locale }) {
             setCvCard({
               kind: 'error',
               message: t.workspace.serviceDeclined,
-              onRetry: () => loadCv(token),
+              onRetry: () => loadCv(tokenRef.current ?? token),
             });
             return;
           }
@@ -105,7 +110,7 @@ export function DashboardView({ locale }: { locale: Locale }) {
           setCvCard({
             kind: 'error',
             message: fallback ? `${fallback}${t.workspace.detailSuffix}` : t.workspace.cvFallback,
-            onRetry: () => loadCv(token),
+            onRetry: () => loadCv(tokenRef.current ?? token),
           });
           return;
         }
@@ -113,14 +118,14 @@ export function DashboardView({ locale }: { locale: Locale }) {
           setCvCard({
             kind: 'error',
             message: t.workspace.cvTimeout,
-            onRetry: () => loadCv(token),
+            onRetry: () => loadCv(tokenRef.current ?? token),
           });
           return;
         }
         setCvCard({
           kind: 'error',
           message: t.workspace.cvFallback,
-          onRetry: () => loadCv(token),
+          onRetry: () => loadCv(tokenRef.current ?? token),
         });
       }
     },
@@ -233,22 +238,28 @@ export function DashboardView({ locale }: { locale: Locale }) {
                 : error.problem.status === 429
                   ? t.workspace.cvRateCapped
                   : `${readFallback(error) ?? ''}${t.workspace.detailSuffix}`,
-            onRetry: () => loadHistory(token),
+            onRetry: () => loadHistory(tokenRef.current ?? token),
           });
           return;
         }
         setHistory({
           kind: 'error',
           message: t.workspace.historyFallback,
-          onRetry: () => loadHistory(token),
+          onRetry: () => loadHistory(tokenRef.current ?? token),
         });
       }
     },
     [t],
   );
 
+  // The dashboard loads once per visit. The session renews the access
+  // token in the background; reloading on it would put the page behind
+  // the skeleton and unmount the panels, losing a half-filled declaration.
+  // Retries and refreshes after a change call their loaders explicitly.
+  const loaded = useRef(false);
   useEffect(() => {
-    if (isHydrated && isAuthorized && accessToken) {
+    if (isHydrated && isAuthorized && accessToken && !loaded.current) {
+      loaded.current = true;
       loadProfile(accessToken);
       // The cv and the history ride the profile in parallel: the profile
       // panel never waits on the rail cards, each with its own retry.
@@ -315,83 +326,92 @@ export function DashboardView({ locale }: { locale: Locale }) {
 
         {load.status === 'ready' && profile ? (
           <div className={dashboardGrid}>
-            <section className={workspacePanel} aria-label={t.workspace.profilePanel}>
-              <div className="flex items-center justify-between gap-16 max-sm:flex-col max-sm:items-stretch max-sm:gap-8">
-                <Eyebrow>{t.panel.eyebrow}</Eyebrow>
-                <Link
-                  className={cx(
-                    linkClass,
-                    'max-sm:flex max-sm:min-h-[44px] max-sm:items-center max-sm:justify-center max-sm:rounded-full max-sm:bg-sky-wash max-sm:text-[16px]',
-                  )}
-                  href={`${base}/app/profile/`}
-                >
-                  {t.panel.updateLink}
-                </Link>
-              </div>
-
-              <dl className="m-0 grid gap-12">
-                <ProfileFact term={t.panel.fullName} headline>
-                  {profile.full_name}
-                </ProfileFact>
-                {profile.headline ? (
-                  <ProfileFact term={t.panel.headline}>{profile.headline}</ProfileFact>
-                ) : null}
-                {profile.location ? (
-                  <ProfileFact term={t.panel.location}>{profile.location}</ProfileFact>
-                ) : null}
-              </dl>
-
-              {profile.bio ? (
-                <div>
-                  <Eyebrow>{t.panel.bio}</Eyebrow>
-                  <ClampedText text={profile.bio} className="m-0 text-ink-black" locale={locale} />
-                </div>
-              ) : null}
-
-              {profile.skills ? (
-                <div>
-                  <Eyebrow>{t.panel.skills}</Eyebrow>
-                  <SkillChips
-                    skills={profile.skills}
-                    label={t.panel.skills}
-                    marked={acceptedSkills}
-                    markedLabel={t.panel.acceptedSkill}
-                  />
-                  {acceptedSkills.size ? (
-                    <p className="mt-8 mb-0 text-(length:--text-label) text-warm-gray">
-                      {t.panel.acceptedLegend}
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
-
-              {profile.links ? (
-                <div>
-                  <Eyebrow>{t.panel.links}</Eyebrow>
-                  <ul
-                    className="m-0 flex list-none flex-wrap gap-16 p-0"
-                    aria-label={t.panel.links}
+            {/* The main column: the profile, then the evolution the user is
+                heading for with the harness checks. */}
+            <div className="grid gap-16">
+              <section className={workspacePanel} aria-label={t.workspace.profilePanel}>
+                <div className="flex items-center justify-between gap-16 max-sm:flex-col max-sm:items-stretch max-sm:gap-8">
+                  <Eyebrow>{t.panel.eyebrow}</Eyebrow>
+                  <Link
+                    className={cx(
+                      linkClass,
+                      'max-sm:flex max-sm:min-h-[44px] max-sm:items-center max-sm:justify-center max-sm:rounded-full max-sm:bg-sky-wash max-sm:text-[16px]',
+                    )}
+                    href={`${base}/app/profile/`}
                   >
-                    {profile.links.map((link) => (
-                      <li key={link.url}>
-                        <a
-                          className={linkClass}
-                          href={link.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {link.type}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
+                    {t.panel.updateLink}
+                  </Link>
                 </div>
-              ) : null}
 
-              <AuthFormNote>
-                {tr(t.panel.updatedNote, { date: formatWhen(profile.updated_at, locale) })}
-              </AuthFormNote>
-            </section>
+                <dl className="m-0 grid gap-12">
+                  <ProfileFact term={t.panel.fullName} headline>
+                    {profile.full_name}
+                  </ProfileFact>
+                  {profile.headline ? (
+                    <ProfileFact term={t.panel.headline}>{profile.headline}</ProfileFact>
+                  ) : null}
+                  {profile.location ? (
+                    <ProfileFact term={t.panel.location}>{profile.location}</ProfileFact>
+                  ) : null}
+                </dl>
+
+                {profile.bio ? (
+                  <div>
+                    <Eyebrow>{t.panel.bio}</Eyebrow>
+                    <ClampedText
+                      text={profile.bio}
+                      className="m-0 text-ink-black"
+                      locale={locale}
+                    />
+                  </div>
+                ) : null}
+
+                {profile.skills ? (
+                  <div>
+                    <Eyebrow>{t.panel.skills}</Eyebrow>
+                    <SkillChips
+                      skills={profile.skills}
+                      label={t.panel.skills}
+                      marked={acceptedSkills}
+                      markedLabel={t.panel.acceptedSkill}
+                    />
+                    {acceptedSkills.size ? (
+                      <p className="mt-8 mb-0 text-(length:--text-label) text-warm-gray">
+                        {t.panel.acceptedLegend}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {profile.links ? (
+                  <div>
+                    <Eyebrow>{t.panel.links}</Eyebrow>
+                    <ul
+                      className="m-0 flex list-none flex-wrap gap-16 p-0"
+                      aria-label={t.panel.links}
+                    >
+                      {profile.links.map((link) => (
+                        <li key={link.url}>
+                          <a
+                            className={linkClass}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {link.type}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
+                <AuthFormNote>
+                  {tr(t.panel.updatedNote, { date: formatWhen(profile.updated_at, locale) })}
+                </AuthFormNote>
+              </section>
+              {accessToken ? <EvolutionCard accessToken={accessToken} locale={locale} /> : null}
+            </div>
 
             <aside className={workspacePanel} aria-label={t.workspace.comingUpPanel}>
               <Eyebrow>{t.panel.comingUp}</Eyebrow>
