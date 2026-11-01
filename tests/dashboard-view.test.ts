@@ -34,6 +34,16 @@ vi.mock('@/lib/api/cv', async () => ({
   getVersions: (...args: unknown[]) => getVersionsMock(...args),
 }));
 
+vi.mock('@/lib/api/benchmark', () => ({
+  fetchLatestBenchmark: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock('@/lib/api/evolution', () => ({
+  fetchEvolutionMode: vi.fn().mockResolvedValue(null),
+  fetchEvolutionHistory: vi.fn().mockResolvedValue([]),
+  declareEvolutionMode: vi.fn(),
+}));
+
 vi.mock('@/lib/api/suggestions', () => ({
   fetchSuggestionsSummary: vi.fn().mockResolvedValue({
     skills: { pending: 0, revision_id: null, created_at: null },
@@ -154,6 +164,8 @@ describe('DashboardView', () => {
     expect(document.body.textContent).toContain(t.panel.fullName);
     expect(document.body.textContent).toContain(t.panel.headline);
     expect(document.body.textContent).toContain(t.suggestions.title);
+    expect(document.body.textContent).toContain(t.evolution.title);
+    expect(document.body.textContent).toContain(t.health.title);
     // Next.js came from an accepted suggestion: its chip says so to
     // assistive tech and the legend explains the check.
     expect(document.body.textContent).toContain(`Next.js (${t.panel.acceptedSkill})`);
@@ -220,5 +232,63 @@ describe('DashboardView', () => {
     await render('es');
     const t = labels('es');
     expect(document.body.textContent).toContain('teapot overflow' + t.workspace.detailSuffix);
+  });
+
+  it('does not reload the dashboard when the session renews its token', async () => {
+    authorizedSession();
+    fetchProfileMock.mockResolvedValue(PROFILE);
+    await render('en');
+    const calls = fetchProfileMock.mock.calls.length;
+    requireAuthMock.mockReturnValue({
+      isHydrated: true,
+      isAuthorized: true,
+      session: {
+        accessToken: 'token-2',
+        refreshToken: 'refresh-1',
+        user: {
+          id: 'user-1',
+          email: 'juan@example.com',
+          verified: true,
+          created_at: '2026-10-25T00:00:00.000Z',
+        },
+      },
+    });
+    // Same mounted dashboard, new token (a background renewal).
+    await act(async () => {
+      root?.render(createElement(DashboardView, { locale: 'en' }));
+    });
+    expect(fetchProfileMock.mock.calls.length).toBe(calls);
+  });
+
+  it('retries the CV card with the current token after a renewal', async () => {
+    authorizedSession();
+    fetchProfileMock.mockResolvedValue(PROFILE);
+    fetchCvMock.mockReset().mockRejectedValueOnce(new Error('network'));
+    await render('en');
+    requireAuthMock.mockReturnValue({
+      isHydrated: true,
+      isAuthorized: true,
+      session: {
+        accessToken: 'token-2',
+        refreshToken: 'refresh-1',
+        user: {
+          id: 'user-1',
+          email: 'juan@example.com',
+          verified: true,
+          created_at: '2026-10-25T00:00:00.000Z',
+        },
+      },
+    });
+    await act(async () => {
+      root?.render(createElement(DashboardView, { locale: 'en' }));
+    });
+    fetchCvMock.mockResolvedValue(CV);
+    const retry = [...document.querySelectorAll('button')].find(
+      (button) => button.textContent === labels('en').cvCard.retry,
+    );
+    await act(async () => {
+      retry?.click();
+    });
+    expect(fetchCvMock).toHaveBeenLastCalledWith('token-2');
   });
 });

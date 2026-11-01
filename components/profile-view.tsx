@@ -561,7 +561,15 @@ export function ProfileView({ locale }: { locale: Locale }) {
                 {tr(t.profile.bioCounter, { current: String(bio.length), max: '2000' })}
               </p>
 
-              <div className="relative grid gap-4">
+              <div
+                className="relative grid gap-4"
+                // The list closes only when focus leaves the whole field.
+                onBlur={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                    setShowSuggestions(false);
+                  }
+                }}
+              >
                 <label className="grid gap-4" htmlFor="setup-location">
                   {t.panel.location}
                   <div className="relative grid">
@@ -575,6 +583,11 @@ export function ProfileView({ locale }: { locale: Locale }) {
                       aria-expanded={showSuggestions && suggestions.length > 0}
                       aria-controls="setup-location-suggestions"
                       aria-autocomplete="list"
+                      aria-activedescendant={
+                        showSuggestions && suggestions.length > 0 && highlight >= 0
+                          ? `setup-location-option-${highlight}`
+                          : undefined
+                      }
                       maxLength={120}
                       value={location}
                       onChange={(event) => {
@@ -602,9 +615,6 @@ export function ProfileView({ locale }: { locale: Locale }) {
                           setShowSuggestions(false);
                         }
                       }}
-                      onBlur={() => {
-                        window.setTimeout(() => setShowSuggestions(false), 150);
-                      }}
                       aria-invalid={Boolean(fieldErrors.location)}
                       aria-describedby={fieldErrors.location ? 'setup-location-error' : undefined}
                     />
@@ -627,6 +637,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
                     {suggestions.map((suggestion, index) => (
                       <li
                         key={`${suggestion}#${index}`}
+                        id={`setup-location-option-${index}`}
                         role="option"
                         aria-selected={index === highlight}
                       >
@@ -637,7 +648,13 @@ export function ProfileView({ locale }: { locale: Locale }) {
                             // One background at a time: the keyboard highlight must win.
                             index === highlight ? 'bg-sky-wash' : 'bg-transparent',
                           )}
-                          onMouseDown={() => pickSuggestion(index)}
+                          // Same combobox rules as the skills catalog: options stay
+                          // out of the tab order, mousedown only keeps the focus
+                          // in the field and the pick runs on click (keyboard and
+                          // assistive activation included).
+                          tabIndex={-1}
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => pickSuggestion(index)}
                           onMouseEnter={() => setHighlight(index)}
                         >
                           {suggestion}
