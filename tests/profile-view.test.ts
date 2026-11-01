@@ -44,6 +44,12 @@ vi.mock('@/lib/api/suggestions', () => ({
   decideSkillSuggestion: vi.fn(),
 }));
 
+vi.mock('@/lib/api/harness', () => ({
+  fetchHarnessOutputs: vi
+    .fn()
+    .mockResolvedValue({ runAt: null, metrics: [], cvSuggestions: null, level: null, roles: [] }),
+}));
+
 vi.mock('@/lib/api/geocoding', async () => ({
   ...(await vi.importActual<typeof import('@/lib/api/geocoding')>('@/lib/api/geocoding')),
   searchCities: (...args: unknown[]) => searchCitiesMock(...args),
