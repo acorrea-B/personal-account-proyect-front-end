@@ -400,7 +400,10 @@
     "noRun": "Aún no hay ejecución del harness: tus números aparecen después de la primera.",
     "asOfRun": "De la ejecución del harness del {date}",
     "trendNoteRuns": "La tendencia aparece cuando haya dos ejecuciones del harness medidas.",
-    "run": "Ejecución"
+    "run": "Ejecución",
+    "sinceRun": "Desde la ejecución del {date}",
+    "belowLimit": "Bajo el límite de {limit}",
+    "aiPending": "{count} por revisar"
   },
   "home": {
     "nextEyebrow": "Siguiente paso",
@@ -424,7 +427,9 @@
     "openEvolution": "Ver verificaciones",
     "loadFailed": "No se pudo cargar este resumen.",
     "retry": "Reintentar",
-    "loadingAria": "Cargando tu siguiente paso"
+    "loadingAria": "Cargando tu siguiente paso",
+    "nextHint": "Tú decides cuáles agregar",
+    "lastCheck": "Última verificación: {date}"
   },
   "activity": {
     "title": "Actividad reciente",
@@ -434,7 +439,10 @@
     "check": "El harness verificó tu evolución: {verdict}",
     "empty": "Tu actividad aparece aquí a medida que usas tu espacio.",
     "partial": "Parte de tu actividad no se pudo cargar.",
-    "loadingAria": "Cargando tu actividad reciente"
+    "loadingAria": "Cargando tu actividad reciente",
+    "kindCv": "CV",
+    "kindJournal": "Diario",
+    "kindCheck": "Evolución"
   },
   "ai": {
     "title": "Sugerencias de la IA para tu CV",

@@ -194,6 +194,9 @@ export const labelsSchema = z.object({
     empty: z.string(),
     partial: z.string(),
     loadingAria: z.string(),
+    kindCv: z.string(),
+    kindJournal: z.string(),
+    kindCheck: z.string(),
   }),
   home: z.object({
     nextEyebrow: z.string(),
@@ -218,6 +221,8 @@ export const labelsSchema = z.object({
     loadFailed: z.string(),
     retry: z.string(),
     loadingAria: z.string(),
+    nextHint: z.string(),
+    lastCheck: z.string(),
   }),
   metrics: z.object({
     title: z.string(),
@@ -244,6 +249,9 @@ export const labelsSchema = z.object({
     trendNoteRuns: z.string(),
     run: z.string(),
     loadingAria: z.string(),
+    sinceRun: z.string(),
+    belowLimit: z.string(),
+    aiPending: z.string(),
   }),
   ai: z.object({
     title: z.string(),

@@ -53,6 +53,12 @@
   --color-teal-text: #0f766e;
   --color-teal-strong: #0c5c52;
   --color-teal-wash: rgba(15, 118, 110, 0.12);
+  /* Semantic states (design-professional-ui): a proven favorable result
+     on a soft teal, and pending review on amber; each pair measured at
+     4.5:1 or more for text. */
+  --color-teal-wash-soft: #f0fdfa;
+  --color-amber-text: #92400e;
+  --color-amber-wash: #fffbeb;
   --color-alert: #b91c1c;
 
   /* Typography (export). Roobert is not licensed here: next/font loads the
