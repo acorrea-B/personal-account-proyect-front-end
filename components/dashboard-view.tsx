@@ -1,74 +1,55 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ProblemError } from '@/lib/api/client';
-import { fetchCvText, getVersions } from '@/lib/api/cv';
+import { fetchCvText } from '@/lib/api/cv';
 import { fetchProfile, isProfileIncomplete } from '@/lib/api/profile';
-import { fetchProfileSkills } from '@/lib/api/suggestions';
-import type { ProfileSkill } from '@/lib/schemas/suggestions';
 import { loadSession, refreshSession } from '@/lib/auth/session';
 import type { Profile } from '@/lib/schemas/profile';
 import { type Locale, labels, tr } from '@/lib/i18n';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
+import { AppShell } from '@/components/app-shell';
+import { HomeHighlights } from '@/components/home-highlights';
+import { ProfileMetrics } from '@/components/profile-metrics';
 import {
-  AuthFormNote,
   AuthSubtitle,
   Eyebrow,
-  SkillChips,
   WorkspaceBar,
-  WorkspacePage,
   WorkspaceTitle,
-  cx,
   contentResolve,
+  cx,
   ghostButton,
-  RailItem,
-  RailTitle,
-  linkClass,
-  railText,
   workspacePanel,
 } from '@/components/ui';
-import { ClampedText } from '@/components/clamped-text';
-import { CvCard, type CvCardState } from '@/components/cv-card';
-import { CvHistoryCard, formatWhen, type CvHistoryState } from '@/components/cv-timeline';
-import { CvVersionDetail } from '@/components/cv-version-detail';
 import { Skeleton } from '@/components/skeleton';
-import { SkillSuggestionsCard } from '@/components/skill-suggestions-card';
-import { EvolutionCard } from '@/components/evolution-card';
-import { ProfileMetrics } from '@/components/profile-metrics';
-import { CheckIcon } from '@/components/icons';
 
 type WorkspaceLoad =
   | { status: 'loading' }
   | { status: 'ready'; profile: Profile }
   | { status: 'error'; error: string };
 
-// The shared workspace dashboard: one implementation serves both locale
-// trees, every page string reads the json dictionaries, and the routes
-// hang from the tree's base prefix (empty for english, /es for spanish).
-// The tree's user-facing error voice is the dictionary's; the api problem
-// details stay in the contract's english voice and only ride the detail
-// suffix composition. This view is the en dashboard (the superset mirror:
-// version detail dialog, history on-select, abort handling) - the stale
-// es mirror is retired with the same behavior restored to /es/app.
+// The home of the workspace: one implementation serves both locale trees,
+// every string reads the json dictionaries, and the routes hang from the
+// tree's base prefix (empty for english, /es for spanish). It summarizes:
+// the profile in numbers (metrics and trend), the one recommended next
+// step and where the declared evolution stands; each flow (profile, cv,
+// journal, evolution) lives on its own page behind the workspace menu.
+// The user-facing error voice is the dictionary's; the api problem details
+// stay in the contract's english voice and only ride the detail suffix.
 export function DashboardView({ locale }: { locale: Locale }) {
   const t = labels(locale);
   const base = locale === 'es' ? '/es' : '';
   const router = useRouter();
   const { isHydrated, isAuthorized, session } = useRequireAuth();
   const accessToken = session?.accessToken ?? null;
-  // The token a retry uses is the current one: a retry pressed after a
-  // background renewal must not resend the token of the failed request.
-  const tokenRef = useRef(accessToken);
-  tokenRef.current = accessToken;
 
   const [load, setLoad] = useState<WorkspaceLoad>({ status: 'loading' });
-  const [cvCard, setCvCard] = useState<CvCardState>({ kind: 'loading' });
-  const [history, setHistory] = useState<CvHistoryState>({ kind: 'loading' });
-  const [detailVersionId, setDetailVersionId] = useState<string | null>(null);
+  // Whether the user has a cv: the next step sends them to write one. An
+  // unknown answer (loading or a failed read) never claims there is none.
+  const [hasCv, setHasCv] = useState<boolean | null>(null);
 
   const timedOut = (error: unknown): boolean =>
     error instanceof DOMException && error.name === 'AbortError';
@@ -76,83 +57,12 @@ export function DashboardView({ locale }: { locale: Locale }) {
   const readFallback = (error: unknown): string | undefined =>
     error instanceof ProblemError ? (error.problem.detail ?? error.problem.title) : undefined;
 
-  const loadCv = useCallback(
-    async (token: string) => {
-      setCvCard({ kind: 'loading' });
-      try {
-        const cv = await fetchCvText(token);
-        setCvCard({ kind: 'ready', cv });
-      } catch (error) {
-        // Mirror the profile read: a cv read failure never destroys the
-        // session and never waits on the profile - the rail card carries
-        // its own retry while the profile panel stays usable.
-        if (error instanceof ProblemError) {
-          if (error.problem.status === 404) {
-            setCvCard({ kind: 'empty' });
-            return;
-          }
-          if (error.problem.status === 429) {
-            setCvCard({
-              kind: 'error',
-              message: t.workspace.cvRateCapped,
-              onRetry: () => loadCv(tokenRef.current ?? token),
-            });
-            return;
-          }
-          if (error.problem.status === 401) {
-            setCvCard({
-              kind: 'error',
-              message: t.workspace.serviceDeclined,
-              onRetry: () => loadCv(tokenRef.current ?? token),
-            });
-            return;
-          }
-          const fallback = readFallback(error);
-          setCvCard({
-            kind: 'error',
-            message: fallback ? `${fallback}${t.workspace.detailSuffix}` : t.workspace.cvFallback,
-            onRetry: () => loadCv(tokenRef.current ?? token),
-          });
-          return;
-        }
-        if (timedOut(error)) {
-          setCvCard({
-            kind: 'error',
-            message: t.workspace.cvTimeout,
-            onRetry: () => loadCv(tokenRef.current ?? token),
-          });
-          return;
-        }
-        setCvCard({
-          kind: 'error',
-          message: t.workspace.cvFallback,
-          onRetry: () => loadCv(tokenRef.current ?? token),
-        });
-      }
-    },
-    [t],
-  );
-
-  // The skill rows tell which skills came from an accepted suggestion; a
-  // failed read just leaves the chips unmarked.
-  const [skillRows, setSkillRows] = useState<ProfileSkill[] | null>(null);
-  const loadSkillRows = useCallback(async (token: string) => {
+  const loadCv = useCallback(async (token: string) => {
     try {
-      setSkillRows(await fetchProfileSkills(token));
-    } catch {
-      setSkillRows(null);
-    }
-  }, []);
-
-  // After a suggestion is accepted: the profile and the rows refresh in
-  // place, without the skeleton, so the new skill appears in the chips.
-  const refreshSkills = useCallback(async (token: string) => {
-    try {
-      const [profile, rows] = await Promise.all([fetchProfile(token), fetchProfileSkills(token)]);
-      setLoad({ status: 'ready', profile });
-      setSkillRows(rows);
-    } catch {
-      // keep what is shown; the next visit reads it again
+      await fetchCvText(token);
+      setHasCv(true);
+    } catch (error) {
+      setHasCv(error instanceof ProblemError && error.problem.status === 404 ? false : null);
     }
   }, []);
 
@@ -221,76 +131,34 @@ export function DashboardView({ locale }: { locale: Locale }) {
     [router, base, t],
   );
 
-  const loadHistory = useCallback(
-    async (token: string) => {
-      setHistory({ kind: 'loading' });
-      try {
-        const versions = await getVersions(token);
-        setHistory({ kind: 'ready', versions });
-      } catch (error) {
-        // Same read rule as the cv card: the history failure never destroys
-        // the session and stays inside its own card with a retry.
-        if (error instanceof ProblemError) {
-          setHistory({
-            kind: 'error',
-            message:
-              error.problem.status === 401
-                ? t.workspace.serviceDeclined
-                : error.problem.status === 429
-                  ? t.workspace.cvRateCapped
-                  : `${readFallback(error) ?? ''}${t.workspace.detailSuffix}`,
-            onRetry: () => loadHistory(tokenRef.current ?? token),
-          });
-          return;
-        }
-        setHistory({
-          kind: 'error',
-          message: t.workspace.historyFallback,
-          onRetry: () => loadHistory(tokenRef.current ?? token),
-        });
-      }
-    },
-    [t],
-  );
-
-  // The dashboard loads once per visit. The session renews the access
-  // token in the background; reloading on it would put the page behind
-  // the skeleton and unmount the panels, losing a half-filled declaration.
-  // Retries and refreshes after a change call their loaders explicitly.
+  // The home loads once per visit. The session renews the access token in
+  // the background; reloading on it would put the page behind the
+  // skeleton. Retries call their loaders explicitly.
   const loaded = useRef(false);
   useEffect(() => {
     if (isHydrated && isAuthorized && accessToken && !loaded.current) {
       loaded.current = true;
       loadProfile(accessToken);
-      // The cv and the history ride the profile in parallel: the profile
-      // panel never waits on the rail cards, each with its own retry.
-      loadCv(accessToken);
-      loadHistory(accessToken);
-      void loadSkillRows(accessToken);
+      void loadCv(accessToken);
     }
-  }, [isHydrated, isAuthorized, accessToken, loadProfile, loadCv, loadHistory, loadSkillRows]);
+  }, [isHydrated, isAuthorized, accessToken, loadProfile, loadCv]);
 
   // The waiting face: the session check and the profile fetch both hide
-  // the dashboard behind the skeleton screen — never a white page.
+  // the home behind the skeleton screen — never a white page.
   if (!isHydrated || !isAuthorized || load.status === 'loading') {
     return (
-      <WorkspacePage busy>
+      <AppShell locale={locale} busy>
         <WorkspaceSkeleton />
-      </WorkspacePage>
+      </AppShell>
     );
   }
 
   const profile = load.status === 'ready' ? load.profile : null;
-  const acceptedSkills = new Set(
-    (skillRows ?? [])
-      .filter((row) => row.origin === 'accepted')
-      .map((row) => row.display_name.toLowerCase()),
-  );
   const firstName = profile ? profile.full_name.trim().split(/\s+/)[0] : '';
 
   return (
-    <WorkspacePage>
-      <div className={contentResolve}>
+    <AppShell locale={locale}>
+      <div className={cx(contentResolve, 'grid gap-24')}>
         <WorkspaceBar
           identity={
             <>
@@ -325,178 +193,19 @@ export function DashboardView({ locale }: { locale: Locale }) {
           </section>
         ) : null}
 
-        {load.status === 'ready' && profile ? (
-          <div className={dashboardGrid}>
-            {/* The main column: the profile, its health as the harness measured
-                it, then the evolution the user is heading for. */}
-            <div className="grid gap-16">
-              <section className={workspacePanel} aria-label={t.workspace.profilePanel}>
-                <div className="flex items-center justify-between gap-16 max-sm:flex-col max-sm:items-stretch max-sm:gap-8">
-                  <Eyebrow>{t.panel.eyebrow}</Eyebrow>
-                  <Link
-                    className={cx(
-                      linkClass,
-                      'max-sm:flex max-sm:min-h-[44px] max-sm:items-center max-sm:justify-center max-sm:rounded-full max-sm:bg-sky-wash max-sm:text-[16px]',
-                    )}
-                    href={`${base}/app/profile/`}
-                  >
-                    {t.panel.updateLink}
-                  </Link>
-                </div>
-
-                <dl className="m-0 grid gap-12">
-                  <ProfileFact term={t.panel.fullName} headline>
-                    {profile.full_name}
-                  </ProfileFact>
-                  {profile.headline ? (
-                    <ProfileFact term={t.panel.headline}>{profile.headline}</ProfileFact>
-                  ) : null}
-                  {profile.location ? (
-                    <ProfileFact term={t.panel.location}>{profile.location}</ProfileFact>
-                  ) : null}
-                </dl>
-
-                {profile.bio ? (
-                  <div>
-                    <Eyebrow>{t.panel.bio}</Eyebrow>
-                    <ClampedText
-                      text={profile.bio}
-                      className="m-0 text-ink-black"
-                      locale={locale}
-                    />
-                  </div>
-                ) : null}
-
-                {profile.skills ? (
-                  <div>
-                    <Eyebrow>{t.panel.skills}</Eyebrow>
-                    <SkillChips
-                      skills={profile.skills}
-                      label={t.panel.skills}
-                      marked={acceptedSkills}
-                      markedLabel={t.panel.acceptedSkill}
-                    />
-                    {acceptedSkills.size ? (
-                      <p className="mt-8 mb-0 text-(length:--text-label) text-warm-gray">
-                        {t.panel.acceptedLegend}
-                      </p>
-                    ) : null}
-                  </div>
-                ) : null}
-
-                {profile.links ? (
-                  <div>
-                    <Eyebrow>{t.panel.links}</Eyebrow>
-                    <ul
-                      className="m-0 flex list-none flex-wrap gap-16 p-0"
-                      aria-label={t.panel.links}
-                    >
-                      {profile.links.map((link) => (
-                        <li key={link.url}>
-                          <a
-                            className={linkClass}
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            {link.type}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
-
-                <AuthFormNote>
-                  {tr(t.panel.updatedNote, { date: formatWhen(profile.updated_at, locale) })}
-                </AuthFormNote>
-              </section>
-              {accessToken ? <ProfileMetrics accessToken={accessToken} locale={locale} /> : null}
-              {accessToken ? <EvolutionCard accessToken={accessToken} locale={locale} /> : null}
-            </div>
-
-            <aside className={workspacePanel} aria-label={t.workspace.comingUpPanel}>
-              <Eyebrow>{t.panel.comingUp}</Eyebrow>
-              <ul className="m-0 grid list-none gap-12 p-0">
-                <CvCard state={cvCard} locale={locale} />
-                <CvHistoryCard
-                  state={history}
-                  locale={locale}
-                  onSelect={accessToken ? (id: string) => setDetailVersionId(id) : undefined}
-                />
-                <RailItem icon={CheckIcon}>
-                  <RailTitle>{t.journal.title}</RailTitle>
-                  <span className={railText}>{t.journal.railCopy}</span>
-                  <div className="mt-8 w-full border-t border-stone-border pt-12">
-                    <Link className={linkClass} href={`${base}/app/journal/`}>
-                      {t.journal.open}
-                    </Link>
-                  </div>
-                </RailItem>
-                {accessToken ? (
-                  <SkillSuggestionsCard
-                    accessToken={accessToken}
-                    locale={locale}
-                    onAccepted={() => void refreshSkills(accessToken)}
-                  />
-                ) : null}
-              </ul>
-            </aside>
-          </div>
-        ) : null}
-
-        {accessToken && detailVersionId ? (
-          <CvVersionDetail
-            id={detailVersionId}
-            accessToken={accessToken}
-            locale={locale}
-            currentUpdatedAt={cvCard.kind === 'ready' ? cvCard.cv.updated_at : undefined}
-            onClose={() => setDetailVersionId(null)}
-            onRestored={() => {
-              setDetailVersionId(null);
-              if (accessToken) {
-                void loadCv(accessToken);
-                void loadHistory(accessToken);
-              }
-            }}
-          />
+        {load.status === 'ready' && accessToken ? (
+          <>
+            <ProfileMetrics accessToken={accessToken} locale={locale} />
+            <HomeHighlights accessToken={accessToken} locale={locale} hasCv={hasCv !== false} />
+          </>
         ) : null}
       </div>
-    </WorkspacePage>
+    </AppShell>
   );
 }
 
-// .dashboard-grid: the profile panel and the coming-up rail side by side,
-// stacked under 860px.
-const dashboardGrid =
-  'grid grid-cols-[minmax(0,1.6fr)_minmax(280px,0.9fr)] items-start gap-16 max-md:grid-cols-1';
-
-// One fact of the profile panel (.profile-grid > div, dt, dd): the cyan
-// rule on the left, the label over the value; the name reads larger.
-function ProfileFact({
-  term,
-  headline,
-  children,
-}: {
-  term: string;
-  headline?: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <div className="grid gap-4 border-l-2 border-sky-wash pl-12">
-      <dt className="text-(length:--text-label) tracking-[0.08em] text-cyan-text uppercase">
-        {term}
-      </dt>
-      <dd className={cx('m-0 text-ink-black', headline && 'text-(length:--text-subheading)')}>
-        {children}
-      </dd>
-    </div>
-  );
-}
-
-// The dashboard skeleton: the same containers as the ready state (bar,
-// profile panel, coming-up rail) with the content replaced by soft
-// placeholder lines riding the blurred glow sweep.
+// The home skeleton: the same containers as the ready state (bar, the
+// metric tiles, the two highlights) with soft placeholder lines.
 function WorkspaceSkeleton() {
   return (
     <>
@@ -507,28 +216,26 @@ function WorkspaceSkeleton() {
           <Skeleton width={210} height={14} />
         </div>
         <div className="flex items-center gap-12">
-          <Skeleton width={40} height={40} />
           <Skeleton width={92} height={36} />
         </div>
       </div>
-      <div className={dashboardGrid}>
-        <div className={workspacePanel}>
-          <div className="grid gap-12">
-            <Skeleton width={150} height={12} />
-            <Skeleton width="100%" height={16} />
-            <Skeleton width="70%" height={16} />
-            <Skeleton width="55%" height={16} />
-            <Skeleton width="85%" height={16} />
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-12">
+        {[0, 1, 2, 3].map((index) => (
+          <div key={index} className="grid gap-8 rounded-2xl border border-stone-border p-16">
+            <Skeleton width={110} height={12} />
+            <Skeleton width={80} height={28} />
+            <Skeleton width="100%" height={6} />
           </div>
-        </div>
-        <div className={workspacePanel}>
-          <div className="grid gap-12">
+        ))}
+      </div>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-16">
+        {[0, 1].map((index) => (
+          <div key={index} className={workspacePanel}>
             <Skeleton width={90} height={12} />
-            <Skeleton width="100%" height={44} />
-            <Skeleton width="100%" height={44} />
-            <Skeleton width="100%" height={44} />
+            <Skeleton width="80%" height={20} />
+            <Skeleton width="60%" height={14} />
           </div>
-        </div>
+        ))}
       </div>
     </>
   );
