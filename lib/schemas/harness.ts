@@ -38,7 +38,8 @@ export const profileMetricsSchema = z.object({
     blocked: count,
     inferred: count,
   }),
-  skill_suggestions: count,
+  // Absent until the harness publishes skill suggestions with the metrics.
+  skill_suggestions: count.nullish(),
   cv: z.object({
     ats_readiness: fraction,
     structure: fraction,

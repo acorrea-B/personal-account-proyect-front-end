@@ -28,6 +28,7 @@ import { updateProfileRequestSchema, type Profile } from '@/lib/schemas/profile'
 import { type Labels, type Locale, labels, tr } from '@/lib/i18n';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
+import { AiSuggestionsCard } from '@/components/ai-suggestions-card';
 import { AppShell } from '@/components/app-shell';
 import { CatalogConsent } from '@/components/catalog-consent';
 import { SkillCatalogInput } from '@/components/skill-catalog-input';
@@ -463,16 +464,19 @@ export function ProfileView({ locale }: { locale: Locale }) {
       <ProfileColumns
         aside={
           isUpdateFlow && load.status === 'ready' && accessToken ? (
-            <aside className="rounded-lg bg-pure-white" aria-label={t.suggestions.title}>
-              <ul className="m-0 grid list-none p-0">
-                <SkillSuggestionsCard
-                  accessToken={accessToken}
-                  locale={locale}
-                  onAccepted={acceptSuggestion}
-                  onBusyChange={holdSave}
-                />
-              </ul>
-            </aside>
+            <div className="grid gap-16">
+              <aside className="rounded-lg bg-pure-white" aria-label={t.suggestions.title}>
+                <ul className="m-0 grid list-none p-0">
+                  <SkillSuggestionsCard
+                    accessToken={accessToken}
+                    locale={locale}
+                    onAccepted={acceptSuggestion}
+                    onBusyChange={holdSave}
+                  />
+                </ul>
+              </aside>
+              <AiSuggestionsCard accessToken={accessToken} locale={locale} />
+            </div>
           ) : null
         }
       >

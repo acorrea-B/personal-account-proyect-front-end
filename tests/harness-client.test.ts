@@ -93,6 +93,16 @@ describe('harnessOutputs', () => {
     expect(outputs.metrics).toEqual([]);
   });
 
+  it('keeps the metrics of a run that published no skill suggestions count', () => {
+    const withoutCount: Record<string, unknown> = { ...metrics(0.9) };
+    delete withoutCount.skill_suggestions;
+    const outputs = harnessOutputs([
+      revision(1, '2026-11-01T10:00:00Z', 'profile_metrics', withoutCount),
+    ]);
+    expect(outputs.metrics).toHaveLength(1);
+    expect(outputs.metrics[0].metrics.skill_suggestions).toBeUndefined();
+  });
+
   it('bounds the trend to the newest runs', () => {
     const many = Array.from({ length: metricsWindow + 3 }, (_, n) =>
       revision(
