@@ -11,7 +11,10 @@ vi.mock('next/navigation', () => ({
 
 let session: { accessToken: string } | null = null;
 // The menu reads the stored session; it never starts a session lifecycle.
-vi.mock('@/lib/auth/session', () => ({ loadSession: () => session }));
+vi.mock('@/lib/auth/session', () => ({
+  loadSession: () => session,
+  sessionSavedEvent: 'auth:session-saved',
+}));
 
 vi.mock('@/lib/api/suggestions', () => ({ fetchSuggestionsSummary: vi.fn() }));
 
@@ -87,6 +90,19 @@ describe('the profile marker', () => {
     await act(async () => announceSuggestionsChanged());
     expect(fetchSuggestionsSummary).toHaveBeenCalledTimes(2);
     expect(marker()).toBeNull();
+  });
+
+  it('reads the count again once the page refreshes its session', async () => {
+    // An expired stored token: the page refreshes it after the shell mounts.
+    vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(2, 0));
+    await render('en');
+    expect(fetchSuggestionsSummary).not.toHaveBeenCalled();
+    session = { accessToken: 'fresh' };
+    await act(async () => {
+      window.dispatchEvent(new Event('auth:session-saved'));
+    });
+    expect(fetchSuggestionsSummary).toHaveBeenCalledWith('fresh');
+    expect(marker()).toBe(tr(labels('en').nav.pendingAria, { count: '2' }));
   });
 
   it('stays quiet without a session or when the summary fails', async () => {
