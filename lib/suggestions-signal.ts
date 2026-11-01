@@ -14,6 +14,29 @@ export function announceSuggestionsChanged(): void {
   window.dispatchEvent(new Event(suggestionsChangedEvent));
 }
 
+// The CV suggestions revision the user already walked in the profile tour.
+// The backend count of CV suggestions does not fall until BC-013 adds their
+// decisions, so the tour remembers the walked revision per viewer and does
+// not offer it again; a new revision is offered. A convenience only:
+// storage may be unavailable (private mode), and then it is offered again.
+export const seenCvRevisionKey = 'profile.tour.seenCvRevision';
+
+export function readSeenCvRevision(): string | null {
+  try {
+    return window.localStorage.getItem(seenCvRevisionKey);
+  } catch {
+    return null;
+  }
+}
+
+export function markCvRevisionSeen(revisionId: string): void {
+  try {
+    window.localStorage.setItem(seenCvRevisionKey, revisionId);
+  } catch {
+    // Storage blocked: the tour is offered again next visit, nothing breaks.
+  }
+}
+
 // What waits for the user in the profile: the pending skill suggestions.
 export function pendingCount(summary: SuggestionsSummary): number {
   return summary.skills.pending;

@@ -44,6 +44,10 @@ vi.mock('@/lib/api/suggestions', () => ({
   decideSkillSuggestion: vi.fn(),
 }));
 
+// The tour has its own tests; here it would consume the suggestion mocks
+// the side column expects.
+vi.mock('@/components/suggestions-tour', () => ({ SuggestionsTour: () => null }));
+
 vi.mock('@/lib/api/harness', () => ({
   fetchHarnessOutputs: vi
     .fn()
