@@ -11,6 +11,11 @@ export interface AuthSession {
   user: TokenPair['user'];
 }
 
+// Announced whenever a session is stored (sign-in or a refresh), so views
+// that only read the stored session (the menu marker) can read it again
+// without starting a session lifecycle of their own.
+export const sessionSavedEvent = 'auth:session-saved';
+
 export function saveSession(tokenPair: TokenPair): AuthSession {
   const parsedPair = tokenPairSchema.parse(tokenPair);
   const session: AuthSession = {
@@ -21,6 +26,7 @@ export function saveSession(tokenPair: TokenPair): AuthSession {
   window.sessionStorage.setItem(ACCESS_TOKEN_KEY, session.accessToken);
   window.sessionStorage.setItem(REFRESH_TOKEN_KEY, session.refreshToken);
   window.sessionStorage.setItem(USER_KEY, JSON.stringify(session.user));
+  window.dispatchEvent(new Event(sessionSavedEvent));
   return session;
 }
 

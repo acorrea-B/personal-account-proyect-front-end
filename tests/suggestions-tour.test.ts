@@ -177,6 +177,17 @@ describe('SuggestionsTour', () => {
     expect(document.body.textContent).not.toContain(labels('en').tour.bannerTitle);
   });
 
+  it('releases the page when the last step disappears while open', async () => {
+    serve(null, ['Django']);
+    await render('en');
+    await press(labels('en').tour.start);
+    expect(container?.hasAttribute('inert')).toBe(true);
+    vi.mocked(fetchSkillSuggestions).mockResolvedValue({ revision_id: REV, suggestions: [] });
+    await act(async () => announceSuggestionsChanged());
+    expect(document.querySelector('[role="dialog"]')).toBeNull();
+    expect(container?.hasAttribute('inert')).toBe(false);
+  });
+
   it('shows a few skills and counts the rest', async () => {
     const names = Array.from({ length: skillsShown + 3 }, (_, n) => `Tool${n}`);
     serve(null, names);
