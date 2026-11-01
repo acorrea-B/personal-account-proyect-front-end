@@ -11,6 +11,7 @@ import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
 import { AppShell } from '@/components/app-shell';
 import { CvHistoryPanel } from '@/components/cv-history-panel';
+import { formatWhen } from '@/components/cv-timeline';
 import {
   AuthForm,
   Eyebrow,
@@ -244,7 +245,9 @@ export function CvEditorView({ locale }: { locale: Locale }) {
                 >
                   <Eyebrow>
                     {meta
-                      ? tr(t.cvEditor.currentVersionSaved, { date: meta.updated_at })
+                      ? tr(t.cvEditor.currentVersionSaved, {
+                          date: formatWhen(meta.updated_at, locale),
+                        })
                       : t.cvEditor.firstVersion}
                   </Eyebrow>
                   <div>
