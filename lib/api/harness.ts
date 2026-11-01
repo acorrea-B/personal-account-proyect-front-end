@@ -2,11 +2,13 @@ import type { z } from 'zod';
 
 import { ProblemError, type Problem } from './client';
 import {
+  canonicalProfileSchema,
   cvSuggestionSchema,
   harnessRevisionsEnvelopeSchema,
   levelAssessmentSchema,
   profileMetricsSchema,
   targetRoleSchema,
+  type CanonicalProfile,
   type CvSuggestion,
   type HarnessRevision,
   type LevelAssessment,
@@ -34,6 +36,9 @@ export type HarnessOutputs = {
   cvSuggestions: CvSuggestion[] | null;
   level: LevelAssessment | null;
   roles: TargetRole[];
+  // How the harness organized the profile; absent from callers that do not
+  // read it.
+  profile?: CanonicalProfile | null;
 };
 
 // The content of the newest revision of `outputType` that parses, or null.
@@ -71,6 +76,7 @@ export function harnessOutputs(revisions: HarnessRevision[]): HarnessOutputs {
     cvSuggestions: latest(revisions, 'cv_suggestions', cvSuggestionSchema.array()),
     level: latest(revisions, 'level_assessment', levelAssessmentSchema),
     roles: latest(revisions, 'target_roles', targetRoleSchema.array()) ?? [],
+    profile: latest(revisions, 'canonical_profile', canonicalProfileSchema),
   };
 }
 

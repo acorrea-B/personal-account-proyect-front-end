@@ -78,9 +78,27 @@ export const targetRoleSchema = z.object({
   status: z.string(),
 });
 
+// canonical_profile: how the harness separated what the user wrote. Only
+// what the organized view shows; dates stay as the reading wrote them.
+export const canonicalProfileSchema = z.object({
+  experience_items: z.array(
+    z.object({
+      title: z.string(),
+      start: z.string().nullish(),
+      end: z.string().nullish(),
+      scope: z.string().nullish(),
+      metrics: z.string().nullish(),
+      technologies: z.array(z.string()).default([]),
+    }),
+  ),
+  education_items: z.array(z.string()).default([]),
+  canonical_skills: z.array(z.object({ display_name: z.string() })).default([]),
+});
+
 export type HarnessRevision = z.infer<typeof harnessRevisionSchema>;
 export type ProfileMetricsOutput = z.infer<typeof profileMetricsSchema>;
 export type VerificationStatus = z.infer<typeof verificationStatusSchema>;
 export type CvSuggestion = z.infer<typeof cvSuggestionSchema>;
 export type LevelAssessment = z.infer<typeof levelAssessmentSchema>;
 export type TargetRole = z.infer<typeof targetRoleSchema>;
+export type CanonicalProfile = z.infer<typeof canonicalProfileSchema>;
