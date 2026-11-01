@@ -38,6 +38,7 @@ import { CvVersionDetail } from '@/components/cv-version-detail';
 import { Skeleton } from '@/components/skeleton';
 import { SkillSuggestionsCard } from '@/components/skill-suggestions-card';
 import { EvolutionCard } from '@/components/evolution-card';
+import { ProfileHealthCard } from '@/components/profile-health-card';
 import { CheckIcon } from '@/components/icons';
 
 type WorkspaceLoad =
@@ -316,8 +317,8 @@ export function DashboardView({ locale }: { locale: Locale }) {
 
         {load.status === 'ready' && profile ? (
           <div className={dashboardGrid}>
-            {/* The main column: the profile, then the evolution the user is
-                heading for with the harness checks. */}
+            {/* The main column: the profile, its health as the harness measured
+                it, then the evolution the user is heading for. */}
             <div className="grid gap-16">
               <section className={workspacePanel} aria-label={t.workspace.profilePanel}>
                 <div className="flex items-center justify-between gap-16 max-sm:flex-col max-sm:items-stretch max-sm:gap-8">
@@ -400,6 +401,7 @@ export function DashboardView({ locale }: { locale: Locale }) {
                   {tr(t.panel.updatedNote, { date: formatWhen(profile.updated_at, locale) })}
                 </AuthFormNote>
               </section>
+              {accessToken ? <ProfileHealthCard accessToken={accessToken} locale={locale} /> : null}
               {accessToken ? <EvolutionCard accessToken={accessToken} locale={locale} /> : null}
             </div>
 
