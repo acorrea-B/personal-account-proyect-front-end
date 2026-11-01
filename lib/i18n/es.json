@@ -386,5 +386,32 @@
     "loadFailed": "No se pudo cargar la salud de tu perfil.",
     "retry": "Reintentar",
     "loadingAria": "Cargando la salud de tu perfil"
+  },
+  "metrics": {
+    "title": "Tu perfil en números",
+    "asOf": "De la revisión del {date}",
+    "completeness": "Completitud",
+    "supported": "Claims respaldados",
+    "overClaimed": "Claims sobre la evidencia",
+    "overClaimedHigh": "Revisa estas afirmaciones",
+    "limit": "Límite recomendado: {limit}",
+    "evidence": "Evidencia confirmada",
+    "evidenceOf": "de {total} entradas del diario",
+    "confirmPending": "Confirmar las {count} pendientes",
+    "notMeasured": "Aún no medido",
+    "deltaShort": "{points} pts",
+    "up": "Subió {points} puntos desde la revisión anterior",
+    "down": "Bajó {points} puntos desde la revisión anterior",
+    "same": "Sin cambios desde la revisión anterior",
+    "trendTitle": "{metric} por revisión",
+    "trendGroup": "Métrica",
+    "trendNote": "La tendencia aparece cuando haya dos revisiones medidas.",
+    "revision": "Revisión",
+    "value": "Valor",
+    "none": "Aún no hay revisión — el harness mide tu perfil cuando tenga una revisión.",
+    "pending": "El benchmark de tu última revisión aún no está listo.",
+    "loadFailed": "No se pudieron cargar las métricas de tu perfil.",
+    "retry": "Reintentar",
+    "loadingAria": "Cargando las métricas de tu perfil"
   }
 }

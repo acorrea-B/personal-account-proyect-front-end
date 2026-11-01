@@ -386,5 +386,32 @@
     "loadFailed": "Your profile health could not be loaded.",
     "retry": "Try again",
     "loadingAria": "Loading your profile health"
+  },
+  "metrics": {
+    "title": "Your profile in numbers",
+    "asOf": "From the revision of {date}",
+    "completeness": "Completeness",
+    "supported": "Claims backed",
+    "overClaimed": "Claims above the evidence",
+    "overClaimedHigh": "Review these claims",
+    "limit": "Recommended limit: {limit}",
+    "evidence": "Confirmed evidence",
+    "evidenceOf": "of {total} journal entries",
+    "confirmPending": "Confirm the {count} pending",
+    "notMeasured": "Not measured yet",
+    "deltaShort": "{points} pts",
+    "up": "Up {points} points since the previous revision",
+    "down": "Down {points} points since the previous revision",
+    "same": "No change since the previous revision",
+    "trendTitle": "{metric} by revision",
+    "trendGroup": "Metric",
+    "trendNote": "The trend appears once two revisions are measured.",
+    "revision": "Revision",
+    "value": "Value",
+    "none": "No revision yet — the harness measures your profile once it has a revision.",
+    "pending": "The benchmark of your latest revision is not ready yet.",
+    "loadFailed": "Your profile metrics could not be loaded.",
+    "retry": "Try again",
+    "loadingAria": "Loading your profile metrics"
   }
 }
