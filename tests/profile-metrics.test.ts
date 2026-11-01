@@ -3,40 +3,44 @@ import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/lib/api/benchmark', () => ({
-  fetchBenchmarkTrend: vi.fn(),
+vi.mock('@/lib/api/harness', () => ({
+  fetchHarnessOutputs: vi.fn(),
 }));
 
 import { ProfileMetrics, deltaPoints } from '../components/profile-metrics';
-import { fetchBenchmarkTrend } from '@/lib/api/benchmark';
+import { fetchHarnessOutputs } from '@/lib/api/harness';
 import { labels, tr, type Locale } from '../lib/i18n';
 
 (globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
 
 const point = (
   day: number,
-  rates: { completeness: number; supported: number; over: number } | null,
-  entries = 14,
-  confirmed = 9,
+  rates: { completeness: number; supported: number | null; over: number | null },
+  counts = { total: 5, supported: 1, partial: 4, blocked: 0, inferred: 0 },
 ) => ({
-  revision: {
-    id: `11111111-1111-4111-8111-${String(day).padStart(12, '0')}`,
-    profile_revision: 'r',
-    created_at: `2026-10-${String(day).padStart(2, '0')}T10:00:00Z`,
+  at: `2026-10-${String(day).padStart(2, '0')}T10:00:00Z`,
+  metrics: {
+    schema: 'profile-metrics/1.0.0' as const,
+    completeness_score: rates.completeness,
+    claim_supported_rate: rates.supported,
+    over_claimed_rate: rates.over,
+    suggestions: counts,
+    skill_suggestions: 12,
+    cv: { ats_readiness: 0.8, structure: 0.8, clarity: 0.5, impact_metric: 1, keyword_coverage: 1 },
+    level: { label: 'mid', weighted_score: 0.5 },
+    model: { calls: 5, retries: 0, total_tokens: 18843 },
   },
-  benchmark: rates
-    ? {
-        id: `33333333-3333-4333-8333-${String(day).padStart(12, '0')}`,
-        revision_at: `2026-10-${String(day).padStart(2, '0')}T10:00:00Z`,
-        journal_entries_count: entries,
-        journal_confirmed_count: confirmed,
-        completeness_score: rates.completeness,
-        claim_supported_rate: rates.supported,
-        over_claimed_rate: rates.over,
-        created_at: `2026-10-${String(day).padStart(2, '0')}T10:05:00Z`,
-      }
-    : null,
 });
+
+// The trend points as the harness client answers them.
+const runs = (points: ReturnType<typeof point>[]) =>
+  vi.mocked(fetchHarnessOutputs).mockResolvedValue({
+    runAt: points.length ? points[points.length - 1].at : null,
+    metrics: points,
+    cvSuggestions: null,
+    level: null,
+    roles: [],
+  });
 
 let root: Root | null = null;
 let container: HTMLDivElement | null = null;
@@ -51,7 +55,7 @@ async function render(locale: Locale = 'en', token = 'token') {
 beforeEach(() => {
   container = document.createElement('div');
   document.body.appendChild(container);
-  vi.mocked(fetchBenchmarkTrend).mockReset();
+  vi.mocked(fetchHarnessOutputs).mockReset();
 });
 
 afterEach(() => {
@@ -71,8 +75,8 @@ describe('deltaPoints', () => {
 });
 
 describe('ProfileMetrics', () => {
-  it('shows the newest measured rates with the change since the previous revision', async () => {
-    vi.mocked(fetchBenchmarkTrend).mockResolvedValue([
+  it('shows the newest run rates with the change since the previous run', async () => {
+    runs([
       point(1, { completeness: 0.66, supported: 0.6, over: 0.21 }),
       point(28, { completeness: 0.72, supported: 0.64, over: 0.18 }),
     ]);
@@ -84,15 +88,45 @@ describe('ProfileMetrics', () => {
     expect(text).toContain(tr(t.up, { points: '6' }));
     // Fewer claims above the evidence is the good direction.
     expect(text).toContain(tr(t.down, { points: '3' }));
-    expect(text).toContain(tr(t.evidenceOf, { total: '14' }));
-    const confirm = [...document.querySelectorAll('a')].find(
-      (link) => link.textContent === tr(t.confirmPending, { count: '5' }),
+    expect(text).toContain(tr(t.asOfRun, { date: 'Oct 28' }));
+  });
+
+  it('says how much of the AI output verification backed', async () => {
+    runs([
+      point(
+        28,
+        { completeness: 0.9, supported: 0.2, over: 0 },
+        {
+          total: 5,
+          supported: 1,
+          partial: 4,
+          blocked: 0,
+          inferred: 0,
+        },
+      ),
+    ]);
+    await render('es');
+    const t = labels('es');
+    const text = document.body.textContent ?? '';
+    expect(text).toContain('1/5');
+    expect(text).toContain(tr(t.metrics.aiOutputOf, { supported: '1', total: '5' }));
+    expect(text).toContain(tr(t.ai.qualityPartial, { count: '4' }));
+    const link = [...document.querySelectorAll('a')].find(
+      (anchor) => anchor.textContent === t.ai.title,
     );
-    expect((confirm?.getAttribute('href') ?? '').replace(/\/+$/, '')).toBe('/app/journal');
+    expect((link?.getAttribute('href') ?? '').replace(/\/+$/, '')).toBe('/es/app/profile');
+  });
+
+  it('shows a rate the run could not measure as not measured', async () => {
+    runs([point(28, { completeness: 0.9, supported: null, over: null })]);
+    await render('en');
+    const meters = [...document.querySelectorAll('[role="meter"]')];
+    expect(meters.map((meter) => meter.getAttribute('aria-valuenow'))).toEqual(['90', null, null]);
+    expect(document.body.textContent).toContain(labels('en').metrics.notMeasured);
   });
 
   it('draws the chosen rate across the revisions with the numbers as a table', async () => {
-    vi.mocked(fetchBenchmarkTrend).mockResolvedValue([
+    runs([
       point(1, { completeness: 0.48, supported: 0.41, over: 0.34 }),
       point(15, { completeness: 0.6, supported: 0.5, over: 0.25 }),
       point(28, { completeness: 0.72, supported: 0.64, over: 0.18 }),
@@ -115,40 +149,32 @@ describe('ProfileMetrics', () => {
   });
 
   it('turns the claims above the evidence alert past the limit', async () => {
-    vi.mocked(fetchBenchmarkTrend).mockResolvedValue([
-      point(28, { completeness: 0.7, supported: 0.5, over: 0.3 }),
-    ]);
+    runs([point(28, { completeness: 0.7, supported: 0.5, over: 0.3 })]);
     await render('en');
     const t = labels('en').metrics;
     expect(document.body.textContent).toContain(t.overClaimedHigh);
-    expect(document.body.textContent).toContain(t.trendNote);
+    expect(document.body.textContent).toContain(t.trendNoteRuns);
   });
 
-  it('says when nothing is measured yet', async () => {
-    vi.mocked(fetchBenchmarkTrend).mockResolvedValueOnce([]);
+  it('says when the harness has not run yet', async () => {
+    runs([]);
     await render('en');
-    expect(document.body.textContent).toContain(labels('en').metrics.none);
-  });
-
-  it('says when the newest revision waits for its benchmark', async () => {
-    vi.mocked(fetchBenchmarkTrend).mockResolvedValueOnce([point(28, null)]);
-    await render('en');
-    expect(document.body.textContent).toContain(labels('en').metrics.pending);
+    expect(document.body.textContent).toContain(labels('en').metrics.noRun);
   });
 
   it('retries a failed load with the current token and never reloads on renewal', async () => {
-    vi.mocked(fetchBenchmarkTrend).mockRejectedValueOnce(new Error('down'));
+    vi.mocked(fetchHarnessOutputs).mockRejectedValueOnce(new Error('down'));
     await render('en', 'token-1');
     expect(document.querySelector('[role="alert"]')?.textContent).toBe(
       labels('en').metrics.loadFailed,
     );
     await render('en', 'token-2');
-    expect(fetchBenchmarkTrend).toHaveBeenCalledTimes(1);
-    vi.mocked(fetchBenchmarkTrend).mockResolvedValueOnce([]);
+    expect(fetchHarnessOutputs).toHaveBeenCalledTimes(1);
+    runs([]);
     const retry = [...document.querySelectorAll('button')].find(
       (button) => button.textContent === labels('en').metrics.retry,
     );
     await act(async () => retry?.click());
-    expect(fetchBenchmarkTrend).toHaveBeenLastCalledWith('token-2');
+    expect(fetchHarnessOutputs).toHaveBeenLastCalledWith('token-2');
   });
 });
