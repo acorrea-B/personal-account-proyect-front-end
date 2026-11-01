@@ -20,6 +20,7 @@ import {
   fetchSkillSuggestions,
   fetchSuggestionsSummary,
 } from '@/lib/api/suggestions';
+import { announceSuggestionsChanged } from '@/lib/suggestions-signal';
 import { type Locale, labels, tr } from '@/lib/i18n';
 import type { SkillDecision, SkillSuggestion, SuggestionsSummary } from '@/lib/schemas/suggestions';
 
@@ -119,6 +120,7 @@ export function SkillSuggestionsCard({
           },
         },
       });
+      announceSuggestionsChanged();
       if (decision === 'accepted') {
         await onAccepted(suggestion.display_name);
       }
