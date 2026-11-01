@@ -182,8 +182,6 @@ export const labelsSchema = z.object({
     roadmapStep4Copy: z.string(),
     roadmapStep4When: z.string(),
     roadmapBack: z.string(),
-    criterion: z.string(),
-    criterionLabel: z.string(),
   }),
   activity: z.object({
     title: z.string(),
