@@ -501,7 +501,8 @@
     "atsNote": "La nueva versión se escribe en inglés, el idioma de tu CV, en formato ATS de una sola columna.",
     "generate": "Generar mi CV en formato ATS",
     "generateBadge": "Beta 1.1",
-    "generateSoon": "La generación de la nueva versión llega en la beta 1.1. Tus mejoras elegidas quedan guardadas para ese momento."
+    "generateSoon": "La generación de la nueva versión llega en la beta 1.1. Tus mejoras elegidas quedan guardadas para ese momento.",
+    "review": "Revisar tus mejoras elegidas"
   },
   "organized": {
     "title": "Tu perfil organizado",

@@ -501,7 +501,8 @@
     "atsNote": "The new version is written in English, the language of your CV, in a single-column ATS format.",
     "generate": "Generate my ATS CV",
     "generateBadge": "Beta 1.1",
-    "generateSoon": "Generating the new version arrives in beta 1.1. Your chosen improvements stay saved for it."
+    "generateSoon": "Generating the new version arrives in beta 1.1. Your chosen improvements stay saved for it.",
+    "review": "Review your chosen improvements"
   },
   "organized": {
     "title": "Your organized profile",

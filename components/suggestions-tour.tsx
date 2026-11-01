@@ -28,6 +28,9 @@ type Step =
 
 type TourData = {
   cvSuggestions: CvSuggestion[] | null;
+  // Whether any CV improvement still waits for apply or skip (read once per
+  // visit, so the tour does not shrink mid-walk).
+  pendingCv: boolean;
   skillNames: string[];
   cvRevision: string | null;
 };
@@ -121,6 +124,8 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
   const [dismissed, setDismissed] = useState(false);
   const [index, setIndex] = useState(0);
   const [choices, setChoices] = useState<TourChoices>({});
+  // Opened from "review your chosen improvements": the CV steps only.
+  const [reviewing, setReviewing] = useState(false);
   const startRef = useRef<HTMLButtonElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -150,13 +155,16 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
         );
         setChoices(stored);
         setData({
-          cvSuggestions: undecided ? outputs.cvSuggestions : [],
+          cvSuggestions: outputs.cvSuggestions,
+          pendingCv: undecided,
           skillNames: skills.suggestions.map((suggestion) => suggestion.display_name),
           cvRevision,
         });
       })
       // The tour is an invitation: if it cannot load, the profile stays as is.
-      .catch(() => setData({ cvSuggestions: null, skillNames: [], cvRevision: null }));
+      .catch(() =>
+        setData({ cvSuggestions: null, pendingCv: false, skillNames: [], cvRevision: null }),
+      );
   }, []);
 
   // A decision in the skill suggestions card changes what the skills step
@@ -183,6 +191,7 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
   // Closing only closes: nothing is decided, the invitation stays.
   const close = useCallback(() => {
     setOpen(false);
+    setReviewing(false);
     startRef.current?.focus();
   }, []);
 
@@ -190,7 +199,9 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
   // stops counting it.
   const finish = useCallback(() => {
     setOpen(false);
+    setReviewing(false);
     setDismissed(true);
+    setData((current) => (current ? { ...current, pendingCv: false } : current));
     if (data?.cvRevision) {
       markCvRevisionSeen(data.cvRevision);
       // The menu marker stops counting the walked revision.
@@ -199,7 +210,19 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     startRef.current?.focus();
   }, [data]);
 
-  const steps = data ? tourSteps(data.cvSuggestions, data.skillNames) : [];
+  const steps = data
+    ? tourSteps(
+        data.pendingCv || reviewing ? data.cvSuggestions : [],
+        reviewing ? [] : data.skillNames,
+      )
+    : [];
+  // The decided improvements can always be revisited from the profile.
+  const advice = tourSteps(data?.cvSuggestions ?? null, []).filter(
+    (item) => item.kind === 'suggestion',
+  );
+  const decided = advice.filter(
+    (item) => item.kind === 'suggestion' && choices[item.suggestion.suggestion_id],
+  ).length;
 
   // Records the choice for a suggestion (kept for the next CV version) and
   // moves on.
@@ -272,47 +295,70 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     return () => background.forEach((element) => element.removeAttribute('inert'));
   }, [showing]);
 
-  if (!steps.length || dismissed) {
+  const inviting =
+    !dismissed && Boolean(data) && (data?.pendingCv || Boolean(data?.skillNames.length));
+  const reviewable = !inviting && decided > 0;
+  if (!open && !inviting && !reviewable) {
     return null;
   }
 
-  const total = steps.length;
+  const total = Math.max(steps.length, 1);
   const position = Math.min(index, total - 1);
-  const step = steps[position];
+  const step = steps[position] ?? steps[0];
   const last = position === total - 1;
   const progress = tr(t.progress, { step: String(position + 1), total: String(total) });
 
   return (
     <>
-      <section
-        aria-label={t.bannerTitle}
-        className="grid animate-content-resolve gap-12 rounded-2xl border border-cyan-edge bg-[linear-gradient(120deg,var(--color-sky-wash-soft),var(--color-pure-white)_70%)] p-24 motion-reduce:animate-none sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
-      >
-        <div className="grid gap-4">
-          <h2 className="m-0 font-roobert text-title-sm font-medium text-ink-black">
-            {t.bannerTitle}
-          </h2>
-          <p className="m-0 text-[14px] leading-[1.6] text-warm-gray">{t.bannerCopy}</p>
-        </div>
-        <div className="flex flex-wrap gap-8">
+      {reviewable ? (
+        <p className="m-0 flex flex-wrap items-center gap-8 text-[14px] text-warm-gray">
+          {tr(t.summaryCount, { count: String(decided) })}
           <button
             ref={startRef}
             type="button"
-            className={primaryButton}
+            className={ghostButton}
             onClick={() => {
+              setReviewing(true);
               setIndex(0);
               setOpen(true);
             }}
           >
-            {t.start}
+            {t.review}
           </button>
-          <button type="button" className={ghostButton} onClick={() => setDismissed(true)}>
-            {t.later}
-          </button>
-        </div>
-      </section>
+        </p>
+      ) : null}
+      {inviting ? (
+        <section
+          aria-label={t.bannerTitle}
+          className="grid animate-content-resolve gap-12 rounded-2xl border border-cyan-edge bg-[linear-gradient(120deg,var(--color-sky-wash-soft),var(--color-pure-white)_70%)] p-24 motion-reduce:animate-none sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+        >
+          <div className="grid gap-4">
+            <h2 className="m-0 font-roobert text-title-sm font-medium text-ink-black">
+              {t.bannerTitle}
+            </h2>
+            <p className="m-0 text-[14px] leading-[1.6] text-warm-gray">{t.bannerCopy}</p>
+          </div>
+          <div className="flex flex-wrap gap-8">
+            <button
+              ref={startRef}
+              type="button"
+              className={primaryButton}
+              onClick={() => {
+                setReviewing(false);
+                setIndex(0);
+                setOpen(true);
+              }}
+            >
+              {t.start}
+            </button>
+            <button type="button" className={ghostButton} onClick={() => setDismissed(true)}>
+              {t.later}
+            </button>
+          </div>
+        </section>
+      ) : null}
 
-      {open
+      {open && steps.length
         ? createPortal(
             <div
               ref={overlayRef}

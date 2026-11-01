@@ -295,6 +295,31 @@ describe('SuggestionsTour', () => {
     expect(document.body.textContent).not.toContain(labels('en').tour.bannerTitle);
   });
 
+  it('lets the decided improvements be reviewed again from the profile', async () => {
+    window.localStorage.setItem(
+      'profile.tour.cvChoices',
+      JSON.stringify({ revision: REV, choices: { Summary: 'apply', Links: 'skip' } }),
+    );
+    serve([suggestion('Summary', 'AllSupported'), suggestion('Links', 'Mixed')], ['Django']);
+    await render('es');
+    const t = labels('es').tour;
+    // Skills still wait, so the invitation shows; the review entry waits for it.
+    expect(document.body.textContent).toContain(t.bannerTitle);
+    await press(t.start);
+    expect(document.querySelector('[role="dialog"]')?.textContent).toContain(
+      tr(t.progress, { step: '1', total: '1' }),
+    );
+    await press(t.finish);
+    // Finished: the review entry stays, with the CV steps only.
+    expect(document.body.textContent).toContain(tr(t.summaryCount, { count: '2' }));
+    await press(t.review);
+    const dialog = document.querySelector('[role="dialog"]');
+    expect(dialog?.textContent).toContain(tr(t.progress, { step: '1', total: '3' }));
+    expect(dialog?.textContent).toContain(t.applied);
+    await press(t.close);
+    expect(document.body.textContent).toContain(t.review);
+  });
+
   it('stays hidden when the suggestions cannot load', async () => {
     vi.mocked(fetchHarnessOutputs).mockRejectedValue(new Error('down'));
     vi.mocked(fetchSuggestionsSummary).mockRejectedValue(new Error('down'));

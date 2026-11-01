@@ -311,6 +311,7 @@ export const labelsSchema = z.object({
     generate: z.string(),
     generateBadge: z.string(),
     generateSoon: z.string(),
+    review: z.string(),
   }),
   organized: z.object({
     title: z.string(),
