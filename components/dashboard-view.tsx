@@ -14,6 +14,7 @@ import { AccountMenu } from '@/components/account-menu';
 import { AppShell } from '@/components/app-shell';
 import { HomeHighlights } from '@/components/home-highlights';
 import { ProfileMetrics } from '@/components/profile-metrics';
+import { RecentActivity } from '@/components/recent-activity';
 import {
   AuthSubtitle,
   Eyebrow,
@@ -197,6 +198,7 @@ export function DashboardView({ locale }: { locale: Locale }) {
           <>
             <ProfileMetrics accessToken={accessToken} locale={locale} />
             <HomeHighlights accessToken={accessToken} locale={locale} hasCv={hasCv !== false} />
+            <RecentActivity accessToken={accessToken} locale={locale} />
           </>
         ) : null}
       </div>

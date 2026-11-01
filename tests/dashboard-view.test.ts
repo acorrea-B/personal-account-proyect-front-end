@@ -63,6 +63,10 @@ vi.mock('@/lib/api/suggestions', () => ({
   ]),
 }));
 
+vi.mock('@/lib/api/journal', () => ({
+  fetchJournalEntries: vi.fn().mockResolvedValue([]),
+}));
+
 vi.mock('@/lib/auth/session', async () => ({
   ...(await vi.importActual<typeof import('@/lib/auth/session')>('@/lib/auth/session')),
   loadSession: vi.fn(),
@@ -165,6 +169,7 @@ describe('DashboardView', () => {
     expect(document.body.textContent).toContain(t.metrics.none);
     expect(document.body.textContent).toContain(t.home.evolutionTitle);
     expect(document.body.textContent).toContain(t.home.noMode);
+    expect(document.querySelector(`section[aria-label="${t.activity.title}"]`)).not.toBeNull();
     expect(document.body.textContent).not.toContain(t.panel.fullName);
     expect(document.querySelector('nav a[aria-current="page"]')?.textContent).toBe(t.nav.home);
     expect(document.querySelector('main > a')).toBeNull();
