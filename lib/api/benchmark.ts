@@ -79,3 +79,25 @@ export async function fetchLatestBenchmark(
   }
   return { revision, benchmark: await fetchBenchmark(accessToken, revision.id) };
 }
+
+// One point of the profile's measured history: a revision and the benchmark
+// computed for it (null while none was computed).
+export type BenchmarkPoint = { revision: ProfileRevision; benchmark: Benchmark | null };
+
+// The most revisions the trend reads: one benchmark request per revision,
+// so the window stays small and bounded.
+export const trendWindow = 6;
+
+// The benchmarks of the newest revisions, oldest first (the order a trend
+// reads), at most `trendWindow`; empty before the first revision.
+export async function fetchBenchmarkTrend(accessToken: string): Promise<BenchmarkPoint[]> {
+  const envelope = await get('/v1/profile/revisions', accessToken, profileRevisionsEnvelopeSchema);
+  const newest = envelope.revisions.slice(0, trendWindow);
+  const points = await Promise.all(
+    newest.map(async (revision) => ({
+      revision,
+      benchmark: await fetchBenchmark(accessToken, revision.id),
+    })),
+  );
+  return points.reverse();
+}
