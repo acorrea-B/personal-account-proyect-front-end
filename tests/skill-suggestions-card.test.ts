@@ -17,6 +17,7 @@ import {
   fetchSuggestionsSummary,
 } from '@/lib/api/suggestions';
 import { labels, tr, type Locale } from '../lib/i18n';
+import { suggestionsChangedEvent } from '../lib/suggestions-signal';
 
 (globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -131,7 +132,12 @@ describe('SkillSuggestionsCard', () => {
     });
     await render('en');
     const t = labels('en').suggestions;
+    const announced = vi.fn();
+    window.addEventListener(suggestionsChangedEvent, announced);
     await click(tr(t.acceptAria, { skill: 'Rust' }));
+    window.removeEventListener(suggestionsChangedEvent, announced);
+    // The menu marker reads the count again after the decision.
+    expect(announced).toHaveBeenCalledTimes(1);
     expect(decideSkillSuggestion).toHaveBeenCalledWith('token', 'rust', 'accepted', REVISION);
     expect(onAccepted).toHaveBeenCalledTimes(1);
     expect(document.body.textContent).not.toContain('Built payment services in Rust');
