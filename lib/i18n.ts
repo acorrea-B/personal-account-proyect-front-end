@@ -39,6 +39,8 @@ export const labelsSchema = z.object({
     busy: z.string(),
     retry: z.string(),
     cvNew: z.string(),
+    showEvidence: z.string(),
+    showMore: z.string(),
   }),
   catalogConsent: z.object({
     title: z.string(),

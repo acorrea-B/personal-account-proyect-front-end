@@ -34,10 +34,15 @@ type CardState =
       suggestions: SkillSuggestion[];
     };
 
-// The dashboard rail card for the harness's skill suggestions (BC-012). It
-// reads the review signal and the pending suggestions, shows each one with
-// the verified CV line it came from, and records the user's decision: the
-// harness only suggests, the user decides. Accepting adds the skill to the
+// How many suggestions the card shows at first and adds per "show more": a
+// CV can yield dozens, and the column must stay readable beside the form.
+export const suggestionsPage = 5;
+
+// The profile's card for the harness's skill suggestions (BC-012). It reads
+// the review signal and the pending suggestions, shows each one compactly
+// (name and section, the verified CV line folded behind "see evidence"),
+// and records the user's decision: the harness only suggests, the user
+// decides. Accepting adds the skill to the
 // profile, so the host reloads it through onAccepted (with the skill's
 // display name).
 export function SkillSuggestionsCard({
@@ -61,6 +66,7 @@ export function SkillSuggestionsCard({
     Object.hasOwn(sections, key) ? sections[key as keyof typeof sections] : key;
   const [state, setState] = useState<CardState>({ kind: 'loading' });
   const [deciding, setDeciding] = useState<string | null>(null);
+  const [shown, setShown] = useState(suggestionsPage);
   const [notice, setNotice] = useState<{ tone: 'alert' | 'status'; text: string } | null>(null);
 
   const readError = useCallback(
@@ -161,31 +167,47 @@ export function SkillSuggestionsCard({
           {state.suggestions.length ? (
             <>
               <StatusChip>{tr(t.pending, { count: String(state.suggestions.length) })}</StatusChip>
-              <ul className="m-0 grid list-none gap-12 p-0" aria-label={t.listAria}>
-                {state.suggestions.map((suggestion) => {
+              <ul className="m-0 grid list-none p-0" aria-label={t.listAria}>
+                {state.suggestions.slice(0, shown).map((suggestion) => {
                   const busy = deciding === suggestion.skill_key;
                   return (
                     <li
                       key={suggestion.skill_key}
-                      className="grid gap-8 border-t border-stone-border pt-12"
+                      className="grid gap-8 border-t border-stone-border py-12"
                     >
-                      <strong className="font-medium text-ink-black">
-                        {suggestion.display_name}
-                      </strong>
-                      <figure className="m-0 grid gap-4">
-                        <blockquote className="m-0 border-l-2 border-sky-wash pl-12 text-[14px] leading-[1.6] text-ink-black">
-                          {suggestion.evidence.quote}
-                        </blockquote>
-                        <figcaption className="text-(length:--text-label) tracking-[0.08em] text-warm-gray uppercase">
-                          {tr(t.evidence, {
-                            section: sectionLabel(suggestion.evidence.cv_section),
-                          })}
-                        </figcaption>
-                      </figure>
-                      <div className="grid grid-cols-2 gap-8">
+                      <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-4">
+                        <strong className="min-w-0 font-medium [overflow-wrap:anywhere] text-ink-black">
+                          {suggestion.display_name}
+                        </strong>
+                        <span className="rounded-full bg-stone-canvas px-8 py-[2px] text-[12px] text-warm-gray">
+                          {sectionLabel(suggestion.evidence.cv_section)}
+                        </span>
+                      </div>
+                      <details className="group text-[13px]">
+                        <summary className="w-fit cursor-pointer list-none text-cyan-text-strong hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-text-strong [&::-webkit-details-marker]:hidden">
+                          <span
+                            aria-hidden="true"
+                            className="mr-4 inline-block transition-transform duration-200 group-open:rotate-90 motion-reduce:transition-none"
+                          >
+                            ›
+                          </span>
+                          {t.showEvidence}
+                        </summary>
+                        <figure className="m-0 mt-8 grid gap-4">
+                          <blockquote className="m-0 border-l-2 border-sky-wash pl-12 text-[14px] leading-[1.6] [overflow-wrap:anywhere] text-ink-black">
+                            {suggestion.evidence.quote}
+                          </blockquote>
+                          <figcaption className="text-(length:--text-label) tracking-[0.08em] text-warm-gray uppercase">
+                            {tr(t.evidence, {
+                              section: sectionLabel(suggestion.evidence.cv_section),
+                            })}
+                          </figcaption>
+                        </figure>
+                      </details>
+                      <div className="flex flex-wrap gap-8">
                         <button
                           type="button"
-                          className={outlineButton}
+                          className={cx(outlineButton, 'min-h-[44px] flex-1 px-12')}
                           disabled={deciding !== null}
                           aria-label={tr(t.acceptAria, { skill: suggestion.display_name })}
                           onClick={() => void decide(suggestion, 'accepted')}
@@ -194,7 +216,7 @@ export function SkillSuggestionsCard({
                         </button>
                         <button
                           type="button"
-                          className={ghostButton}
+                          className={cx(ghostButton, 'min-h-[44px] flex-1 px-12')}
                           disabled={deciding !== null}
                           aria-label={tr(t.rejectAria, { skill: suggestion.display_name })}
                           onClick={() => void decide(suggestion, 'rejected')}
@@ -206,6 +228,17 @@ export function SkillSuggestionsCard({
                   );
                 })}
               </ul>
+              {state.suggestions.length > shown ? (
+                <button
+                  type="button"
+                  className={ghostButton}
+                  onClick={() => setShown((current) => current + suggestionsPage)}
+                >
+                  {tr(t.showMore, {
+                    count: String(Math.min(suggestionsPage, state.suggestions.length - shown)),
+                  })}
+                </button>
+              ) : null}
             </>
           ) : (
             <span className={railText}>{state.revisionId ? t.allReviewed : t.none}</span>

@@ -9,7 +9,7 @@ vi.mock('@/lib/api/suggestions', () => ({
   decideSkillSuggestion: vi.fn(),
 }));
 
-import { SkillSuggestionsCard } from '../components/skill-suggestions-card';
+import { SkillSuggestionsCard, suggestionsPage } from '../components/skill-suggestions-card';
 import { ProblemError } from '../lib/api/client';
 import {
   decideSkillSuggestion,
@@ -101,6 +101,34 @@ describe('SkillSuggestionsCard', () => {
       tr(t.evidence, { section: labels('en').cvSections.experience }),
     );
     expect(document.querySelector(`ul[aria-label="${t.listAria}"]`)).not.toBeNull();
+  });
+
+  it('shows a few suggestions at first, folds the evidence and reveals more on demand', async () => {
+    const many = Array.from({ length: suggestionsPage * 2 + 2 }, (_, n) => ({
+      skill_key: `tool-${n}`,
+      display_name: `Tool ${n}`,
+      evidence: { quote: `Used Tool ${n} in production`, cv_section: 'skills' },
+    }));
+    vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(many.length));
+    vi.mocked(fetchSkillSuggestions).mockResolvedValue({
+      revision_id: REVISION,
+      suggestions: many,
+    });
+    await render('es');
+    const t = labels('es').suggestions;
+    const rows = () => document.querySelectorAll(`ul[aria-label="${t.listAria}"] > li`);
+    expect(rows()).toHaveLength(suggestionsPage);
+    // The count names every pending suggestion, not only the ones shown.
+    expect(document.body.textContent).toContain(tr(t.pending, { count: String(many.length) }));
+    // The CV line waits behind its disclosure.
+    const details = rows()[0].querySelector('details');
+    expect(details?.open).toBe(false);
+    expect(details?.querySelector('summary')?.textContent).toContain(t.showEvidence);
+    await click(tr(t.showMore, { count: String(suggestionsPage) }));
+    expect(rows()).toHaveLength(suggestionsPage * 2);
+    await click(tr(t.showMore, { count: '2' }));
+    expect(rows()).toHaveLength(many.length);
+    expect(document.body.textContent).not.toContain(tr(t.showMore, { count: '2' }));
   });
 
   it('names the CV section in the tree language and keeps an unknown key as sent', async () => {
