@@ -116,6 +116,12 @@ export const labelsSchema = z.object({
     back: z.string(),
     loadingAria: z.string(),
   }),
+  // Client-side validation copy: the schemas decide WHICH field fails,
+  // the dictionary says it in the tree language.
+  validation: z.object({
+    emailInvalid: z.string(),
+    passwordRequired: z.string(),
+  }),
   history: z.object({
     title: z.string(),
     empty: z.string(),
