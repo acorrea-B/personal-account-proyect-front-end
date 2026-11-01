@@ -136,6 +136,10 @@ describe('CvEditorView', () => {
       link.textContent?.includes(t.back),
     );
     expect((back?.getAttribute('href') ?? '').replace(/\/+$/, '')).toBe('/es/app');
+    // The shell frames the editor: the way home leads the page, the menu
+    // offers every section.
+    expect(document.querySelector('main > a')?.textContent).toBe(labels('es').nav.back);
+    expect(document.querySelectorAll('nav a')).toHaveLength(5);
   });
 
   it('saves and notes the archived previous version with the toast', async () => {

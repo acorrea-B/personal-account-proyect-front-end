@@ -21,6 +21,7 @@ import { updateProfileRequestSchema, type Profile } from '@/lib/schemas/profile'
 import { type Labels, type Locale, labels, tr } from '@/lib/i18n';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
+import { AppShell } from '@/components/app-shell';
 import { CatalogConsent } from '@/components/catalog-consent';
 import { SkillCatalogInput } from '@/components/skill-catalog-input';
 import {
@@ -40,7 +41,6 @@ import {
   SkillChips,
   Spinner,
   WorkspaceBar,
-  WorkspacePage,
   WorkspaceTitle,
   cx,
   contentResolve,
@@ -384,12 +384,10 @@ export function ProfileView({ locale }: { locale: Locale }) {
     );
   }
 
-  // The update flow opens inside the workspace column, onboarding on the
-  // centered auth page.
-  const Page = isUpdateFlow ? WorkspacePage : AuthPage;
-
-  return (
-    <Page>
+  // The update flow opens inside the workspace frame (menu and the way
+  // home), onboarding on the centered auth page.
+  const content = (
+    <>
       {load.status === 'ready' && profile && isUpdateFlow ? (
         <div className={contentResolve}>
           <WorkspaceBar
@@ -405,16 +403,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
               </>
             }
           >
-            <div className="flex items-center gap-12">
-              <Link
-                className="inline-flex size-[40px] items-center justify-center rounded-lg border border-stone-border bg-pure-white text-ink-black hover:bg-sky-wash-soft focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] [&_svg]:size-[18px]"
-                href={`${base}/app/`}
-                aria-label={t.profile.homeAria}
-              >
-                <HomeIcon />
-              </Link>
-              <AccountMenu locale={locale} />
-            </div>
+            <AccountMenu locale={locale} />
           </WorkspaceBar>
         </div>
       ) : null}
@@ -825,7 +814,15 @@ export function ProfileView({ locale }: { locale: Locale }) {
           </div>
         ) : null}
       </AuthCard>
-    </Page>
+    </>
+  );
+
+  return isUpdateFlow ? (
+    <AppShell locale={locale} back>
+      {content}
+    </AppShell>
+  ) : (
+    <AuthPage>{content}</AuthPage>
   );
 }
 

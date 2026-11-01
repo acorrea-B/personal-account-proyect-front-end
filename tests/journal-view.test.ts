@@ -125,6 +125,10 @@ describe('JournalView', () => {
     const j = labels('es').journal;
     expect(document.body.textContent).toContain('Your entries stay private to you.');
     expect(document.querySelector('textarea')).toBeNull();
+    // The consent gate keeps the way back: the shell leads with it.
+    const back = document.querySelector('main > a');
+    expect(back?.textContent).toBe(labels('es').nav.back);
+    expect((back?.getAttribute('href') ?? '').replace(/\/+$/, '')).toBe('/es/app');
     await click(byText(j.consentConfirm));
     expect(confirmJournalConsent).toHaveBeenCalledWith('token', 'journal-v1');
     expect(document.querySelector('textarea')).not.toBeNull();
