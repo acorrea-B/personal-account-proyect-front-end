@@ -281,6 +281,15 @@ export const labelsSchema = z.object({
     heading: z.string(),
     subtitle: z.string(),
   }),
+  nav: z.object({
+    label: z.string(),
+    home: z.string(),
+    profile: z.string(),
+    cv: z.string(),
+    journal: z.string(),
+    evolution: z.string(),
+    back: z.string(),
+  }),
   workspace: z.object({
     eyebrow: z.string(),
     greeting: z.string(),
