@@ -56,7 +56,9 @@ export function LoginView({ locale }: { locale: Locale }) {
       for (const issue of parsed.error.issues) {
         const field = issue.path[0];
         if (field === 'email' || field === 'password') {
-          errors[field] = issue.message;
+          // The schema names the failing field; the copy is the tree's.
+          errors[field] =
+            field === 'email' ? t.validation.emailInvalid : t.validation.passwordRequired;
         }
       }
       setFieldErrors(errors);

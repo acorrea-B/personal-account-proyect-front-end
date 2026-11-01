@@ -94,7 +94,7 @@ export function ConfirmView({ locale }: { locale: Locale }) {
       const errors: FieldErrors = {};
       for (const issue of parsed.error.issues) {
         if (issue.path[0] === 'email') {
-          errors.email = issue.message;
+          errors.email = t.validation.emailInvalid;
         }
       }
       setFieldErrors(errors);

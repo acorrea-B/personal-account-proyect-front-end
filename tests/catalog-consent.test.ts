@@ -125,4 +125,14 @@ describe('CatalogConsent', () => {
     await click(t.retry);
     expect(document.body.textContent).toContain(t.withdrawn);
   });
+
+  it('does not reload when the session renews its access token', async () => {
+    vi.mocked(fetchCatalogConsent).mockResolvedValue(consent(null));
+    await render('en');
+    expect(fetchCatalogConsent).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      root?.render(createElement(CatalogConsent, { accessToken: 'renewed', locale: 'en' }));
+    });
+    expect(fetchCatalogConsent).toHaveBeenCalledTimes(1);
+  });
 });
