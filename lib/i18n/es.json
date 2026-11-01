@@ -490,7 +490,18 @@
     "back": "Anterior",
     "finish": "Terminar",
     "close": "Cerrar",
-    "languageNote": "La IA redactó esta sugerencia en inglés; pronto la escribirá en tu idioma."
+    "languageNote": "Por ahora el motivo está en inglés; pronto lo verás en tu idioma. El texto propuesto para tu CV sí va en inglés, como tu CV.",
+    "apply": "Aplicar esta mejora",
+    "skip": "Omitir",
+    "applied": "Se aplicará",
+    "skipped": "Omitida",
+    "summaryTitle": "Tus mejoras para la nueva versión de tu CV",
+    "summaryCount": "Mejoras elegidas: {count}",
+    "summaryNone": "Esta vez no elegiste mejoras. Puedes recorrer las sugerencias otra vez desde tu perfil.",
+    "atsNote": "La nueva versión se escribe en inglés, el idioma de tu CV, en formato ATS de una sola columna.",
+    "generate": "Generar mi CV en formato ATS",
+    "generateBadge": "Beta 1.1",
+    "generateSoon": "La generación de la nueva versión llega en la beta 1.1. Tus mejoras elegidas quedan guardadas para ese momento."
   },
   "organized": {
     "title": "Tu perfil organizado",

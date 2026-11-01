@@ -3,6 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import {
+  type TourChoice,
+  type TourChoices,
+  readTourChoices,
+  saveTourChoices,
+} from '@/lib/tour-choices';
+
 import { cx, ghostButton, primaryButton } from '@/components/ui';
 import { fetchHarnessOutputs } from '@/lib/api/harness';
 import { fetchSkillSuggestions, fetchSuggestionsSummary } from '@/lib/api/suggestions';
@@ -15,7 +22,10 @@ import {
   suggestionsChangedEvent,
 } from '@/lib/suggestions-signal';
 
-type Step = { kind: 'suggestion'; suggestion: CvSuggestion } | { kind: 'skills'; names: string[] };
+type Step =
+  | { kind: 'suggestion'; suggestion: CvSuggestion }
+  | { kind: 'summary' }
+  | { kind: 'skills'; names: string[] };
 
 type TourData = {
   cvSuggestions: CvSuggestion[] | null;
@@ -92,7 +102,10 @@ export function tourSteps(cvSuggestions: CvSuggestion[] | null, skillNames: stri
         order.indexOf(left.verification_status) - order.indexOf(right.verification_status),
     )
     .map((suggestion): Step => ({ kind: 'suggestion', suggestion }));
-  return skillNames.length ? [...advice, { kind: 'skills', names: skillNames }] : advice;
+  // The chosen CV improvements are gathered right after the CV steps; the
+  // profile skills come last.
+  const cv: Step[] = advice.length ? [...advice, { kind: 'summary' }] : [];
+  return skillNames.length ? [...cv, { kind: 'skills', names: skillNames }] : cv;
 }
 
 // The profile's suggestions tour: a call to action above the profile while
@@ -107,6 +120,7 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
   const [open, setOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [index, setIndex] = useState(0);
+  const [choices, setChoices] = useState<TourChoices>({});
   const startRef = useRef<HTMLButtonElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -130,6 +144,7 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
         const cvRevision = summary.cv.revision_id;
         // A walked CV revision only offers the tour again for new skills.
         const walked = cvRevision !== null && cvRevision === readSeenCvRevision();
+        setChoices(readTourChoices(cvRevision));
         setData({
           cvSuggestions: walked ? [] : outputs.cvSuggestions,
           skillNames: skills.suggestions.map((suggestion) => suggestion.display_name),
@@ -173,6 +188,18 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
   }, [data]);
 
   const steps = data ? tourSteps(data.cvSuggestions, data.skillNames) : [];
+
+  // Records the choice for a suggestion (kept for the next CV version) and
+  // moves on.
+  const choose = (suggestionId: string, choice: TourChoice) => {
+    const next = { ...choices, [suggestionId]: choice };
+    setChoices(next);
+    saveTourChoices(data?.cvRevision ?? null, next);
+    setIndex((current) => Math.min(current, steps.length - 1) + 1);
+  };
+  const applied = (data?.cvSuggestions ?? []).filter(
+    (suggestion) => choices[suggestion.suggestion_id] === 'apply',
+  );
   // The modal is showing only while it has a step: if a refresh empties the
   // steps (every skill decided meanwhile), it closes and releases the page.
   const showing = open && steps.length > 0;
@@ -364,6 +391,76 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
                       <p className="m-0 rounded-lg bg-teal-wash px-12 py-8 text-[13px] leading-[1.6] text-teal-text">
                         {t.recruiters}
                       </p>
+                      {choices[step.suggestion.suggestion_id] ? (
+                        <p className="m-0 text-[12px] font-medium text-cyan-text-strong">
+                          {choices[step.suggestion.suggestion_id] === 'apply'
+                            ? t.applied
+                            : t.skipped}
+                        </p>
+                      ) : null}
+                    </>
+                  ) : step.kind === 'summary' ? (
+                    <>
+                      <h3
+                        ref={headingRef}
+                        tabIndex={-1}
+                        className="m-0 font-roobert text-(length:--text-subheading) font-medium text-ink-black outline-none"
+                      >
+                        {t.summaryTitle}
+                      </h3>
+                      {applied.length ? (
+                        <>
+                          <p className="m-0 text-[13px] font-medium text-teal-text">
+                            {tr(t.summaryCount, { count: String(applied.length) })}
+                          </p>
+                          <ol className="m-0 grid list-none gap-8 p-0">
+                            {applied.map((suggestion) => (
+                              <li
+                                key={suggestion.suggestion_id}
+                                className="grid gap-2 rounded-lg border border-stone-border p-12"
+                              >
+                                <span className="text-(length:--text-label) font-semibold tracking-[0.08em] text-warm-gray uppercase">
+                                  {sectionName(locale, suggestion.section)}
+                                </span>
+                                <span
+                                  lang={modelLang(suggestion.language)}
+                                  className="text-[14px] leading-[1.5] text-ink-black"
+                                >
+                                  {suggestion.suggested_text}
+                                </span>
+                              </li>
+                            ))}
+                          </ol>
+                        </>
+                      ) : (
+                        <p className="m-0 text-[14px] leading-[1.6] text-warm-gray">
+                          {t.summaryNone}
+                        </p>
+                      )}
+                      <p className="m-0 rounded-lg bg-sky-wash-soft px-12 py-8 text-[13px] leading-[1.6] text-cyan-text-strong">
+                        {t.atsNote}
+                      </p>
+                      <div className="grid justify-items-start gap-4">
+                        <span className="flex flex-wrap items-center gap-8">
+                          <button
+                            type="button"
+                            disabled
+                            aria-describedby="tour-generate-soon"
+                            className={cx(primaryButton, 'cursor-not-allowed opacity-60')}
+                          >
+                            {t.generate}
+                          </button>
+                          <span className="rounded-full bg-sky-wash-soft px-8 py-4 text-[12px] font-medium text-cyan-text-strong">
+                            {t.generateBadge}
+                          </span>
+                        </span>
+                        <p
+                          id="tour-generate-soon"
+                          className="m-0 text-[12px] leading-[1.5] text-warm-gray"
+                        >
+                          {t.generateSoon}
+                        </p>
+                      </div>
                     </>
                   ) : (
                     <>
@@ -410,13 +507,34 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
                   >
                     {t.back}
                   </button>
-                  <button
-                    type="button"
-                    className={primaryButton}
-                    onClick={() => (last ? close() : setIndex(position + 1))}
-                  >
-                    {last ? t.finish : t.next}
-                  </button>
+                  {step.kind === 'suggestion' ? (
+                    <span className="flex flex-wrap gap-8">
+                      <button
+                        type="button"
+                        className={ghostButton}
+                        aria-pressed={choices[step.suggestion.suggestion_id] === 'skip'}
+                        onClick={() => choose(step.suggestion.suggestion_id, 'skip')}
+                      >
+                        {t.skip}
+                      </button>
+                      <button
+                        type="button"
+                        className={primaryButton}
+                        aria-pressed={choices[step.suggestion.suggestion_id] === 'apply'}
+                        onClick={() => choose(step.suggestion.suggestion_id, 'apply')}
+                      >
+                        {t.apply}
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className={primaryButton}
+                      onClick={() => (last ? close() : setIndex(position + 1))}
+                    >
+                      {last ? t.finish : t.next}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>,
