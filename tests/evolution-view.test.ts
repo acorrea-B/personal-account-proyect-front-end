@@ -13,6 +13,12 @@ vi.mock('@/lib/auth/useRequireAuth', () => ({
   useRequireAuth: () => requireAuthMock(),
 }));
 
+vi.mock('@/lib/api/harness', () => ({
+  fetchHarnessOutputs: vi
+    .fn()
+    .mockResolvedValue({ runAt: null, metrics: [], cvSuggestions: null, level: null, roles: [] }),
+}));
+
 vi.mock('@/lib/api/evolution', () => ({
   fetchEvolutionMode: vi.fn(),
   fetchEvolutionHistory: vi.fn(),
@@ -72,5 +78,6 @@ describe('EvolutionView', () => {
     expect(current?.textContent).toBe(t.nav.evolution);
     expect(document.querySelector(`section[aria-label="${t.evolution.title}"]`)).not.toBeNull();
     expect(fetchEvolutionMode).toHaveBeenCalledWith('token');
+    expect(document.body.textContent).toContain(t.ai.noRun);
   });
 });

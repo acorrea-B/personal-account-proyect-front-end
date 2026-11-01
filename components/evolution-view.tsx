@@ -3,6 +3,7 @@
 import { AccountMenu } from '@/components/account-menu';
 import { AppShell } from '@/components/app-shell';
 import { EvolutionCard } from '@/components/evolution-card';
+import { HarnessInsights } from '@/components/harness-insights';
 import { Skeleton } from '@/components/skeleton';
 import {
   Eyebrow,
@@ -16,7 +17,8 @@ import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { type Locale, labels } from '@/lib/i18n';
 
 // The evolution page (BC-005/BC-008): the declared mode, its declaration
-// form and the checks the harness recorded, on a page of their own instead
+// form and the checks the harness recorded, then what the newest harness
+// run read (output quality, level, roles), on a page of their own instead
 // of crowding the home summary.
 export function EvolutionView({ locale }: { locale: Locale }) {
   const t = labels(locale);
@@ -55,6 +57,7 @@ export function EvolutionView({ locale }: { locale: Locale }) {
       <div className={cx(contentResolve, 'grid gap-32')}>
         {bar}
         <EvolutionCard accessToken={accessToken} locale={locale} />
+        <HarnessInsights accessToken={accessToken} locale={locale} />
       </div>
     </AppShell>
   );
