@@ -10,16 +10,15 @@ vi.mock('next/navigation', () => ({
 }));
 
 let session: { accessToken: string } | null = null;
-vi.mock('@/lib/auth/useRequireAuth', () => ({
-  useRequireAuth: () => ({ session, isHydrated: true, isAuthorized: Boolean(session) }),
-}));
+// The menu reads the stored session; it never starts a session lifecycle.
+vi.mock('@/lib/auth/session', () => ({ loadSession: () => session }));
 
 vi.mock('@/lib/api/suggestions', () => ({ fetchSuggestionsSummary: vi.fn() }));
 
 import { AppShell, activeSection } from '../components/app-shell';
 import { fetchSuggestionsSummary } from '@/lib/api/suggestions';
 import { labels, tr, type Locale } from '../lib/i18n';
-import { markCvRevisionSeen, pendingCount, seenCvRevisionKey } from '../lib/suggestions-signal';
+import { announceSuggestionsChanged, pendingCount } from '../lib/suggestions-signal';
 
 const summary = (skills: number, cv: number, cvRevision: string | null = 'rev-cv-1') => ({
   skills: { pending: skills, revision_id: 'rev-skills', created_at: null },
@@ -57,10 +56,9 @@ afterEach(() => {
 });
 
 describe('pendingCount', () => {
-  it('counts the pending skills and the CV suggestions of a revision not walked yet', () => {
-    expect(pendingCount(summary(2, 3), null)).toBe(5);
-    expect(pendingCount(summary(2, 3), 'rev-cv-1')).toBe(2);
-    expect(pendingCount(summary(0, 3, null), null)).toBe(0);
+  it('counts the pending skill suggestions', () => {
+    expect(pendingCount(summary(2, 3))).toBe(2);
+    expect(pendingCount(summary(0, 3))).toBe(0);
   });
 });
 
@@ -76,16 +74,18 @@ describe('the profile marker', () => {
     session = { accessToken: 'token' };
     vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(2, 3));
     await render('es');
-    expect(marker()).toBe(tr(labels('es').nav.pendingAria, { count: '5' }));
+    expect(marker()).toBe(tr(labels('es').nav.pendingAria, { count: '2' }));
     expect(fetchSuggestionsSummary).toHaveBeenCalledWith('token');
   });
 
-  it('stops counting a CV revision the tour already walked', async () => {
+  it('reads the count again after a decision and clears when none wait', async () => {
     session = { accessToken: 'token' };
-    markCvRevisionSeen('rev-cv-1');
-    expect(window.localStorage.getItem(seenCvRevisionKey)).toBe('rev-cv-1');
-    vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(0, 3));
+    vi.mocked(fetchSuggestionsSummary).mockResolvedValueOnce(summary(1, 0));
     await render('en');
+    expect(marker()).toBe(tr(labels('en').nav.pendingAria, { count: '1' }));
+    vi.mocked(fetchSuggestionsSummary).mockResolvedValueOnce(summary(0, 0));
+    await act(async () => announceSuggestionsChanged());
+    expect(fetchSuggestionsSummary).toHaveBeenCalledTimes(2);
     expect(marker()).toBeNull();
   });
 
