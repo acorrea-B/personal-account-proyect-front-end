@@ -18,7 +18,6 @@ import type { CvSuggestion, VerificationStatus } from '@/lib/schemas/harness';
 import {
   announceSuggestionsChanged,
   markCvRevisionSeen,
-  readSeenCvRevision,
   suggestionsChangedEvent,
 } from '@/lib/suggestions-signal';
 
@@ -109,9 +108,10 @@ export function tourSteps(cvSuggestions: CvSuggestion[] | null, skillNames: stri
 }
 
 // The profile's suggestions tour: a call to action above the profile while
-// the newest harness run has advice the user has not walked, and a
-// step-by-step window with a progress indicator. Finishing (or closing)
-// remembers the CV revision walked, so the tour does not offer it again.
+// the newest harness run has advice the user has not decided, and a
+// step-by-step window with a progress indicator. Only finishing walks the
+// CV revision (closing just closes); the CV steps return while any
+// improvement waits for apply or skip.
 // The window is a modal: rendered outside the page (a portal), focus stays
 // inside and the page behind is inert while it is open.
 export function SuggestionsTour({ accessToken, locale }: { accessToken: string; locale: Locale }) {
@@ -142,11 +142,15 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     ])
       .then(([outputs, summary, skills]) => {
         const cvRevision = summary.cv.revision_id;
-        // A walked CV revision only offers the tour again for new skills.
-        const walked = cvRevision !== null && cvRevision === readSeenCvRevision();
-        setChoices(readTourChoices(cvRevision));
+        // The CV steps are offered while any improvement waits for a
+        // decision (apply or skip); a closed tour decided nothing.
+        const stored = readTourChoices(cvRevision);
+        const undecided = tourSteps(outputs.cvSuggestions, []).some(
+          (step) => step.kind === 'suggestion' && !stored[step.suggestion.suggestion_id],
+        );
+        setChoices(stored);
         setData({
-          cvSuggestions: walked ? [] : outputs.cvSuggestions,
+          cvSuggestions: undecided ? outputs.cvSuggestions : [],
           skillNames: skills.suggestions.map((suggestion) => suggestion.display_name),
           cvRevision,
         });
@@ -176,7 +180,15 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     return () => window.removeEventListener(suggestionsChangedEvent, onChange);
   }, []);
 
+  // Closing only closes: nothing is decided, the invitation stays.
   const close = useCallback(() => {
+    setOpen(false);
+    startRef.current?.focus();
+  }, []);
+
+  // Finishing walks the revision: the invitation goes and the menu marker
+  // stops counting it.
+  const finish = useCallback(() => {
     setOpen(false);
     setDismissed(true);
     if (data?.cvRevision) {
@@ -530,7 +542,7 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
                     <button
                       type="button"
                       className={primaryButton}
-                      onClick={() => (last ? close() : setIndex(position + 1))}
+                      onClick={() => (last ? finish() : setIndex(position + 1))}
                     >
                       {last ? t.finish : t.next}
                     </button>

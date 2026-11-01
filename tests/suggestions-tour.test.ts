@@ -254,19 +254,42 @@ describe('SuggestionsTour', () => {
     expect(document.querySelector('[role="dialog"]')?.textContent).toContain('+3');
   });
 
-  it('closes on Escape and remembers the walked revision', async () => {
-    serve([suggestion('Summary', 'AllSupported')], []);
+  it('closing decides nothing: the invitation stays and starts from the first step', async () => {
+    serve([suggestion('Summary', 'AllSupported'), suggestion('Links', 'Mixed')], ['Django']);
     await render('en');
-    await press(labels('en').tour.start);
+    const t = labels('en').tour;
+    await press(t.start);
     await act(async () => {
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     });
     expect(document.querySelector('[role="dialog"]')).toBeNull();
-    expect(readSeenCvRevision()).toBe(REV);
+    expect(document.body.textContent).toContain(t.bannerTitle);
+    expect(readSeenCvRevision()).toBeNull();
+    await press(t.start);
+    await press(t.close);
+    expect(document.body.textContent).toContain(t.bannerTitle);
+    expect(readSeenCvRevision()).toBeNull();
+    await press(t.start);
+    const dialog = document.querySelector('[role="dialog"]');
+    expect(dialog?.textContent).toContain(tr(t.progress, { step: '1', total: '4' }));
+    expect(dialog?.textContent).toContain(
+      tr(t.sectionTitle, { section: labels('en').cvSections.summary }),
+    );
   });
 
-  it('stays hidden when the CV revision was walked and no skills wait', async () => {
+  it('offers the CV steps again while an improvement waits, even after an old close', async () => {
+    // A close under the previous behavior marked the revision as walked.
     markCvRevisionSeen(REV);
+    serve([suggestion('Summary', 'AllSupported')], []);
+    await render('en');
+    expect(document.body.textContent).toContain(labels('en').tour.bannerTitle);
+  });
+
+  it('stays hidden once every improvement was decided and no skills wait', async () => {
+    window.localStorage.setItem(
+      'profile.tour.cvChoices',
+      JSON.stringify({ revision: REV, choices: { Summary: 'apply' } }),
+    );
     serve([suggestion('Summary', 'AllSupported')], []);
     await render('en');
     expect(document.body.textContent).not.toContain(labels('en').tour.bannerTitle);
