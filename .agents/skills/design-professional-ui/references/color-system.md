@@ -6,19 +6,19 @@ Asignar a cada tono un rol, una pareja texto/fondo y una etiqueta accesible. Si 
 
 ## Base existente
 
-| Uso | Token | Valor | Criterio |
-| --- | --- | --- | --- |
-| Canvas | `--color-stone-canvas` | `#fafaf9` | Fondo cálido |
-| Card | `--color-pure-white` | `#ffffff` | Lectura y edición |
-| Texto | `--color-ink-black` | `#0c0a09` | Jerarquía principal |
-| Secundario | `--color-warm-gray` | `#78716c` | Medir sobre el fondo real |
-| Invertido | `--color-soot` | `#1c1917` | Resumen puntual con texto claro explícito |
-| Hairline | `--color-stone-border` | `#e8e6e5` | Decorativo; no único indicador funcional |
-| Acción | `--color-cyan-signal` | `#3ba6f1` | CTA con texto tinta |
-| Enlace | `--color-cyan-text-strong` | `#0d68b8` | Sobre claro; subrayar cuando corresponda |
-| Tinte | `--color-sky-wash-soft` | `#e3f1fb` | Orientación o siguiente acción |
-| Favorable | `--color-teal-text` | `#0f766e` | Evidencia real y etiqueta explícita |
-| Problema | `--color-alert` | `#b91c1c` | Error o atención requerida |
+| Uso        | Token                      | Valor     | Criterio                                  |
+| ---------- | -------------------------- | --------- | ----------------------------------------- |
+| Canvas     | `--color-stone-canvas`     | `#fafaf9` | Fondo cálido                              |
+| Card       | `--color-pure-white`       | `#ffffff` | Lectura y edición                         |
+| Texto      | `--color-ink-black`        | `#0c0a09` | Jerarquía principal                       |
+| Secundario | `--color-warm-gray`        | `#78716c` | Medir sobre el fondo real                 |
+| Invertido  | `--color-soot`             | `#1c1917` | Resumen puntual con texto claro explícito |
+| Hairline   | `--color-stone-border`     | `#e8e6e5` | Decorativo; no único indicador funcional  |
+| Acción     | `--color-cyan-signal`      | `#3ba6f1` | CTA con texto tinta                       |
+| Enlace     | `--color-cyan-text-strong` | `#0d68b8` | Sobre claro; subrayar cuando corresponda  |
+| Tinte      | `--color-sky-wash-soft`    | `#e3f1fb` | Orientación o siguiente acción            |
+| Favorable  | `--color-teal-text`        | `#0f766e` | Evidencia real y etiqueta explícita       |
+| Problema   | `--color-alert`            | `#b91c1c` | Error o atención requerida                |
 
 No usar `--color-ash-gray` para texto necesario sobre blanco sin medirlo. Distinguir un borde decorativo tenue de un borde necesario para identificar un control.
 
@@ -26,12 +26,12 @@ No usar `--color-ash-gray` para texto necesario sobre blanco sin medirlo. Distin
 
 Usar solo los roles necesarios. Estos fondos son propuestas del skill, no tokens ya presentes ni colores de Refero. Reutilizar equivalentes actuales antes de añadirlos.
 
-| Familia | Texto | Fondo suave | Significado |
-| --- | --- | --- | --- |
-| Teal | `#0f766e` | `#f0fdfa` | Evidencia respaldada o resultado favorable demostrado |
-| Ámbar | `#92400e` | `#fffbeb` | Pendiente de revisión o respaldo parcial |
-| Rojo | `#b91c1c` | `#fef2f2` | Fallo o bloqueo que exige atención |
-| Neutra | `#57534e` | `#f5f5f4` | Sin evaluar, información o inferencia |
+| Familia | Texto     | Fondo suave | Significado                                           |
+| ------- | --------- | ----------- | ----------------------------------------------------- |
+| Teal    | `#0f766e` | `#f0fdfa`   | Evidencia respaldada o resultado favorable demostrado |
+| Ámbar   | `#92400e` | `#fffbeb`   | Pendiente de revisión o respaldo parcial              |
+| Rojo    | `#b91c1c` | `#fef2f2`   | Fallo o bloqueo que exige atención                    |
+| Neutra  | `#57534e` | `#f5f5f4`   | Sin evaluar, información o inferencia                 |
 
 Para `Blocked` por falta de evidencia, elegir ámbar o rojo según la consecuencia, sin cambiar la etiqueta ni mostrar la propuesta bloqueada como consejo aplicable. Para inferencias, usar «Inferido» neutral, sin apariencia de verificación.
 
