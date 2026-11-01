@@ -28,14 +28,12 @@ describe('the json dictionaries', () => {
 
 describe('tr', () => {
   it('interpolates the template variables from a dictionary label', () => {
-    expect(tr(labels('en').cvCard.lastSaved, { date: '2026-01-01' })).toBe('Last saved 2026-01-01');
-    expect(tr(labels('es').panel.updatedNote, { date: '2026-01-01' })).toBe(
-      'Actualizado el 2026-01-01',
-    );
+    expect(tr(labels('en').metrics.asOf, { date: 'Oct 30' })).toBe('From the revision of Oct 30');
+    expect(tr(labels('es').metrics.asOf, { date: '30 oct' })).toBe('De la revisión del 30 oct');
   });
 
   it('keeps the placeholder when the variable is missing', () => {
-    expect(tr(labels('en').cvCard.lastSaved)).toBe('Last saved {date}');
+    expect(tr(labels('en').metrics.asOf)).toBe('From the revision of {date}');
   });
 });
 

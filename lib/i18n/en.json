@@ -4,12 +4,6 @@
   "signOut": "Sign out",
   "language": "Language",
   "cvCard": {
-    "title": "CV",
-    "live": "Live",
-    "lastSaved": "Last saved {date}",
-    "edit": "Edit CV",
-    "empty": "No cv yet — write yours in the editor.",
-    "write": "Write your CV",
     "retry": "Try again"
   },
   "history": {
@@ -42,17 +36,7 @@
     "bio": "Bio",
     "location": "Location",
     "skills": "Skills",
-    "links": "Links",
-    "updatedNote": "Updated {date}",
-    "updateLink": "Update profile",
-    "comingUp": "Coming up",
-    "liveCard": "Profile",
-    "acceptedSkill": "Added from a suggestion of your CV",
-    "acceptedLegend": "✓ added from a suggestion of your CV"
-  },
-  "clampedText": {
-    "showMore": "Show more",
-    "showLess": "Show less"
+    "links": "Links"
   },
   "login": {
     "heading": "Sign in",
@@ -125,20 +109,16 @@
     "greeting": "Hello, {name}.",
     "title": "Your workspace",
     "signedInAs": "Signed in as {email}",
-    "profilePanel": "Your profile",
-    "comingUpPanel": "Coming to your workspace",
     "serviceDeclined": "The service did not accept the credential for now. Your session is kept; try again shortly.",
     "detailSuffix": " — try again shortly.",
     "cvRateCapped": "The cv endpoint is rate limited (at most twice a minute). Wait a few seconds and try again.",
     "cvTimeout": "Request timed out. Please try again.",
-    "cvFallback": "The cv response was not understood. Please retry or report it.",
     "historyFallback": "The version history failed to load. Please try again.",
     "profileRateCapped": "Too many requests; please wait a moment and try again.",
     "profileWarming": "The service is warming up; try again shortly.",
     "profileUnreachable": "The service could not be reached; please try again.",
     "profileTimeout": "Request timed out. Please try again.",
-    "profileUnknown": "The profile response was not understood. Please retry or report it.",
-    "profileFallback": "The profile could not be loaded. Please try again."
+    "profileUnknown": "The profile response was not understood. Please retry or report it."
   },
   "cvEditor": {
     "title": "CV editor",
@@ -206,7 +186,6 @@
     "onboardingKicker": "The api holds a placeholder profile until this is saved",
     "toastOnboarding": "Profile saved — it is live in the workspace.",
     "toastUpdate": "Profile updated — saved exactly as edited.",
-    "homeAria": "Back to the workspace",
     "phasesAria": "Registration phases",
     "fieldsAria": "Profile fields",
     "headlinePlaceholder": "Backend engineer · Rust and TypeScript",
@@ -320,7 +299,6 @@
     "retry": "Try again",
     "back": "Back to workspace",
     "loadingAria": "Loading your journal",
-    "railCopy": "Write down what you did; your entries back your skills.",
     "open": "Open journal",
     "showOlder": "Show older entries",
     "limitNote": "Showing your latest 200 entries; older ones are kept but cannot be listed here yet."
@@ -370,22 +348,6 @@
     "structural": "Structural gap",
     "unmeasurable": "Not measurable yet",
     "action": "Next: {action} · {target}"
-  },
-  "health": {
-    "title": "Profile health",
-    "asOf": "From the revision of {date}",
-    "completeness": "Completeness",
-    "supported": "Claims backed by evidence",
-    "overClaimed": "Claims above the evidence",
-    "overClaimedHigh": "Review these claims",
-    "entries": "Journal entries",
-    "confirmed": "Confirmed as evidence",
-    "notMeasured": "Not measured yet",
-    "none": "No revision yet — the harness computes this once your profile has a revision.",
-    "pending": "The benchmark of your latest revision is not ready yet.",
-    "loadFailed": "Your profile health could not be loaded.",
-    "retry": "Try again",
-    "loadingAria": "Loading your profile health"
   },
   "metrics": {
     "title": "Your profile in numbers",

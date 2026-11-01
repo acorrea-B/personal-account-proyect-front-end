@@ -11,7 +11,6 @@ vi.mock('@/lib/api/cv', async () => ({
 
 import { CvVersionDetail } from '../components/cv-version-detail';
 import { ProblemError } from '@/lib/api/client';
-import { CvCard } from '../components/cv-card';
 import { getVersionDetail, saveCvText } from '@/lib/api/cv';
 import { formatWhen } from '../components/cv-timeline';
 import { labels } from '@/lib/i18n';
@@ -24,72 +23,6 @@ const DETAIL = {
   archived_at: '2026-10-27T09:00:00.000Z',
   content: 'The archived text.',
 };
-
-// next/link normalizes trailing slashes in the jsdom environment (no
-// router config there) while the static export keeps them; compare the
-// canonical path so the assertion is honest on both runtimes.
-function hrefOf(anchor: HTMLAnchorElement | null): string {
-  return (anchor?.getAttribute('href') ?? '').replace(/\/+$/, '') || '/';
-}
-
-describe('CvCard', () => {
-  it("points both actions at the tree's cv editor", async () => {
-    const { act, createElement } = await import('react');
-    const { createRoot } = await import('react-dom/client');
-    const container = document.createElement('div');
-    document.body.appendChild(container);
-
-    const saved = {
-      kind: 'ready' as const,
-      cv: {
-        id: 'cv-1',
-        content: 'text',
-        created_at: '2026-10-26T09:00:00.000Z',
-        updated_at: '2026-10-27T09:00:00.000Z',
-      },
-    };
-    await act(async () => {
-      createRoot(container).render(createElement(CvCard, { state: saved, locale: 'en' }));
-    });
-    expect([...container.querySelectorAll('a')].map(hrefOf)).toContain('/app/cv');
-
-    const empty = { kind: 'empty' as const };
-    await act(async () => {
-      createRoot(container).render(createElement(CvCard, { state: empty, locale: 'en' }));
-    });
-    expect([...container.querySelectorAll('a')].map(hrefOf)).toContain('/app/cv');
-    container.remove();
-  });
-
-  it('points the es tree at /es/app/cv (the english tree never takes over)', async () => {
-    const { act, createElement } = await import('react');
-    const { createRoot } = await import('react-dom/client');
-    const container = document.createElement('div');
-    document.body.appendChild(container);
-
-    const saved = {
-      kind: 'ready' as const,
-      cv: {
-        id: 'cv-1',
-        content: 'texto',
-        created_at: '2026-10-26T09:00:00.000Z',
-        updated_at: '2026-10-27T09:00:00.000Z',
-      },
-    };
-    await act(async () => {
-      createRoot(container).render(createElement(CvCard, { state: saved, locale: 'es' }));
-    });
-    expect([...container.querySelectorAll('a')].map(hrefOf)).toContain('/es/app/cv');
-    expect(container.textContent).toContain(labels('es').cvCard.edit);
-    const empty = { kind: 'empty' as const };
-    await act(async () => {
-      createRoot(container).render(createElement(CvCard, { state: empty, locale: 'es' }));
-    });
-    expect([...container.querySelectorAll('a')].map(hrefOf)).toContain('/es/app/cv');
-    expect(container.textContent).toContain(labels('es').cvCard.write);
-    container.remove();
-  });
-});
 
 describe('CvVersionDetail', () => {
   let root: Root | null = null;

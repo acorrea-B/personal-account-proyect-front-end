@@ -4,12 +4,6 @@
   "signOut": "Cerrar sesión",
   "language": "Idioma",
   "cvCard": {
-    "title": "CV",
-    "live": "En vivo",
-    "lastSaved": "Guardado el {date}",
-    "edit": "Editar CV",
-    "empty": "Aún no hay CV — escríbelo en el editor.",
-    "write": "Escribe tu CV",
     "retry": "Intentar de nuevo"
   },
   "history": {
@@ -42,17 +36,7 @@
     "bio": "Bio",
     "location": "Ubicación",
     "skills": "Habilidades",
-    "links": "Enlaces",
-    "updatedNote": "Actualizado el {date}",
-    "updateLink": "Actualizar perfil",
-    "comingUp": "Lo que viene",
-    "liveCard": "Perfil",
-    "acceptedSkill": "Agregada desde una sugerencia de tu CV",
-    "acceptedLegend": "✓ agregada desde una sugerencia de tu CV"
-  },
-  "clampedText": {
-    "showMore": "Mostrar más",
-    "showLess": "Mostrar menos"
+    "links": "Enlaces"
   },
   "login": {
     "heading": "Iniciar sesión",
@@ -125,20 +109,16 @@
     "greeting": "Hola, {name}.",
     "title": "Tu espacio de trabajo",
     "signedInAs": "Sesión iniciada como {email}",
-    "profilePanel": "Tu perfil",
-    "comingUpPanel": "Lo que viene a tu espacio",
     "serviceDeclined": "El servicio no aceptó la credencial por el momento. Tu sesión se conserva; reintenta en un momento.",
     "detailSuffix": " — reintenta en un momento.",
     "cvRateCapped": "El CV está limitado (máximo dos veces por minuto). Espera unos segundos e inténtalo de nuevo.",
     "cvTimeout": "La petición agotó el tiempo de espera. Por favor inténtalo de nuevo.",
-    "cvFallback": "El CV no cargó. Inténtalo de nuevo.",
     "historyFallback": "El historial no cargó. Inténtalo de nuevo.",
     "profileRateCapped": "Demasiadas peticiones; espera un momento e inténtalo de nuevo.",
     "profileWarming": "El servicio está arrancando; reintenta en un momento.",
     "profileUnreachable": "El servicio no se pudo alcanzar; inténtalo de nuevo.",
     "profileTimeout": "La petición agotó el tiempo de espera. Inténtalo de nuevo.",
-    "profileUnknown": "La respuesta del perfil no se entendió. Reintenta o repórtalo.",
-    "profileFallback": "El perfil no cargó. Inténtalo de nuevo."
+    "profileUnknown": "La respuesta del perfil no se entendió. Reintenta o repórtalo."
   },
   "cvEditor": {
     "title": "Editor de CV",
@@ -206,7 +186,6 @@
     "onboardingKicker": "La api guarda un perfil provisional hasta que este se guarde",
     "toastOnboarding": "Perfil guardado — ya vive en tu espacio.",
     "toastUpdate": "Perfil actualizado — guardado exactamente como lo editaste.",
-    "homeAria": "Volver al espacio",
     "phasesAria": "Fases del registro",
     "fieldsAria": "Campos del perfil",
     "headlinePlaceholder": "Ingeniero backend · Rust y TypeScript",
@@ -320,7 +299,6 @@
     "retry": "Reintentar",
     "back": "Volver a mi espacio",
     "loadingAria": "Cargando tu diario",
-    "railCopy": "Anota lo que hiciste; tus entradas respaldan tus habilidades.",
     "open": "Abrir diario",
     "showOlder": "Ver entradas anteriores",
     "limitNote": "Se muestran tus últimas 200 entradas; las anteriores se conservan, pero aún no se pueden listar aquí."
@@ -370,22 +348,6 @@
     "structural": "Brecha estructural",
     "unmeasurable": "Aún no medible",
     "action": "Siguiente: {action} · {target}"
-  },
-  "health": {
-    "title": "Salud del perfil",
-    "asOf": "De la revisión del {date}",
-    "completeness": "Completitud",
-    "supported": "Afirmaciones respaldadas por evidencia",
-    "overClaimed": "Afirmaciones por encima de la evidencia",
-    "overClaimedHigh": "Revisa estas afirmaciones",
-    "entries": "Entradas del diario",
-    "confirmed": "Confirmadas como evidencia",
-    "notMeasured": "Aún no medido",
-    "none": "Aún no hay revisión — el harness calcula esto cuando tu perfil tenga una revisión.",
-    "pending": "El benchmark de tu última revisión aún no está listo.",
-    "loadFailed": "No se pudo cargar la salud de tu perfil.",
-    "retry": "Reintentar",
-    "loadingAria": "Cargando la salud de tu perfil"
   },
   "metrics": {
     "title": "Tu perfil en números",
