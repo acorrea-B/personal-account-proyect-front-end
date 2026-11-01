@@ -399,5 +399,15 @@
     "loadFailed": "This summary could not be loaded.",
     "retry": "Try again",
     "loadingAria": "Loading your next step"
+  },
+  "activity": {
+    "title": "Recent activity",
+    "cvSaved": "You saved a new version of your CV",
+    "journalEvidence": "You noted a journal entry used as evidence",
+    "journalPlain": "You noted a journal entry",
+    "check": "The harness checked your evolution: {verdict}",
+    "empty": "Your activity shows up here as you use your workspace.",
+    "partial": "Part of your activity could not be loaded.",
+    "loadingAria": "Loading your recent activity"
   }
 }
