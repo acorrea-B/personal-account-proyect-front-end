@@ -12,35 +12,24 @@ import {
 
 import { cx, ghostButton, primaryButton } from '@/components/ui';
 import { fetchHarnessOutputs } from '@/lib/api/harness';
-import { fetchSkillSuggestions, fetchSuggestionsSummary } from '@/lib/api/suggestions';
+import { fetchSuggestionsSummary } from '@/lib/api/suggestions';
 import { type Labels, type Locale, labels, tr } from '@/lib/i18n';
 import type { CvSuggestion, VerificationStatus } from '@/lib/schemas/harness';
-import {
-  announceSuggestionsChanged,
-  markCvRevisionSeen,
-  suggestionsChangedEvent,
-} from '@/lib/suggestions-signal';
+import { announceSuggestionsChanged, markCvRevisionSeen } from '@/lib/suggestions-signal';
 
-type Step =
-  | { kind: 'suggestion'; suggestion: CvSuggestion }
-  | { kind: 'summary' }
-  | { kind: 'skills'; names: string[] };
+type Step = { kind: 'suggestion'; suggestion: CvSuggestion } | { kind: 'summary' };
 
 type TourData = {
   cvSuggestions: CvSuggestion[] | null;
   // Whether any CV improvement still waits for apply or skip (read once per
   // visit, so the tour does not shrink mid-walk).
   pendingCv: boolean;
-  skillNames: string[];
   cvRevision: string | null;
 };
 
 // Backed advice first; what verification blocked is not advice, so it never
 // becomes a step (the AI suggestions card lists it as what is missing).
 const order: VerificationStatus[] = ['AllSupported', 'Mixed', 'AllInferred'];
-
-// How many skill names the skills step shows before "+N".
-export const skillsShown = 8;
 
 const plainRationale = (rationale: string) => rationale.replace(/^\[inferred\]\s*/, '');
 
@@ -95,8 +84,8 @@ function statusLabel(locale: Locale, status: VerificationStatus): string {
 }
 
 // The steps of the tour: one per CV suggestion worth acting on, then the
-// skills the CV shows that the profile does not declare.
-export function tourSteps(cvSuggestions: CvSuggestion[] | null, skillNames: string[]): Step[] {
+// summary that gathers the chosen ones for the next CV version.
+export function tourSteps(cvSuggestions: CvSuggestion[] | null): Step[] {
   const advice = (cvSuggestions ?? [])
     .filter((suggestion) => suggestion.verification_status !== 'Blocked')
     .sort(
@@ -104,14 +93,11 @@ export function tourSteps(cvSuggestions: CvSuggestion[] | null, skillNames: stri
         order.indexOf(left.verification_status) - order.indexOf(right.verification_status),
     )
     .map((suggestion): Step => ({ kind: 'suggestion', suggestion }));
-  // The chosen CV improvements are gathered right after the CV steps; the
-  // profile skills come last.
-  const cv: Step[] = advice.length ? [...advice, { kind: 'summary' }] : [];
-  return skillNames.length ? [...cv, { kind: 'skills', names: skillNames }] : cv;
+  return advice.length ? [...advice, { kind: 'summary' }] : [];
 }
 
-// The profile's suggestions tour: a call to action above the profile while
-// the newest harness run has advice the user has not decided, and a
+// The CV improvements tour: a call to action on the CV page while the
+// newest harness run has CV advice the user has not decided, and a
 // step-by-step window with a progress indicator. Only finishing walks the
 // CV revision (closing just closes); the CV steps return while any
 // improvement waits for apply or skip.
@@ -140,52 +126,24 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     }
     loaded.current = true;
     const token = tokenRef.current;
-    void Promise.all([
-      fetchHarnessOutputs(token),
-      fetchSuggestionsSummary(token),
-      fetchSkillSuggestions(token),
-    ])
-      .then(([outputs, summary, skills]) => {
+    void Promise.all([fetchHarnessOutputs(token), fetchSuggestionsSummary(token)])
+      .then(([outputs, summary]) => {
         const cvRevision = summary.cv.revision_id;
         // The CV steps are offered while any improvement waits for a
         // decision (apply or skip); a closed tour decided nothing.
         const stored = readTourChoices(cvRevision);
-        const undecided = tourSteps(outputs.cvSuggestions, []).some(
+        const undecided = tourSteps(outputs.cvSuggestions).some(
           (step) => step.kind === 'suggestion' && !stored[step.suggestion.suggestion_id],
         );
         setChoices(stored);
         setData({
           cvSuggestions: outputs.cvSuggestions,
           pendingCv: undecided,
-          skillNames: skills.suggestions.map((suggestion) => suggestion.display_name),
           cvRevision,
         });
       })
-      // The tour is an invitation: if it cannot load, the profile stays as is.
-      .catch(() =>
-        setData({ cvSuggestions: null, pendingCv: false, skillNames: [], cvRevision: null }),
-      );
-  }, []);
-
-  // A decision in the skill suggestions card changes what the skills step
-  // can offer: read the pending skills again.
-  useEffect(() => {
-    const onChange = () => {
-      void fetchSkillSuggestions(tokenRef.current)
-        .then((skills) =>
-          setData((current) =>
-            current
-              ? {
-                  ...current,
-                  skillNames: skills.suggestions.map((suggestion) => suggestion.display_name),
-                }
-              : current,
-          ),
-        )
-        .catch(() => undefined);
-    };
-    window.addEventListener(suggestionsChangedEvent, onChange);
-    return () => window.removeEventListener(suggestionsChangedEvent, onChange);
+      // The tour is an invitation: if it cannot load, the page stays as is.
+      .catch(() => setData({ cvSuggestions: null, pendingCv: false, cvRevision: null }));
   }, []);
 
   // Closing only closes: nothing is decided, the invitation stays.
@@ -210,14 +168,9 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     startRef.current?.focus();
   }, [data]);
 
-  const steps = data
-    ? tourSteps(
-        data.pendingCv || reviewing ? data.cvSuggestions : [],
-        reviewing ? [] : data.skillNames,
-      )
-    : [];
-  // The decided improvements can always be revisited from the profile.
-  const advice = tourSteps(data?.cvSuggestions ?? null, []).filter(
+  const steps = data && (data.pendingCv || reviewing) ? tourSteps(data.cvSuggestions) : [];
+  // The decided improvements can always be revisited from the CV page.
+  const advice = tourSteps(data?.cvSuggestions ?? null).filter(
     (item) => item.kind === 'suggestion',
   );
   const decided = advice.filter(
@@ -238,8 +191,8 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
   const applied = (data?.cvSuggestions ?? []).filter(
     (suggestion) => choices[suggestion.suggestion_id] === 'apply',
   );
-  // The modal is showing only while it has a step: if a refresh empties the
-  // steps (every skill decided meanwhile), it closes and releases the page.
+  // The modal is showing only while it has a step; if none is left it
+  // closes and releases the page.
   const showing = open && steps.length > 0;
   useEffect(() => {
     if (open && !steps.length) {
@@ -298,8 +251,7 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     return () => background.forEach((element) => element.removeAttribute('inert'));
   }, [showing]);
 
-  const inviting =
-    !dismissed && Boolean(data) && (data?.pendingCv || Boolean(data?.skillNames.length));
+  const inviting = !dismissed && Boolean(data?.pendingCv);
   const reviewable = !inviting && decided > 0;
   if (!open && !inviting && !reviewable) {
     return null;
@@ -523,41 +475,7 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
                         </p>
                       </div>
                     </>
-                  ) : (
-                    <>
-                      <h3
-                        ref={headingRef}
-                        tabIndex={-1}
-                        className="m-0 font-roobert text-(length:--text-subheading) font-medium text-ink-black outline-none"
-                      >
-                        {t.skillsTitle}
-                      </h3>
-                      <p className="m-0 text-[14px] leading-[1.6] text-warm-gray">
-                        {tr(t.skillsCopy, { count: String(step.names.length) })}
-                      </p>
-                      <ul className="m-0 flex list-none flex-wrap gap-8 p-0">
-                        {step.names.slice(0, skillsShown).map((name) => (
-                          <li
-                            key={name}
-                            className="rounded-full bg-sky-wash-soft px-12 py-4 text-[13px] font-medium text-cyan-text-strong"
-                          >
-                            {name}
-                          </li>
-                        ))}
-                        {step.names.length > skillsShown ? (
-                          <li className="rounded-full bg-stone-canvas px-12 py-4 text-[13px] text-warm-gray">
-                            +{step.names.length - skillsShown}
-                          </li>
-                        ) : null}
-                      </ul>
-                      <p className="m-0 text-[13px] leading-[1.6] text-warm-gray">
-                        {t.skillsAction}
-                      </p>
-                      <p className="m-0 rounded-lg bg-teal-wash px-12 py-8 text-[13px] leading-[1.6] text-teal-text">
-                        {t.recruiters}
-                      </p>
-                    </>
-                  )}
+                  ) : null}
                 </div>
 
                 <div className="flex flex-wrap justify-between gap-8">
