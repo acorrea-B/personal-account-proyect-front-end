@@ -337,7 +337,7 @@
     "summary": "{mode} toward {role} in {months} months",
     "declaredOn": "Declared on {date}",
     "failed": "Your mode was not saved. Please try again.",
-    "invalid": "Fill in the target role and the success criterion; the horizon is 1 to 36 months.",
+    "invalid": "Fill in the target role; the horizon goes from 1 to 36 months.",
     "loadFailed": "Your evolution could not be loaded.",
     "retry": "Try again",
     "loadingAria": "Loading your evolution",

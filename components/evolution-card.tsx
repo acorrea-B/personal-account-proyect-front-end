@@ -2,6 +2,7 @@
 
 import { type SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
 
+import { AiRoadmapPreview } from '@/components/ai-roadmap-preview';
 import { Skeleton } from '@/components/skeleton';
 import {
   Eyebrow,
@@ -44,22 +45,25 @@ const verdictTone: Record<LoopVerdict, string> = {
   unmeasurable: 'bg-stone-canvas text-warm-gray',
 };
 
-// The dashboard's evolution panel (BC-005/BC-008): the mode the user
-// declared — whether they can or must evolve, toward which role, in how
-// many months, and how they will know — and the latest checks the harness
-// recorded in the evolution loop. Without a mode it opens the declaration
-// form; "Change" declares a new one.
+// The evolution panel (BC-005/BC-008): the mode the user declared — whether
+// they can or must evolve, toward which role and in how many months — and
+// the latest checks the harness recorded. Without a mode (or on "Change")
+// the user first picks a path: the AI roadmap (a beta 1.1 preview for now)
+// or a specific target, which opens the declaration form. The contract's
+// success criterion is derived from the role and horizon: the user knows
+// where they want to go, not yet what it will be like to be there.
 export function EvolutionCard({ accessToken, locale }: { accessToken: string; locale: Locale }) {
   const t = labels(locale).evolution;
   const [state, setState] = useState<CardState>({ kind: 'loading' });
   const [editing, setEditing] = useState(false);
+  const [path, setPath] = useState<'ai' | 'target' | null>(null);
+  const [horizonInfo, setHorizonInfo] = useState(false);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [form, setForm] = useState({
     mode: 'can_evolve' as EvolutionMode['mode'],
     role: '',
     months: '12',
-    criterion: '',
     rationale: '',
   });
 
@@ -91,10 +95,11 @@ export function EvolutionCard({ accessToken, locale }: { accessToken: string; lo
       mode: mode?.mode ?? 'can_evolve',
       role: mode?.target_role_id ?? '',
       months: String(mode?.horizon_months ?? 12),
-      criterion: mode?.success_criterion ?? '',
       rationale: mode?.rationale ?? '',
     });
     setNotice(null);
+    setPath(null);
+    setHorizonInfo(false);
     setEditing(true);
   }
 
@@ -104,7 +109,7 @@ export function EvolutionCard({ accessToken, locale }: { accessToken: string; lo
       mode: form.mode,
       target_role_id: form.role,
       horizon_months: Number(form.months),
-      success_criterion: form.criterion,
+      success_criterion: tr(t.criterionDerived, { role: form.role.trim(), months: form.months }),
       ...(form.rationale.trim() ? { rationale: form.rationale } : {}),
     };
     if (!declareEvolutionModeSchema.safeParse(declaration).success) {
@@ -117,6 +122,7 @@ export function EvolutionCard({ accessToken, locale }: { accessToken: string; lo
       const mode = await declareEvolutionMode(accessToken, declaration);
       setState((current) => (current.kind === 'ready' ? { ...current, mode } : current));
       setEditing(false);
+      setPath(null);
     } catch {
       setNotice(t.failed);
     } finally {
@@ -144,8 +150,45 @@ export function EvolutionCard({ accessToken, locale }: { accessToken: string; lo
             {t.retry}
           </button>
         </div>
+      ) : (editing || !state.mode) && path === null ? (
+        <div className="grid animate-content-resolve gap-12 motion-reduce:animate-none">
+          <h3 className="m-0 font-roobert text-(length:--text-subheading) font-medium text-ink-black">
+            {t.pathTitle}
+          </h3>
+          <div className="grid gap-12 sm:grid-cols-2">
+            {(
+              [
+                ['ai', t.pathAi, t.pathAiHint],
+                ['target', t.pathTarget, t.pathTargetHint],
+              ] as const
+            ).map(([choice, title, hint]) => (
+              <button
+                key={choice}
+                type="button"
+                onClick={() => setPath(choice)}
+                className="grid cursor-pointer content-start gap-8 rounded-lg border border-stone-border bg-pure-white p-16 text-left [font-family:inherit] transition-[border-color,background-color,box-shadow,transform] duration-200 ease-out hover:-translate-y-[1px] hover:border-cyan-edge hover:bg-sky-wash-soft hover:shadow-[0_6px_18px_rgba(14,116,144,0.10)] focus-visible:border-cyan-signal focus-visible:outline-none motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+              >
+                <span className="text-[15px] font-medium text-ink-black">{title}</span>
+                <span className="text-[14px] leading-[1.5] text-warm-gray">{hint}</span>
+              </button>
+            ))}
+          </div>
+          {state.mode ? (
+            <div>
+              <button type="button" className={ghostButton} onClick={() => setEditing(false)}>
+                {t.cancel}
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : (editing || !state.mode) && path === 'ai' ? (
+        <AiRoadmapPreview locale={locale} onBack={() => setPath(null)} />
       ) : editing || !state.mode ? (
-        <form className="m-0 grid gap-16" noValidate onSubmit={(event) => void declare(event)}>
+        <form
+          className="m-0 grid animate-content-resolve gap-16 motion-reduce:animate-none"
+          noValidate
+          onSubmit={(event) => void declare(event)}
+        >
           <p className="m-0 text-[14px] leading-[1.6] text-warm-gray">{t.intro}</p>
           <fieldset disabled={saving} className="m-0 grid gap-16 border-none p-0">
             <div role="radiogroup" aria-label={t.modeLegend} className="grid gap-8 sm:grid-cols-2">
@@ -190,33 +233,50 @@ export function EvolutionCard({ accessToken, locale }: { accessToken: string; lo
                   }
                 />
               </label>
-              <label className="grid gap-4" htmlFor="evolution-months">
-                {t.horizon}
-                <input
-                  id="evolution-months"
-                  className={inputClass}
-                  type="number"
-                  min={horizonMonthsMin}
-                  max={horizonMonthsMax}
-                  value={form.months}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, months: event.target.value }))
-                  }
-                />
-              </label>
+              <div className="grid content-start gap-4">
+                <span className="flex items-center gap-4">
+                  <label htmlFor="evolution-months">{t.horizon}</label>
+                  <button
+                    type="button"
+                    aria-label={t.horizonInfoAria}
+                    aria-expanded={horizonInfo}
+                    aria-controls="evolution-horizon-info"
+                    onClick={() => setHorizonInfo((open) => !open)}
+                    className="grid size-[20px] cursor-pointer place-items-center rounded-full border border-stone-border bg-pure-white p-0 text-[12px] leading-none font-semibold text-cyan-text transition-colors duration-200 hover:border-cyan-edge hover:bg-sky-wash-soft"
+                  >
+                    ?
+                  </button>
+                </span>
+                <span className="relative">
+                  <input
+                    id="evolution-months"
+                    className={cx(inputClass, 'pr-[64px]')}
+                    type="number"
+                    min={horizonMonthsMin}
+                    max={horizonMonthsMax}
+                    aria-describedby={horizonInfo ? 'evolution-horizon-info' : undefined}
+                    value={form.months}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, months: event.target.value }))
+                    }
+                  />
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute top-1/2 right-12 -translate-y-1/2 text-[14px] text-warm-gray"
+                  >
+                    {t.horizonUnit}
+                  </span>
+                </span>
+              </div>
             </div>
-            <label className="grid gap-4" htmlFor="evolution-criterion">
-              {t.criterion}
-              <input
-                id="evolution-criterion"
-                className={inputClass}
-                maxLength={2000}
-                value={form.criterion}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, criterion: event.target.value }))
-                }
-              />
-            </label>
+            {horizonInfo ? (
+              <p
+                id="evolution-horizon-info"
+                className="m-0 animate-content-resolve rounded-lg bg-sky-wash-soft px-12 py-8 text-[13px] leading-[1.6] text-cyan-text-strong motion-reduce:animate-none"
+              >
+                {t.horizonInfo}
+              </p>
+            ) : null}
             <label className="grid gap-4" htmlFor="evolution-rationale">
               {t.rationale}
               <textarea
@@ -235,16 +295,14 @@ export function EvolutionCard({ accessToken, locale }: { accessToken: string; lo
             <button type="submit" className={outlineButton} disabled={saving}>
               {saving ? t.declaring : t.declare}
             </button>
-            {state.mode ? (
-              <button
-                type="button"
-                className={ghostButton}
-                disabled={saving}
-                onClick={() => setEditing(false)}
-              >
-                {t.cancel}
-              </button>
-            ) : null}
+            <button
+              type="button"
+              className={ghostButton}
+              disabled={saving}
+              onClick={() => setPath(null)}
+            >
+              {t.roadmapBack}
+            </button>
           </div>
         </form>
       ) : (
@@ -255,10 +313,6 @@ export function EvolutionCard({ accessToken, locale }: { accessToken: string; lo
               role: state.mode.target_role_id,
               months: String(state.mode.horizon_months),
             })}
-          </p>
-          <p className="m-0 text-[14px] text-warm-gray">
-            <span className="font-medium text-ink-black">{t.criterionLabel}:</span>{' '}
-            {state.mode.success_criterion}
           </p>
           <p className="m-0 text-(length:--text-label) text-warm-gray">
             {tr(t.declaredOn, { date: formatWhen(state.mode.declared_at, locale) })}

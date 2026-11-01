@@ -337,7 +337,7 @@
     "summary": "{mode} hacia {role} en {months} meses",
     "declaredOn": "Declarado el {date}",
     "failed": "Tu modo no se guardó. Inténtalo de nuevo.",
-    "invalid": "Completa el rol objetivo y el criterio de éxito; el horizonte va de 1 a 36 meses.",
+    "invalid": "Completa el rol objetivo; el horizonte va de 1 a 36 meses.",
     "loadFailed": "No se pudo cargar tu evolución.",
     "retry": "Reintentar",
     "loadingAria": "Cargando tu evolución",
