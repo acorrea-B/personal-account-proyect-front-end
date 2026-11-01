@@ -233,7 +233,7 @@
     "loadFailed": "The suggestions could not be loaded.",
     "busy": "The service is busy; please try again shortly.",
     "retry": "Try again",
-    "cvNew": "{count} CV suggestions from your latest revision — review is coming soon.",
+    "cvNew": "{count} improvements for your CV wait on the CV page.",
     "showEvidence": "See evidence",
     "showMore": "Show {count} more"
   },
