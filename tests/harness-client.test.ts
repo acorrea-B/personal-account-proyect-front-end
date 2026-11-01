@@ -122,7 +122,39 @@ describe('harnessOutputs', () => {
       cvSuggestions: null,
       level: null,
       roles: [],
+      profile: null,
     });
+  });
+
+  it('keeps the organized profile the harness separated', () => {
+    const outputs = harnessOutputs([
+      revision(1, '2026-11-01T10:00:00Z', 'canonical_profile', {
+        completeness_score: 0.9,
+        experience_items: [
+          {
+            title: 'Python Engineer',
+            start: '2025-10',
+            end: 'present',
+            scope: 'Built payment integrations.',
+            metrics: 'from 3 months to 15 person-days',
+            technologies: ['Python', 'AWS'],
+            evidence_refs: ['experience-evidence:cv-text'],
+          },
+        ],
+        education_items: ['2017 - 2020 BSc Computer Science.'],
+        canonical_skills: [{ display_name: 'Rust', claim_status: 'MissingEvidence' }],
+      }),
+    ]);
+    expect(outputs.profile?.experience_items[0]).toEqual({
+      title: 'Python Engineer',
+      start: '2025-10',
+      end: 'present',
+      scope: 'Built payment integrations.',
+      metrics: 'from 3 months to 15 person-days',
+      technologies: ['Python', 'AWS'],
+    });
+    expect(outputs.profile?.education_items).toEqual(['2017 - 2020 BSc Computer Science.']);
+    expect(outputs.profile?.canonical_skills).toEqual([{ display_name: 'Rust' }]);
   });
 });
 
