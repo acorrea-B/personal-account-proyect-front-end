@@ -313,5 +313,9 @@
     "loadingAria": "Loading your journal",
     "railCopy": "Write down what you did; your entries back your skills.",
     "open": "Open journal"
+  },
+  "validation": {
+    "emailInvalid": "Enter a valid email address, like name@example.com.",
+    "passwordRequired": "Enter your password."
   }
 }

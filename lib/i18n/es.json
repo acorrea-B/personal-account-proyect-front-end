@@ -313,5 +313,9 @@
     "loadingAria": "Cargando tu diario",
     "railCopy": "Anota lo que hiciste; tus entradas respaldan tus habilidades.",
     "open": "Abrir diario"
+  },
+  "validation": {
+    "emailInvalid": "Escribe un correo válido, como nombre@ejemplo.com.",
+    "passwordRequired": "Escribe tu contraseña."
   }
 }
