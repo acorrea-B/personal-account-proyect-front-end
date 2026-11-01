@@ -222,4 +222,17 @@ describe('ProfileView', () => {
       labels('en').profile.conflictNote,
     );
   });
+
+  it('says the profile validation in the tree language', async () => {
+    fetchProfileMock.mockResolvedValueOnce(LIVE_PROFILE);
+    await render('es');
+    const v = labels('es').validation;
+    typeInto('skills', `rust, ${'x'.repeat(41)}`);
+    await save();
+    expect(document.getElementById('setup-skills-error')?.textContent).toBe(v.skillTooLong);
+    typeInto('skills', 'rust, Rust');
+    await save();
+    expect(document.getElementById('setup-skills-error')?.textContent).toBe(v.skillsRepeat);
+    expect(updateProfileMock).not.toHaveBeenCalled();
+  });
 });
