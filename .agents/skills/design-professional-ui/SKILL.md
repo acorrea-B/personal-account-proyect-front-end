@@ -19,17 +19,17 @@ Convertir datos y tareas en una composición que permita entender el estado, rec
 
 Antes de implementar, completar esta ficha en la respuesta o especificación:
 
-| Decisión | Contenido |
-| --- | --- |
-| Tarea | Qué necesita conseguir la persona |
-| Lectura | Qué entender primero, después y al abrir detalle |
-| Foco | Qué bloque merece más espacio y por qué |
-| Acción | Acción principal, alternativa y resultado |
-| Datos | Campos disponibles, procedencia y ausencias |
-| Composición | Orden, relaciones y adaptación móvil |
-| Color | Rol de cada tono: categoría, acción o estado |
-| Estados | Carga, vacío, error, éxito y datos parciales aplicables |
-| Prueba | Cómo comprobar tarea, legibilidad y comportamiento |
+| Decisión    | Contenido                                               |
+| ----------- | ------------------------------------------------------- |
+| Tarea       | Qué necesita conseguir la persona                       |
+| Lectura     | Qué entender primero, después y al abrir detalle        |
+| Foco        | Qué bloque merece más espacio y por qué                 |
+| Acción      | Acción principal, alternativa y resultado               |
+| Datos       | Campos disponibles, procedencia y ausencias             |
+| Composición | Orden, relaciones y adaptación móvil                    |
+| Color       | Rol de cada tono: categoría, acción o estado            |
+| Estados     | Carga, vacío, error, éxito y datos parciales aplicables |
+| Prueba      | Cómo comprobar tarea, legibilidad y comportamiento      |
 
 Mantener la ficha proporcionada al cambio: una frase para una etiqueta; composición completa para reorganizar una vista.
 

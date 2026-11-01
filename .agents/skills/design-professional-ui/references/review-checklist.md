@@ -10,15 +10,15 @@
 
 ## Juicio del resultado
 
-| Dimensión | Evidencia de calidad | Señal para corregir |
-| --- | --- | --- |
-| Jerarquía | Tarea y acción reconocibles | Todo reclama igual atención |
-| Cards | Cada bloque responde una pregunta | Plantilla repetida sin razón |
-| Color | Roles estables, contrastados y etiquetados | Todo azul o tonos arbitrarios |
-| Densidad | Agrupación y espacio proporcionados | Vacíos decorativos o compresión |
-| Datos | Unidad, procedencia y ausencia claras | Cero para nulos o cifras de relleno |
-| Interacción | Acciones, feedback y recuperación claros | Controles ocultos y errores sin salida |
-| Adaptación | Lectura coherente móvil/escritorio | Scroll lateral u orden ajeno al DOM |
+| Dimensión   | Evidencia de calidad                       | Señal para corregir                    |
+| ----------- | ------------------------------------------ | -------------------------------------- |
+| Jerarquía   | Tarea y acción reconocibles                | Todo reclama igual atención            |
+| Cards       | Cada bloque responde una pregunta          | Plantilla repetida sin razón           |
+| Color       | Roles estables, contrastados y etiquetados | Todo azul o tonos arbitrarios          |
+| Densidad    | Agrupación y espacio proporcionados        | Vacíos decorativos o compresión        |
+| Datos       | Unidad, procedencia y ausencia claras      | Cero para nulos o cifras de relleno    |
+| Interacción | Acciones, feedback y recuperación claros   | Controles ocultos y errores sin salida |
+| Adaptación  | Lectura coherente móvil/escritorio         | Scroll lateral u orden ajeno al DOM    |
 
 Usar como juicio de diseño, no como un score numérico supuestamente objetivo. Corregir lo observado antes de adornar.
 

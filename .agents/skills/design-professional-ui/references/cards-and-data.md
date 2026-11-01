@@ -2,16 +2,16 @@
 
 ## Elegir por pregunta
 
-| Pregunta | Representación | Contenido y salida |
-| --- | --- | --- |
-| ¿Cómo está mi perfil y qué sigo? | Identidad + siguiente paso | Datos existentes, estado, acción contextual |
-| ¿Qué mide este resultado? | Indicador compacto | Etiqueta, valor/unidad, revisión y significado |
-| ¿Qué respalda esta sugerencia? | Evidencia | Verificación, propuesta, motivo, respaldo disponible y decisión |
-| ¿Qué cambió? | Comparación o diff | Versión/fecha, cambios y contenido completo |
-| ¿Qué ocurrió y cuándo? | Lista temporal | Evento, fecha y detalle a demanda |
-| ¿Qué necesito editar? | Sección de formulario | Campos relacionados, validación y guardado |
-| ¿Cómo avanzo a mi meta? | Resumen de evolución | Rol, criterio, horizonte y siguiente acción reales |
-| ¿Qué entradas comparo? | Tabla o lista alineada | Atributos iguales en el mismo orden |
+| Pregunta                         | Representación             | Contenido y salida                                              |
+| -------------------------------- | -------------------------- | --------------------------------------------------------------- |
+| ¿Cómo está mi perfil y qué sigo? | Identidad + siguiente paso | Datos existentes, estado, acción contextual                     |
+| ¿Qué mide este resultado?        | Indicador compacto         | Etiqueta, valor/unidad, revisión y significado                  |
+| ¿Qué respalda esta sugerencia?   | Evidencia                  | Verificación, propuesta, motivo, respaldo disponible y decisión |
+| ¿Qué cambió?                     | Comparación o diff         | Versión/fecha, cambios y contenido completo                     |
+| ¿Qué ocurrió y cuándo?           | Lista temporal             | Evento, fecha y detalle a demanda                               |
+| ¿Qué necesito editar?            | Sección de formulario      | Campos relacionados, validación y guardado                      |
+| ¿Cómo avanzo a mi meta?          | Resumen de evolución       | Rol, criterio, horizonte y siguiente acción reales              |
+| ¿Qué entradas comparo?           | Tabla o lista alineada     | Atributos iguales en el mismo orden                             |
 
 ## Anatomía adaptable
 

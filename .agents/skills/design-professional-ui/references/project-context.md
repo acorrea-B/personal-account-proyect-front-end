@@ -15,19 +15,19 @@ La petición actual solicita composición, mejores cards y juego cromático. Al 
 
 ## Leer primero
 
-| Área | Archivos observados | Atención |
-| --- | --- | --- |
-| Intención | `docs/design-brief.md` | Contrastar brief histórico con código y encargo |
-| Referencia | `design/references/selected-style.md`, `selected-style.tokens.json` | Versión extendida; conservar origen |
-| Lecciones | `docs/lessons/view-generation-memory.md`, `visual-polish-iteration-spec.md` | Composición, contraste y prueba en navegador |
-| Tema | `app/globals.css` | Tailwind v4 y extensiones existentes |
-| Primitivas | `components/ui.tsx`, `icons.tsx` | Cards, botones, inputs, SVG |
-| Inicio | `components/dashboard-view.tsx`, `home-highlights.tsx`, `profile-metrics.tsx`, `recent-activity.tsx` | Orientación, siguiente paso y magnitudes |
-| Perfil | `components/profile-view.tsx`, `skill-suggestions-card.tsx` | Edición y aceptación explícita |
-| CV | `components/cv-editor-view.tsx`, `cv-history-panel.tsx`, `cv-timeline.tsx`, `ai-suggestions-card.tsx` | Edición, versiones y evidencia |
-| Carrera | `components/evolution-card.tsx`, `evolution-view.tsx`, `journal-view.tsx` | Meta, criterio, horizonte y registro |
-| Datos | `lib/schemas/profile.ts`, `harness.ts`, `evolution.ts`, `lib/api/` | Contratos y significado |
-| Idiomas | `lib/i18n.ts`, `lib/i18n/en.json`, `es.json` | Diccionarios y paridad |
+| Área       | Archivos observados                                                                                   | Atención                                        |
+| ---------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Intención  | `docs/design-brief.md`                                                                                | Contrastar brief histórico con código y encargo |
+| Referencia | `design/references/selected-style.md`, `selected-style.tokens.json`                                   | Versión extendida; conservar origen             |
+| Lecciones  | `docs/lessons/view-generation-memory.md`, `visual-polish-iteration-spec.md`                           | Composición, contraste y prueba en navegador    |
+| Tema       | `app/globals.css`                                                                                     | Tailwind v4 y extensiones existentes            |
+| Primitivas | `components/ui.tsx`, `icons.tsx`                                                                      | Cards, botones, inputs, SVG                     |
+| Inicio     | `components/dashboard-view.tsx`, `home-highlights.tsx`, `profile-metrics.tsx`, `recent-activity.tsx`  | Orientación, siguiente paso y magnitudes        |
+| Perfil     | `components/profile-view.tsx`, `skill-suggestions-card.tsx`                                           | Edición y aceptación explícita                  |
+| CV         | `components/cv-editor-view.tsx`, `cv-history-panel.tsx`, `cv-timeline.tsx`, `ai-suggestions-card.tsx` | Edición, versiones y evidencia                  |
+| Carrera    | `components/evolution-card.tsx`, `evolution-view.tsx`, `journal-view.tsx`                             | Meta, criterio, horizonte y registro            |
+| Datos      | `lib/schemas/profile.ts`, `harness.ts`, `evolution.ts`, `lib/api/`                                    | Contratos y significado                         |
+| Idiomas    | `lib/i18n.ts`, `lib/i18n/en.json`, `es.json`                                                          | Diccionarios y paridad                          |
 
 ## Restricciones técnicas
 
