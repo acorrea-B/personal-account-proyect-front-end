@@ -14,7 +14,11 @@ import { fetchHarnessOutputs } from '@/lib/api/harness';
 import { fetchSkillSuggestions, fetchSuggestionsSummary } from '@/lib/api/suggestions';
 import { labels, tr, type Locale } from '../lib/i18n';
 import type { CvSuggestion, VerificationStatus } from '../lib/schemas/harness';
-import { markCvRevisionSeen, readSeenCvRevision } from '../lib/suggestions-signal';
+import {
+  announceSuggestionsChanged,
+  markCvRevisionSeen,
+  readSeenCvRevision,
+} from '../lib/suggestions-signal';
 
 (globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -124,6 +128,47 @@ describe('SuggestionsTour', () => {
     expect(document.querySelector('[role="dialog"]')).toBeNull();
     expect(document.body.textContent).not.toContain(t.bannerTitle);
     expect(readSeenCvRevision()).toBe(REV);
+  });
+
+  it('is a modal outside the page: inert background and focus kept inside', async () => {
+    serve([suggestion('Summary', 'AllSupported'), suggestion('Links', 'AllInferred')], []);
+    await render('en');
+    const t = labels('en').tour;
+    await press(t.start);
+    const dialog = document.querySelector('[role="dialog"]') as HTMLElement;
+    // Rendered through a portal, so no transformed page wrapper contains it.
+    expect(container?.contains(dialog)).toBe(false);
+    expect(container?.hasAttribute('inert')).toBe(true);
+    const buttons = [...dialog.querySelectorAll('button')].filter(
+      (button) => !button.classList.contains('invisible'),
+    );
+    const last = buttons[buttons.length - 1];
+    last.focus();
+    await act(async () => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }));
+    });
+    expect(document.activeElement).toBe(buttons[0]);
+    await press(t.close);
+    expect(container?.hasAttribute('inert')).toBe(false);
+  });
+
+  it('keeps the verification status on each step', async () => {
+    serve([suggestion('Summary', 'AllSupported'), suggestion('Links', 'AllInferred')], []);
+    await render('es');
+    const a = labels('es').ai;
+    await press(labels('es').tour.start);
+    expect(document.querySelector('[role="dialog"]')?.textContent).toContain(a.statusSupported);
+    await press(labels('es').tour.next);
+    expect(document.querySelector('[role="dialog"]')?.textContent).toContain(a.statusInferred);
+  });
+
+  it('follows the decisions taken in the skill suggestions card', async () => {
+    serve(null, ['Django', 'Rust']);
+    await render('en');
+    vi.mocked(fetchSkillSuggestions).mockResolvedValue({ revision_id: REV, suggestions: [] });
+    await act(async () => announceSuggestionsChanged());
+    // Every skill was decided: nothing is left to walk.
+    expect(document.body.textContent).not.toContain(labels('en').tour.bannerTitle);
   });
 
   it('shows a few skills and counts the rest', async () => {

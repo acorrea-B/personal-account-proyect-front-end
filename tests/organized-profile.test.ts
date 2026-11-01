@@ -88,6 +88,19 @@ describe('OrganizedProfile', () => {
     expect(section?.textContent).toContain('Rust');
   });
 
+  it('shows a profile that only has skills', async () => {
+    serve({
+      experience_items: [],
+      education_items: [],
+      canonical_skills: [{ display_name: 'Rust' }],
+    });
+    await render('en');
+    const t = labels('en').organized;
+    const section = document.querySelector(`section[aria-label="${t.title}"]`);
+    expect(section?.textContent).toContain('Rust');
+    expect(section?.textContent).not.toContain(t.experience);
+  });
+
   it('shows nothing until the harness has read the CV', async () => {
     serve(null);
     await render('en');
