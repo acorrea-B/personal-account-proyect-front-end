@@ -3,6 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import {
+  type TourChoice,
+  type TourChoices,
+  readTourChoices,
+  saveTourChoices,
+} from '@/lib/tour-choices';
+
 import { cx, ghostButton, primaryButton } from '@/components/ui';
 import { fetchHarnessOutputs } from '@/lib/api/harness';
 import { fetchSkillSuggestions, fetchSuggestionsSummary } from '@/lib/api/suggestions';
@@ -11,14 +18,19 @@ import type { CvSuggestion, VerificationStatus } from '@/lib/schemas/harness';
 import {
   announceSuggestionsChanged,
   markCvRevisionSeen,
-  readSeenCvRevision,
   suggestionsChangedEvent,
 } from '@/lib/suggestions-signal';
 
-type Step = { kind: 'suggestion'; suggestion: CvSuggestion } | { kind: 'skills'; names: string[] };
+type Step =
+  | { kind: 'suggestion'; suggestion: CvSuggestion }
+  | { kind: 'summary' }
+  | { kind: 'skills'; names: string[] };
 
 type TourData = {
   cvSuggestions: CvSuggestion[] | null;
+  // Whether any CV improvement still waits for apply or skip (read once per
+  // visit, so the tour does not shrink mid-walk).
+  pendingCv: boolean;
   skillNames: string[];
   cvRevision: string | null;
 };
@@ -92,13 +104,17 @@ export function tourSteps(cvSuggestions: CvSuggestion[] | null, skillNames: stri
         order.indexOf(left.verification_status) - order.indexOf(right.verification_status),
     )
     .map((suggestion): Step => ({ kind: 'suggestion', suggestion }));
-  return skillNames.length ? [...advice, { kind: 'skills', names: skillNames }] : advice;
+  // The chosen CV improvements are gathered right after the CV steps; the
+  // profile skills come last.
+  const cv: Step[] = advice.length ? [...advice, { kind: 'summary' }] : [];
+  return skillNames.length ? [...cv, { kind: 'skills', names: skillNames }] : cv;
 }
 
 // The profile's suggestions tour: a call to action above the profile while
-// the newest harness run has advice the user has not walked, and a
-// step-by-step window with a progress indicator. Finishing (or closing)
-// remembers the CV revision walked, so the tour does not offer it again.
+// the newest harness run has advice the user has not decided, and a
+// step-by-step window with a progress indicator. Only finishing walks the
+// CV revision (closing just closes); the CV steps return while any
+// improvement waits for apply or skip.
 // The window is a modal: rendered outside the page (a portal), focus stays
 // inside and the page behind is inert while it is open.
 export function SuggestionsTour({ accessToken, locale }: { accessToken: string; locale: Locale }) {
@@ -107,6 +123,9 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
   const [open, setOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [index, setIndex] = useState(0);
+  const [choices, setChoices] = useState<TourChoices>({});
+  // Opened from "review your chosen improvements": the CV steps only.
+  const [reviewing, setReviewing] = useState(false);
   const startRef = useRef<HTMLButtonElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -128,16 +147,24 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     ])
       .then(([outputs, summary, skills]) => {
         const cvRevision = summary.cv.revision_id;
-        // A walked CV revision only offers the tour again for new skills.
-        const walked = cvRevision !== null && cvRevision === readSeenCvRevision();
+        // The CV steps are offered while any improvement waits for a
+        // decision (apply or skip); a closed tour decided nothing.
+        const stored = readTourChoices(cvRevision);
+        const undecided = tourSteps(outputs.cvSuggestions, []).some(
+          (step) => step.kind === 'suggestion' && !stored[step.suggestion.suggestion_id],
+        );
+        setChoices(stored);
         setData({
-          cvSuggestions: walked ? [] : outputs.cvSuggestions,
+          cvSuggestions: outputs.cvSuggestions,
+          pendingCv: undecided,
           skillNames: skills.suggestions.map((suggestion) => suggestion.display_name),
           cvRevision,
         });
       })
       // The tour is an invitation: if it cannot load, the profile stays as is.
-      .catch(() => setData({ cvSuggestions: null, skillNames: [], cvRevision: null }));
+      .catch(() =>
+        setData({ cvSuggestions: null, pendingCv: false, skillNames: [], cvRevision: null }),
+      );
   }, []);
 
   // A decision in the skill suggestions card changes what the skills step
@@ -161,9 +188,20 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     return () => window.removeEventListener(suggestionsChangedEvent, onChange);
   }, []);
 
+  // Closing only closes: nothing is decided, the invitation stays.
   const close = useCallback(() => {
     setOpen(false);
+    setReviewing(false);
+    startRef.current?.focus();
+  }, []);
+
+  // Finishing walks the revision: the invitation goes and the menu marker
+  // stops counting it.
+  const finish = useCallback(() => {
+    setOpen(false);
+    setReviewing(false);
     setDismissed(true);
+    setData((current) => (current ? { ...current, pendingCv: false } : current));
     if (data?.cvRevision) {
       markCvRevisionSeen(data.cvRevision);
       // The menu marker stops counting the walked revision.
@@ -172,7 +210,34 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     startRef.current?.focus();
   }, [data]);
 
-  const steps = data ? tourSteps(data.cvSuggestions, data.skillNames) : [];
+  const steps = data
+    ? tourSteps(
+        data.pendingCv || reviewing ? data.cvSuggestions : [],
+        reviewing ? [] : data.skillNames,
+      )
+    : [];
+  // The decided improvements can always be revisited from the profile.
+  const advice = tourSteps(data?.cvSuggestions ?? null, []).filter(
+    (item) => item.kind === 'suggestion',
+  );
+  const decided = advice.filter(
+    (item) => item.kind === 'suggestion' && choices[item.suggestion.suggestion_id],
+  ).length;
+  const appliedCount = advice.filter(
+    (item) => item.kind === 'suggestion' && choices[item.suggestion.suggestion_id] === 'apply',
+  ).length;
+
+  // Records the choice for a suggestion (kept for the next CV version) and
+  // moves on.
+  const choose = (suggestionId: string, choice: TourChoice) => {
+    const next = { ...choices, [suggestionId]: choice };
+    setChoices(next);
+    saveTourChoices(data?.cvRevision ?? null, next);
+    setIndex((current) => Math.min(current, steps.length - 1) + 1);
+  };
+  const applied = (data?.cvSuggestions ?? []).filter(
+    (suggestion) => choices[suggestion.suggestion_id] === 'apply',
+  );
   // The modal is showing only while it has a step: if a refresh empties the
   // steps (every skill decided meanwhile), it closes and releases the page.
   const showing = open && steps.length > 0;
@@ -233,47 +298,70 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     return () => background.forEach((element) => element.removeAttribute('inert'));
   }, [showing]);
 
-  if (!steps.length || dismissed) {
+  const inviting =
+    !dismissed && Boolean(data) && (data?.pendingCv || Boolean(data?.skillNames.length));
+  const reviewable = !inviting && decided > 0;
+  if (!open && !inviting && !reviewable) {
     return null;
   }
 
-  const total = steps.length;
+  const total = Math.max(steps.length, 1);
   const position = Math.min(index, total - 1);
-  const step = steps[position];
+  const step = steps[position] ?? steps[0];
   const last = position === total - 1;
   const progress = tr(t.progress, { step: String(position + 1), total: String(total) });
 
   return (
     <>
-      <section
-        aria-label={t.bannerTitle}
-        className="grid animate-content-resolve gap-12 rounded-2xl border border-cyan-edge bg-[linear-gradient(120deg,var(--color-sky-wash-soft),var(--color-pure-white)_70%)] p-24 motion-reduce:animate-none sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
-      >
-        <div className="grid gap-4">
-          <h2 className="m-0 font-roobert text-title-sm font-medium text-ink-black">
-            {t.bannerTitle}
-          </h2>
-          <p className="m-0 text-[14px] leading-[1.6] text-warm-gray">{t.bannerCopy}</p>
-        </div>
-        <div className="flex flex-wrap gap-8">
+      {reviewable ? (
+        <p className="m-0 flex flex-wrap items-center gap-8 text-[14px] text-warm-gray">
+          {appliedCount ? tr(t.summaryCount, { count: String(appliedCount) }) : null}
           <button
             ref={startRef}
             type="button"
-            className={primaryButton}
+            className={ghostButton}
             onClick={() => {
+              setReviewing(true);
               setIndex(0);
               setOpen(true);
             }}
           >
-            {t.start}
+            {t.review}
           </button>
-          <button type="button" className={ghostButton} onClick={() => setDismissed(true)}>
-            {t.later}
-          </button>
-        </div>
-      </section>
+        </p>
+      ) : null}
+      {inviting ? (
+        <section
+          aria-label={t.bannerTitle}
+          className="grid animate-content-resolve gap-12 rounded-2xl border border-cyan-edge bg-[linear-gradient(120deg,var(--color-sky-wash-soft),var(--color-pure-white)_70%)] p-24 motion-reduce:animate-none sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+        >
+          <div className="grid gap-4">
+            <h2 className="m-0 font-roobert text-title-sm font-medium text-ink-black">
+              {t.bannerTitle}
+            </h2>
+            <p className="m-0 text-[14px] leading-[1.6] text-warm-gray">{t.bannerCopy}</p>
+          </div>
+          <div className="flex flex-wrap gap-8">
+            <button
+              ref={startRef}
+              type="button"
+              className={primaryButton}
+              onClick={() => {
+                setReviewing(false);
+                setIndex(0);
+                setOpen(true);
+              }}
+            >
+              {t.start}
+            </button>
+            <button type="button" className={ghostButton} onClick={() => setDismissed(true)}>
+              {t.later}
+            </button>
+          </div>
+        </section>
+      ) : null}
 
-      {open
+      {open && steps.length
         ? createPortal(
             <div
               ref={overlayRef}
@@ -364,6 +452,76 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
                       <p className="m-0 rounded-lg bg-teal-wash px-12 py-8 text-[13px] leading-[1.6] text-teal-text">
                         {t.recruiters}
                       </p>
+                      {choices[step.suggestion.suggestion_id] ? (
+                        <p className="m-0 text-[12px] font-medium text-cyan-text-strong">
+                          {choices[step.suggestion.suggestion_id] === 'apply'
+                            ? t.applied
+                            : t.skipped}
+                        </p>
+                      ) : null}
+                    </>
+                  ) : step.kind === 'summary' ? (
+                    <>
+                      <h3
+                        ref={headingRef}
+                        tabIndex={-1}
+                        className="m-0 font-roobert text-(length:--text-subheading) font-medium text-ink-black outline-none"
+                      >
+                        {t.summaryTitle}
+                      </h3>
+                      {applied.length ? (
+                        <>
+                          <p className="m-0 text-[13px] font-medium text-teal-text">
+                            {tr(t.summaryCount, { count: String(applied.length) })}
+                          </p>
+                          <ol className="m-0 grid list-none gap-8 p-0">
+                            {applied.map((suggestion) => (
+                              <li
+                                key={suggestion.suggestion_id}
+                                className="grid gap-2 rounded-lg border border-stone-border p-12"
+                              >
+                                <span className="text-(length:--text-label) font-semibold tracking-[0.08em] text-warm-gray uppercase">
+                                  {sectionName(locale, suggestion.section)}
+                                </span>
+                                <span
+                                  lang={modelLang(suggestion.language)}
+                                  className="text-[14px] leading-[1.5] text-ink-black"
+                                >
+                                  {suggestion.suggested_text}
+                                </span>
+                              </li>
+                            ))}
+                          </ol>
+                        </>
+                      ) : (
+                        <p className="m-0 text-[14px] leading-[1.6] text-warm-gray">
+                          {t.summaryNone}
+                        </p>
+                      )}
+                      <p className="m-0 rounded-lg bg-sky-wash-soft px-12 py-8 text-[13px] leading-[1.6] text-cyan-text-strong">
+                        {t.atsNote}
+                      </p>
+                      <div className="grid justify-items-start gap-4">
+                        <span className="flex flex-wrap items-center gap-8">
+                          <button
+                            type="button"
+                            disabled
+                            aria-describedby="tour-generate-soon"
+                            className={cx(primaryButton, 'cursor-not-allowed opacity-60')}
+                          >
+                            {t.generate}
+                          </button>
+                          <span className="rounded-full bg-sky-wash-soft px-8 py-4 text-[12px] font-medium text-cyan-text-strong">
+                            {t.generateBadge}
+                          </span>
+                        </span>
+                        <p
+                          id="tour-generate-soon"
+                          className="m-0 text-[12px] leading-[1.5] text-warm-gray"
+                        >
+                          {t.generateSoon}
+                        </p>
+                      </div>
                     </>
                   ) : (
                     <>
@@ -410,13 +568,34 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
                   >
                     {t.back}
                   </button>
-                  <button
-                    type="button"
-                    className={primaryButton}
-                    onClick={() => (last ? close() : setIndex(position + 1))}
-                  >
-                    {last ? t.finish : t.next}
-                  </button>
+                  {step.kind === 'suggestion' ? (
+                    <span className="flex flex-wrap gap-8">
+                      <button
+                        type="button"
+                        className={ghostButton}
+                        aria-pressed={choices[step.suggestion.suggestion_id] === 'skip'}
+                        onClick={() => choose(step.suggestion.suggestion_id, 'skip')}
+                      >
+                        {t.skip}
+                      </button>
+                      <button
+                        type="button"
+                        className={primaryButton}
+                        aria-pressed={choices[step.suggestion.suggestion_id] === 'apply'}
+                        onClick={() => choose(step.suggestion.suggestion_id, 'apply')}
+                      >
+                        {t.apply}
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className={primaryButton}
+                      onClick={() => (last ? finish() : setIndex(position + 1))}
+                    >
+                      {last ? t.finish : t.next}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>,

@@ -490,7 +490,19 @@
     "back": "Back",
     "finish": "Done",
     "close": "Close",
-    "languageNote": "The AI wrote this suggestion in English; it will soon be written in your language."
+    "languageNote": "The reason is in English for now; it will soon be written in your language. The proposed CV text stays in English, like your CV.",
+    "apply": "Apply this improvement",
+    "skip": "Skip",
+    "applied": "Will be applied",
+    "skipped": "Skipped",
+    "summaryTitle": "Your improvements for the next CV version",
+    "summaryCount": "{count} improvements chosen",
+    "summaryNone": "You did not choose improvements this time. You can walk the suggestions again from your profile.",
+    "atsNote": "The new version is written in English, the language of your CV, in a single-column ATS format.",
+    "generate": "Generate my ATS CV",
+    "generateBadge": "Beta 1.1",
+    "generateSoon": "Generating the new version arrives in beta 1.1. Your chosen improvements stay saved for it.",
+    "review": "Review your chosen improvements"
   },
   "organized": {
     "title": "Your organized profile",

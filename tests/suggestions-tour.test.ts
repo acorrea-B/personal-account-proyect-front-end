@@ -20,6 +20,7 @@ import {
   readSeenCvRevision,
   suggestionsChangedEvent,
 } from '../lib/suggestions-signal';
+import { readTourChoices } from '../lib/tour-choices';
 
 (globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -99,8 +100,8 @@ describe('tourSteps', () => {
       ['Django'],
     );
     expect(
-      steps.map((step) => (step.kind === 'suggestion' ? step.suggestion.section : 'skills')),
-    ).toEqual(['Summary', 'Experience', 'Links', 'skills']);
+      steps.map((step) => (step.kind === 'suggestion' ? step.suggestion.section : step.kind)),
+    ).toEqual(['Summary', 'Experience', 'Links', 'summary', 'skills']);
     expect(tourSteps(null, [])).toEqual([]);
   });
 });
@@ -114,15 +115,29 @@ describe('SuggestionsTour', () => {
     await press(t.start);
     const dialog = document.querySelector('[role="dialog"]');
     expect(dialog?.getAttribute('aria-modal')).toBe('true');
-    expect(dialog?.textContent).toContain(tr(t.progress, { step: '1', total: '3' }));
+    expect(dialog?.textContent).toContain(tr(t.progress, { step: '1', total: '4' }));
     expect(dialog?.textContent).toContain(
       tr(t.sectionTitle, { section: labels('es').cvSections.summary }),
     );
     expect(dialog?.textContent).toContain('Summary reason');
     expect(dialog?.textContent).not.toContain('[inferred]');
     expect(document.activeElement?.tagName).toBe('H3');
-    await press(t.next);
+    await press(t.apply);
     expect(document.querySelector('[role="progressbar"]')?.getAttribute('aria-valuenow')).toBe('2');
+    await press(t.skip);
+    // The chosen improvements are gathered for the next CV version.
+    const summary = document.querySelector('[role="dialog"]') as HTMLElement;
+    expect(summary.textContent).toContain(t.summaryTitle);
+    expect(summary.textContent).toContain(tr(t.summaryCount, { count: '1' }));
+    expect(summary.textContent).toContain('Summary text');
+    expect(summary.textContent).not.toContain('Experience text');
+    expect(summary.textContent).toContain(t.atsNote);
+    const generate = [...summary.querySelectorAll('button')].find(
+      (button) => button.textContent === t.generate,
+    );
+    expect(generate?.disabled).toBe(true);
+    expect(summary.textContent).toContain(t.generateSoon);
+    expect(readTourChoices(REV)).toEqual({ Summary: 'apply', Experience: 'skip' });
     await press(t.next);
     expect(document.querySelector('[role="dialog"]')?.textContent).toContain(
       tr(t.skillsCopy, { count: '1' }),
@@ -166,7 +181,7 @@ describe('SuggestionsTour', () => {
     const a = labels('es').ai;
     await press(labels('es').tour.start);
     expect(document.querySelector('[role="dialog"]')?.textContent).toContain(a.statusSupported);
-    await press(labels('es').tour.next);
+    await press(labels('es').tour.skip);
     expect(document.querySelector('[role="dialog"]')?.textContent).toContain(a.statusInferred);
   });
 
@@ -214,6 +229,22 @@ describe('SuggestionsTour', () => {
     );
   });
 
+  it('says when no improvement was chosen and remembers the choices on return', async () => {
+    serve([suggestion('Summary', 'AllSupported')], []);
+    await render('en');
+    const t = labels('en').tour;
+    await press(t.start);
+    await press(t.skip);
+    expect(document.querySelector('[role="dialog"]')?.textContent).toContain(t.summaryNone);
+    await press(t.back);
+    expect(
+      [...document.querySelectorAll('button')]
+        .find((button) => button.textContent === t.skip)
+        ?.getAttribute('aria-pressed'),
+    ).toBe('true');
+    expect(document.querySelector('[role="dialog"]')?.textContent).toContain(t.skipped);
+  });
+
   it('shows a few skills and counts the rest', async () => {
     const names = Array.from({ length: skillsShown + 3 }, (_, n) => `Tool${n}`);
     serve(null, names);
@@ -223,22 +254,83 @@ describe('SuggestionsTour', () => {
     expect(document.querySelector('[role="dialog"]')?.textContent).toContain('+3');
   });
 
-  it('closes on Escape and remembers the walked revision', async () => {
-    serve([suggestion('Summary', 'AllSupported')], []);
+  it('closing decides nothing: the invitation stays and starts from the first step', async () => {
+    serve([suggestion('Summary', 'AllSupported'), suggestion('Links', 'Mixed')], ['Django']);
     await render('en');
-    await press(labels('en').tour.start);
+    const t = labels('en').tour;
+    await press(t.start);
     await act(async () => {
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     });
     expect(document.querySelector('[role="dialog"]')).toBeNull();
-    expect(readSeenCvRevision()).toBe(REV);
+    expect(document.body.textContent).toContain(t.bannerTitle);
+    expect(readSeenCvRevision()).toBeNull();
+    await press(t.start);
+    await press(t.close);
+    expect(document.body.textContent).toContain(t.bannerTitle);
+    expect(readSeenCvRevision()).toBeNull();
+    await press(t.start);
+    const dialog = document.querySelector('[role="dialog"]');
+    expect(dialog?.textContent).toContain(tr(t.progress, { step: '1', total: '4' }));
+    expect(dialog?.textContent).toContain(
+      tr(t.sectionTitle, { section: labels('en').cvSections.summary }),
+    );
   });
 
-  it('stays hidden when the CV revision was walked and no skills wait', async () => {
+  it('offers the CV steps again while an improvement waits, even after an old close', async () => {
+    // A close under the previous behavior marked the revision as walked.
     markCvRevisionSeen(REV);
     serve([suggestion('Summary', 'AllSupported')], []);
     await render('en');
+    expect(document.body.textContent).toContain(labels('en').tour.bannerTitle);
+  });
+
+  it('stays hidden once every improvement was decided and no skills wait', async () => {
+    window.localStorage.setItem(
+      'profile.tour.cvChoices',
+      JSON.stringify({ revision: REV, choices: { Summary: 'apply' } }),
+    );
+    serve([suggestion('Summary', 'AllSupported')], []);
+    await render('en');
     expect(document.body.textContent).not.toContain(labels('en').tour.bannerTitle);
+  });
+
+  it('lets the decided improvements be reviewed again from the profile', async () => {
+    window.localStorage.setItem(
+      'profile.tour.cvChoices',
+      JSON.stringify({ revision: REV, choices: { Summary: 'apply', Links: 'skip' } }),
+    );
+    serve([suggestion('Summary', 'AllSupported'), suggestion('Links', 'Mixed')], ['Django']);
+    await render('es');
+    const t = labels('es').tour;
+    // Skills still wait, so the invitation shows; the review entry waits for it.
+    expect(document.body.textContent).toContain(t.bannerTitle);
+    await press(t.start);
+    expect(document.querySelector('[role="dialog"]')?.textContent).toContain(
+      tr(t.progress, { step: '1', total: '1' }),
+    );
+    await press(t.finish);
+    // Finished: the review entry stays, with the CV steps only.
+    // Only the applied improvement counts as chosen; the skipped one does not.
+    expect(document.body.textContent).toContain(tr(t.summaryCount, { count: '1' }));
+    await press(t.review);
+    const dialog = document.querySelector('[role="dialog"]');
+    expect(dialog?.textContent).toContain(tr(t.progress, { step: '1', total: '3' }));
+    expect(dialog?.textContent).toContain(t.applied);
+    await press(t.close);
+    expect(document.body.textContent).toContain(t.review);
+  });
+
+  it('shows no chosen count when every improvement was skipped', async () => {
+    window.localStorage.setItem(
+      'profile.tour.cvChoices',
+      JSON.stringify({ revision: REV, choices: { Summary: 'skip' } }),
+    );
+    serve([suggestion('Summary', 'AllSupported')], []);
+    await render('en');
+    const t = labels('en').tour;
+    expect(document.body.textContent).toContain(t.review);
+    expect(document.body.textContent).not.toContain(tr(t.summaryCount, { count: '1' }));
   });
 
   it('stays hidden when the suggestions cannot load', async () => {
