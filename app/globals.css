@@ -170,13 +170,16 @@
   /* Motion (extension): the house curve and the entrances/loops the views
      use, as animate-* utilities (overlay, dialog and step drive the tours). */
   --animate-page-in: page-transition-in 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  --animate-content-resolve: content-resolve 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-content-resolve: content-resolve 600ms cubic-bezier(0.16, 1, 0.3, 1);
   --animate-skeleton-glow: skeleton-glow 1400ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
   --animate-spinner: spinner-turn 700ms linear infinite;
   --animate-toast-rise: toast-rise 180ms cubic-bezier(0.16, 1, 0.3, 1);
   --animate-overlay-in: overlay-in 240ms ease-out;
   --animate-dialog-in: dialog-in 420ms cubic-bezier(0.16, 1, 0.3, 1);
   --animate-step-in: step-in 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-tile-in: tile-in 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-meter-grow: meter-grow 1100ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-reveal-x: reveal-x 1400ms cubic-bezier(0.16, 1, 0.3, 1) both;
 
   @keyframes page-transition-in {
     from {
@@ -191,8 +194,8 @@
   @keyframes content-resolve {
     from {
       opacity: 0;
-      transform: translateY(6px);
-      filter: blur(6px);
+      transform: translateY(4px);
+      filter: blur(2px);
     }
     to {
       opacity: 1;
@@ -236,6 +239,32 @@
     to {
       opacity: 1;
       transform: none;
+    }
+  }
+  @keyframes tile-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes meter-grow {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @keyframes reveal-x {
+    from {
+      clip-path: inset(-10% 100% -10% 0);
+    }
+    to {
+      clip-path: inset(-10% -2% -10% 0);
     }
   }
   @keyframes toast-rise {
