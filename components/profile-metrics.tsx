@@ -56,7 +56,7 @@ export function deltaPoints(
   return Math.round(current * 100) - Math.round(previous * 100);
 }
 
-// The change since the previous revision: an arrow and the points in text
+// The change since the previous run: an arrow and the points in text
 // (never color alone), the tone saying whether the move is good.
 function Delta({ points, rate, locale }: { points: number | null; rate: Rate; locale: Locale }) {
   const t = labels(locale).metrics;
