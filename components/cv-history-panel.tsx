@@ -34,11 +34,22 @@ export function CvHistoryPanel({
   const tokenRef = useRef(accessToken);
   tokenRef.current = accessToken;
 
+  // Only the newest load may write the card: an older answer (a load
+  // started before a save) never replaces the refreshed list.
+  const request = useRef(0);
+
   const loadHistory = useCallback(async () => {
+    const id = ++request.current;
     setHistory({ kind: 'loading' });
     try {
-      setHistory({ kind: 'ready', versions: await getVersions(tokenRef.current) });
+      const versions = await getVersions(tokenRef.current);
+      if (id === request.current) {
+        setHistory({ kind: 'ready', versions });
+      }
     } catch (error) {
+      if (id !== request.current) {
+        return;
+      }
       // The history failure stays inside its own card with a retry and
       // never touches the session.
       const message =

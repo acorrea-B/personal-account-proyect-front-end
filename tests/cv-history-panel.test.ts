@@ -85,4 +85,15 @@ describe('CvHistoryPanel', () => {
     await act(async () => retry?.click());
     expect(getVersionsMock).toHaveBeenLastCalledWith('token-2');
   });
+  it('never lets an older answer replace the refreshed list', async () => {
+    let answerFirst: (value: unknown) => void = () => {};
+    getVersionsMock
+      .mockReturnValueOnce(new Promise((resolve) => (answerFirst = resolve)))
+      .mockResolvedValueOnce([VERSION]);
+    await render('token-1', 0);
+    await render('token-1', 1);
+    expect(document.querySelectorAll('ol li')).toHaveLength(1);
+    await act(async () => answerFirst([]));
+    expect(document.querySelectorAll('ol li')).toHaveLength(1);
+  });
 });
