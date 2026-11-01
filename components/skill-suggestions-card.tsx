@@ -37,7 +37,8 @@ type CardState =
 // reads the review signal and the pending suggestions, shows each one with
 // the verified CV line it came from, and records the user's decision: the
 // harness only suggests, the user decides. Accepting adds the skill to the
-// profile, so the dashboard reloads it through onAccepted.
+// profile, so the host reloads it through onAccepted (with the skill's
+// display name).
 export function SkillSuggestionsCard({
   accessToken,
   locale,
@@ -45,7 +46,7 @@ export function SkillSuggestionsCard({
 }: {
   accessToken: string;
   locale: Locale;
-  onAccepted: () => void;
+  onAccepted: (skill: string) => void;
 }) {
   const t = labels(locale).suggestions;
   const sections = labels(locale).cvSections;
@@ -114,7 +115,7 @@ export function SkillSuggestionsCard({
         },
       });
       if (decision === 'accepted') {
-        onAccepted();
+        onAccepted(suggestion.display_name);
       }
     } catch (error) {
       if (error instanceof ProblemError && error.problem.status === 404) {
