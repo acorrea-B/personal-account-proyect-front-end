@@ -17,9 +17,9 @@ import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { type Locale, labels } from '@/lib/i18n';
 
 // The evolution page (BC-005/BC-008): the declared mode, its declaration
-// form and the checks the harness recorded, then what the newest harness
-// run read (output quality, level, roles), on a page of their own instead
-// of crowding the home summary.
+// form and the checks the harness recorded, under what the newest harness
+// run read (output quality, level, roles): the numbers come first. A page
+// of its own instead of crowding the home summary.
 export function EvolutionView({ locale }: { locale: Locale }) {
   const t = labels(locale);
   const { isHydrated, isAuthorized, session } = useRequireAuth();
@@ -56,8 +56,8 @@ export function EvolutionView({ locale }: { locale: Locale }) {
     <AppShell locale={locale} back>
       <div className={cx(contentResolve, 'grid gap-32')}>
         {bar}
-        <EvolutionCard accessToken={accessToken} locale={locale} />
         <HarnessInsights accessToken={accessToken} locale={locale} />
+        <EvolutionCard accessToken={accessToken} locale={locale} />
       </div>
     </AppShell>
   );
