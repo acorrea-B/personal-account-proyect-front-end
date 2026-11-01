@@ -60,6 +60,10 @@ export function DashboardView({ locale }: { locale: Locale }) {
   const router = useRouter();
   const { isHydrated, isAuthorized, session } = useRequireAuth();
   const accessToken = session?.accessToken ?? null;
+  // The token a retry uses is the current one: a retry pressed after a
+  // background renewal must not resend the token of the failed request.
+  const tokenRef = useRef(accessToken);
+  tokenRef.current = accessToken;
 
   const [load, setLoad] = useState<WorkspaceLoad>({ status: 'loading' });
   const [cvCard, setCvCard] = useState<CvCardState>({ kind: 'loading' });
@@ -91,7 +95,7 @@ export function DashboardView({ locale }: { locale: Locale }) {
             setCvCard({
               kind: 'error',
               message: t.workspace.cvRateCapped,
-              onRetry: () => loadCv(token),
+              onRetry: () => loadCv(tokenRef.current ?? token),
             });
             return;
           }
@@ -99,7 +103,7 @@ export function DashboardView({ locale }: { locale: Locale }) {
             setCvCard({
               kind: 'error',
               message: t.workspace.serviceDeclined,
-              onRetry: () => loadCv(token),
+              onRetry: () => loadCv(tokenRef.current ?? token),
             });
             return;
           }
@@ -107,7 +111,7 @@ export function DashboardView({ locale }: { locale: Locale }) {
           setCvCard({
             kind: 'error',
             message: fallback ? `${fallback}${t.workspace.detailSuffix}` : t.workspace.cvFallback,
-            onRetry: () => loadCv(token),
+            onRetry: () => loadCv(tokenRef.current ?? token),
           });
           return;
         }
@@ -115,14 +119,14 @@ export function DashboardView({ locale }: { locale: Locale }) {
           setCvCard({
             kind: 'error',
             message: t.workspace.cvTimeout,
-            onRetry: () => loadCv(token),
+            onRetry: () => loadCv(tokenRef.current ?? token),
           });
           return;
         }
         setCvCard({
           kind: 'error',
           message: t.workspace.cvFallback,
-          onRetry: () => loadCv(token),
+          onRetry: () => loadCv(tokenRef.current ?? token),
         });
       }
     },
@@ -235,14 +239,14 @@ export function DashboardView({ locale }: { locale: Locale }) {
                 : error.problem.status === 429
                   ? t.workspace.cvRateCapped
                   : `${readFallback(error) ?? ''}${t.workspace.detailSuffix}`,
-            onRetry: () => loadHistory(token),
+            onRetry: () => loadHistory(tokenRef.current ?? token),
           });
           return;
         }
         setHistory({
           kind: 'error',
           message: t.workspace.historyFallback,
-          onRetry: () => loadHistory(token),
+          onRetry: () => loadHistory(tokenRef.current ?? token),
         });
       }
     },

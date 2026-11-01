@@ -259,4 +259,36 @@ describe('DashboardView', () => {
     });
     expect(fetchProfileMock.mock.calls.length).toBe(calls);
   });
+
+  it('retries the CV card with the current token after a renewal', async () => {
+    authorizedSession();
+    fetchProfileMock.mockResolvedValue(PROFILE);
+    fetchCvMock.mockReset().mockRejectedValueOnce(new Error('network'));
+    await render('en');
+    requireAuthMock.mockReturnValue({
+      isHydrated: true,
+      isAuthorized: true,
+      session: {
+        accessToken: 'token-2',
+        refreshToken: 'refresh-1',
+        user: {
+          id: 'user-1',
+          email: 'juan@example.com',
+          verified: true,
+          created_at: '2026-10-25T00:00:00.000Z',
+        },
+      },
+    });
+    await act(async () => {
+      root?.render(createElement(DashboardView, { locale: 'en' }));
+    });
+    fetchCvMock.mockResolvedValue(CV);
+    const retry = [...document.querySelectorAll('button')].find(
+      (button) => button.textContent === labels('en').cvCard.retry,
+    );
+    await act(async () => {
+      retry?.click();
+    });
+    expect(fetchCvMock).toHaveBeenLastCalledWith('token-2');
+  });
 });
