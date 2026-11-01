@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Skeleton } from '@/components/skeleton';
 import { workspacePanel } from '@/components/ui';
 import { fetchHarnessOutputs } from '@/lib/api/harness';
-import { type Locale, labels, tr } from '@/lib/i18n';
+import { type Locale, labels } from '@/lib/i18n';
 import type { CanonicalProfile } from '@/lib/schemas/harness';
 
 type ViewState = { kind: 'loading' } | { kind: 'ready'; profile: CanonicalProfile | null };
@@ -107,8 +107,13 @@ export function OrganizedProfile({ accessToken, locale }: { accessToken: string;
                     <p className="m-0 text-[14px] leading-[1.6] text-soot">{item.scope}</p>
                   ) : null}
                   {item.metrics ? (
-                    <p className="m-0 justify-self-start rounded-lg bg-teal-wash px-8 py-4 text-[13px] text-teal-text">
-                      {tr(t.impact, { metrics: item.metrics })}
+                    // The figure is the CV's own words, shown as a quote next to
+                    // a translated label rather than read as one mixed sentence.
+                    <p className="m-0 inline-flex flex-wrap items-baseline gap-x-8 gap-y-2 justify-self-start rounded-lg bg-teal-wash px-8 py-4 text-[13px] text-teal-text">
+                      <span className="text-(length:--text-label) font-semibold tracking-[0.08em] uppercase">
+                        {t.impact}
+                      </span>
+                      <q className="[overflow-wrap:anywhere]">{item.metrics}</q>
                     </p>
                   ) : null}
                   {item.technologies.length ? (

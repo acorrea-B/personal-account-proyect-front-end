@@ -493,12 +493,12 @@
   },
   "organized": {
     "title": "Tu perfil organizado",
-    "intro": "Así separó el harness lo que escribiste: cada parte en su lugar.",
+    "intro": "Así separó el harness lo que escribiste: cada parte en su lugar, con tus palabras tal como aparecen en tu CV.",
     "experience": "Experiencia",
     "education": "Educación",
     "skills": "Skills",
     "present": "Actualidad",
-    "impact": "Impacto: {metrics}",
+    "impact": "Impacto",
     "empty": "Tu perfil organizado aparece cuando el harness lee tu CV.",
     "loadingAria": "Cargando tu perfil organizado"
   }

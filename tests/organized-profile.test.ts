@@ -7,7 +7,7 @@ vi.mock('@/lib/api/harness', () => ({ fetchHarnessOutputs: vi.fn() }));
 
 import { OrganizedProfile } from '../components/organized-profile';
 import { fetchHarnessOutputs } from '@/lib/api/harness';
-import { labels, tr, type Locale } from '../lib/i18n';
+import { labels, type Locale } from '../lib/i18n';
 import type { CanonicalProfile } from '../lib/schemas/harness';
 
 (globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
@@ -79,9 +79,10 @@ describe('OrganizedProfile', () => {
     const roles = [...document.querySelectorAll('ol > li')];
     expect(roles).toHaveLength(2);
     expect(roles[0].textContent).toContain(`2025-10 – ${t.present}`);
-    expect(roles[0].textContent).toContain(
-      tr(t.impact, { metrics: 'from 3 months to 15 person-days' }),
-    );
+    // The figure stays the CV's own words, quoted beside the translated label.
+    const impact = roles[0].querySelector('q');
+    expect(impact?.textContent).toBe('from 3 months to 15 person-days');
+    expect(impact?.parentElement?.textContent).toContain(t.impact);
     expect(roles[0].querySelectorAll('ul li')).toHaveLength(2);
     expect(roles[1].textContent).toContain('2021-09 – 2023-02');
     expect(section?.textContent).toContain('2017 - 2020 BSc Computer Science.');
