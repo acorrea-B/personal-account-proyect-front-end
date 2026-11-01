@@ -123,6 +123,15 @@ export const labelsSchema = z.object({
   validation: z.object({
     emailInvalid: z.string(),
     passwordRequired: z.string(),
+    fullNameTooLong: z.string(),
+    headlineTooLong: z.string(),
+    bioTooLong: z.string(),
+    locationTooLong: z.string(),
+    skillsTooMany: z.string(),
+    skillsRepeat: z.string(),
+    skillTooLong: z.string(),
+    linksInvalid: z.string(),
+    fieldInvalid: z.string(),
   }),
   evolution: z.object({
     title: z.string(),

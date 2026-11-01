@@ -318,7 +318,16 @@
   },
   "validation": {
     "emailInvalid": "Enter a valid email address, like name@example.com.",
-    "passwordRequired": "Enter your password."
+    "passwordRequired": "Enter your password.",
+    "fullNameTooLong": "Use at most 200 characters for your name.",
+    "headlineTooLong": "Use at most 120 characters for the headline.",
+    "bioTooLong": "Use at most 2000 characters for the bio.",
+    "locationTooLong": "Use at most 120 characters for the location.",
+    "skillsTooMany": "Keep at most 100 skills.",
+    "skillsRepeat": "Each skill may appear only once.",
+    "skillTooLong": "Each skill may have at most 40 characters.",
+    "linksInvalid": "Each link needs a type and an http or https address.",
+    "fieldInvalid": "Check this field."
   },
   "evolution": {
     "title": "Your evolution",

@@ -318,7 +318,16 @@
   },
   "validation": {
     "emailInvalid": "Escribe un correo válido, como nombre@ejemplo.com.",
-    "passwordRequired": "Escribe tu contraseña."
+    "passwordRequired": "Escribe tu contraseña.",
+    "fullNameTooLong": "Usa como máximo 200 caracteres para tu nombre.",
+    "headlineTooLong": "Usa como máximo 120 caracteres para el titular.",
+    "bioTooLong": "Usa como máximo 2000 caracteres para la bio.",
+    "locationTooLong": "Usa como máximo 120 caracteres para la ubicación.",
+    "skillsTooMany": "Conserva como máximo 100 habilidades.",
+    "skillsRepeat": "Cada habilidad puede aparecer una sola vez.",
+    "skillTooLong": "Cada habilidad puede tener como máximo 40 caracteres.",
+    "linksInvalid": "Cada enlace necesita un tipo y una dirección http o https.",
+    "fieldInvalid": "Revisa este campo."
   },
   "evolution": {
     "title": "Tu evolución",

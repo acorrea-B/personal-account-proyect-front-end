@@ -18,7 +18,7 @@ import {
 } from '@/lib/api/profile';
 import { signOut } from '@/lib/auth/session';
 import { updateProfileRequestSchema, type Profile } from '@/lib/schemas/profile';
-import { type Locale, labels, tr } from '@/lib/i18n';
+import { type Labels, type Locale, labels, tr } from '@/lib/i18n';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
 import { CatalogConsent } from '@/components/catalog-consent';
@@ -54,6 +54,37 @@ import { CheckIcon, HomeIcon, MailIcon, ProfileIcon, UserIcon } from '@/componen
 type SaveState = { status: 'idle' | 'saving' | 'saved'; note?: string };
 type LoadState = { status: 'loading' | 'ready' | 'error'; profile?: Profile; error?: string };
 type LinkDraft = { type: string; url: string };
+
+// The schema decides which profile field fails and why; the dictionary
+// says it in the tree language (never zod's english default).
+function validationMessage(
+  field: string,
+  issue: { code: string; path: PropertyKey[] },
+  v: Labels['validation'],
+): string {
+  switch (field) {
+    case 'full_name':
+      return v.fullNameTooLong;
+    case 'headline':
+      return v.headlineTooLong;
+    case 'bio':
+      return v.bioTooLong;
+    case 'location':
+      return v.locationTooLong;
+    case 'links':
+      return v.linksInvalid;
+    case 'skills':
+      // An item over 40 characters fails at skills[i]; the list itself
+      // fails on the 100 cap or on a repeated name.
+      return issue.path.length > 1
+        ? v.skillTooLong
+        : issue.code === 'too_big'
+          ? v.skillsTooMany
+          : v.skillsRepeat;
+    default:
+      return v.fieldInvalid;
+  }
+}
 
 // A link-row input (the old .link-row input rule): the compact 14px field.
 const linkInput =
@@ -288,8 +319,8 @@ export function ProfileView({ locale }: { locale: Locale }) {
         const errors: Record<string, string> = {};
         for (const issue of parsed.error.issues) {
           const field = issue.path[0];
-          if (typeof field === 'string') {
-            errors[field] = issue.message;
+          if (typeof field === 'string' && !errors[field]) {
+            errors[field] = validationMessage(field, issue, t.validation);
           }
         }
         setFieldErrors(errors);
