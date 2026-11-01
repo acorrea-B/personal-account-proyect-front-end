@@ -283,8 +283,8 @@ export function JournalView({ locale }: { locale: Locale }) {
           </section>
         ) : !load.consented ? (
           <section className={workspacePanel} aria-label={j.consentTitle}>
+            <JournalValue title={j.valueTitle} copy={j.intro} />
             <AuthKicker>{j.consentTitle}</AuthKicker>
-            <p className="m-0 text-[14px] leading-[1.6] text-warm-gray">{j.intro}</p>
             <blockquote className="m-0 max-h-[240px] overflow-y-auto rounded-lg border border-stone-border bg-stone-canvas p-16 text-[14px] leading-[1.6] whitespace-pre-wrap text-ink-black">
               {load.consent.consent_text}
             </blockquote>
@@ -304,8 +304,8 @@ export function JournalView({ locale }: { locale: Locale }) {
           </section>
         ) : (
           <>
+            <JournalValue title={j.valueTitle} copy={j.intro} />
             <section className={workspacePanel} aria-label={j.composerLabel}>
-              <p className="m-0 text-[14px] leading-[1.6] text-warm-gray">{j.intro}</p>
               <form className="m-0 grid gap-16" onSubmit={(event) => void save(event)}>
                 {/* The composer is frozen while its entry saves, so nothing
                     typed meanwhile is lost when the fields clear. */}
@@ -509,5 +509,22 @@ export function JournalView({ locale }: { locale: Locale }) {
         ) : null}
       </div>
     </AppShell>
+  );
+}
+
+// Why the journal matters, before the first word: everyday work buries
+// achievements unless they are written down, and the harness turns what is
+// written into the profile and a list of key wins.
+function JournalValue({ title, copy }: { title: string; copy: string }) {
+  return (
+    <section
+      aria-label={title}
+      className="grid animate-content-resolve gap-8 rounded-2xl border border-teal-wash bg-[linear-gradient(135deg,var(--color-teal-wash),var(--color-pure-white)_75%)] p-24 motion-reduce:animate-none"
+    >
+      <h2 className="m-0 font-roobert text-title-sm leading-[1.3] font-medium text-ink-black">
+        {title}
+      </h2>
+      <p className="m-0 max-w-[68ch] text-[15px] leading-[1.7] text-soot">{copy}</p>
+    </section>
   );
 }
