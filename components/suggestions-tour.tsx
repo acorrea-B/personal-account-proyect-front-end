@@ -138,9 +138,19 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     startRef.current?.focus();
   }, [data]);
 
+  const steps = data ? tourSteps(data.cvSuggestions, data.skillNames) : [];
+  // The modal is showing only while it has a step: if a refresh empties the
+  // steps (every skill decided meanwhile), it closes and releases the page.
+  const showing = open && steps.length > 0;
+  useEffect(() => {
+    if (open && !steps.length) {
+      setOpen(false);
+    }
+  }, [open, steps.length]);
+
   // Focus moves to each step's heading and stays inside the window.
   useEffect(() => {
-    if (!open) {
+    if (!showing) {
       return;
     }
     headingRef.current?.focus();
@@ -174,11 +184,11 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, index, close]);
+  }, [showing, index, close]);
 
-  // The page behind the modal is inert while it is open.
+  // The page behind the modal is inert while it is showing.
   useEffect(() => {
-    if (!open) {
+    if (!showing) {
       return;
     }
     const overlay = overlayRef.current;
@@ -187,9 +197,8 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     );
     background.forEach((element) => element.setAttribute('inert', ''));
     return () => background.forEach((element) => element.removeAttribute('inert'));
-  }, [open]);
+  }, [showing]);
 
-  const steps = data ? tourSteps(data.cvSuggestions, data.skillNames) : [];
   if (!steps.length || dismissed) {
     return null;
   }
