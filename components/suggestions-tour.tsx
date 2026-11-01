@@ -1,17 +1,26 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { cx, ghostButton, primaryButton } from '@/components/ui';
 import { fetchHarnessOutputs } from '@/lib/api/harness';
 import { fetchSkillSuggestions, fetchSuggestionsSummary } from '@/lib/api/suggestions';
 import { type Locale, labels, tr } from '@/lib/i18n';
 import type { CvSuggestion, VerificationStatus } from '@/lib/schemas/harness';
-import { markCvRevisionSeen, readSeenCvRevision } from '@/lib/suggestions-signal';
+import {
+  markCvRevisionSeen,
+  readSeenCvRevision,
+  suggestionsChangedEvent,
+} from '@/lib/suggestions-signal';
 
 type Step = { kind: 'suggestion'; suggestion: CvSuggestion } | { kind: 'skills'; names: string[] };
 
-type TourData = { steps: Step[]; cvRevision: string | null };
+type TourData = {
+  cvSuggestions: CvSuggestion[] | null;
+  skillNames: string[];
+  cvRevision: string | null;
+};
 
 // Backed advice first; what verification blocked is not advice, so it never
 // becomes a step (the AI suggestions card lists it as what is missing).
@@ -21,6 +30,25 @@ const order: VerificationStatus[] = ['AllSupported', 'Mixed', 'AllInferred'];
 export const skillsShown = 8;
 
 const plainRationale = (rationale: string) => rationale.replace(/^\[inferred\]\s*/, '');
+
+// Each step keeps what verification said: backed, partly backed or with no
+// evidence, so a claim the CV does not back never reads as settled advice.
+const statusTone: Record<VerificationStatus, string> = {
+  AllSupported: 'bg-teal-wash text-teal-text',
+  Mixed: 'bg-sky-wash-soft text-cyan-text-strong',
+  AllInferred: 'bg-stone-canvas text-warm-gray',
+  Blocked: 'bg-stone-canvas text-warm-gray',
+};
+
+function statusLabel(locale: Locale, status: VerificationStatus): string {
+  const a = labels(locale).ai;
+  return {
+    AllSupported: a.statusSupported,
+    Mixed: a.statusPartial,
+    AllInferred: a.statusInferred,
+    Blocked: a.statusInferred,
+  }[status];
+}
 
 // The steps of the tour: one per CV suggestion worth acting on, then the
 // skills the CV shows that the profile does not declare.
@@ -38,7 +66,9 @@ export function tourSteps(cvSuggestions: CvSuggestion[] | null, skillNames: stri
 // The profile's suggestions tour: a call to action above the profile while
 // the newest harness run has advice the user has not walked, and a
 // step-by-step window with a progress indicator. Finishing (or closing)
-// remembers the CV revision walked, which also clears the menu marker.
+// remembers the CV revision walked, so the tour does not offer it again.
+// The window is a modal: rendered outside the page (a portal), focus stays
+// inside and the page behind is inert while it is open.
 export function SuggestionsTour({ accessToken, locale }: { accessToken: string; locale: Locale }) {
   const t = labels(locale).tour;
   const [data, setData] = useState<TourData | null>(null);
@@ -47,6 +77,8 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
   const [index, setIndex] = useState(0);
   const startRef = useRef<HTMLButtonElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const tokenRef = useRef(accessToken);
   tokenRef.current = accessToken;
 
@@ -66,14 +98,35 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
         const cvRevision = summary.cv.revision_id;
         // A walked CV revision only offers the tour again for new skills.
         const walked = cvRevision !== null && cvRevision === readSeenCvRevision();
-        const steps = tourSteps(
-          walked ? [] : outputs.cvSuggestions,
-          skills.suggestions.map((suggestion) => suggestion.display_name),
-        );
-        setData({ steps, cvRevision });
+        setData({
+          cvSuggestions: walked ? [] : outputs.cvSuggestions,
+          skillNames: skills.suggestions.map((suggestion) => suggestion.display_name),
+          cvRevision,
+        });
       })
       // The tour is an invitation: if it cannot load, the profile stays as is.
-      .catch(() => setData({ steps: [], cvRevision: null }));
+      .catch(() => setData({ cvSuggestions: null, skillNames: [], cvRevision: null }));
+  }, []);
+
+  // A decision in the skill suggestions card changes what the skills step
+  // can offer: read the pending skills again.
+  useEffect(() => {
+    const onChange = () => {
+      void fetchSkillSuggestions(tokenRef.current)
+        .then((skills) =>
+          setData((current) =>
+            current
+              ? {
+                  ...current,
+                  skillNames: skills.suggestions.map((suggestion) => suggestion.display_name),
+                }
+              : current,
+          ),
+        )
+        .catch(() => undefined);
+    };
+    window.addEventListener(suggestionsChangedEvent, onChange);
+    return () => window.removeEventListener(suggestionsChangedEvent, onChange);
   }, []);
 
   const close = useCallback(() => {
@@ -85,6 +138,7 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     startRef.current?.focus();
   }, [data]);
 
+  // Focus moves to each step's heading and stays inside the window.
   useEffect(() => {
     if (!open) {
       return;
@@ -93,20 +147,58 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         close();
+        return;
+      }
+      if (event.key !== 'Tab' || !dialogRef.current) {
+        return;
+      }
+      const focusable = [
+        ...dialogRef.current.querySelectorAll<HTMLElement>('button, [tabindex="-1"]'),
+      ].filter(
+        (element) => !element.hasAttribute('disabled') && !element.classList.contains('invisible'),
+      );
+      const buttons = focusable.filter((element) => element.tagName === 'BUTTON');
+      if (!buttons.length) {
+        return;
+      }
+      const first = buttons[0];
+      const last = buttons[buttons.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || !dialogRef.current.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || !dialogRef.current.contains(active))) {
+        event.preventDefault();
+        first.focus();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open, index, close]);
 
-  if (!data || !data.steps.length || dismissed) {
+  // The page behind the modal is inert while it is open.
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const overlay = overlayRef.current;
+    const background = [...document.body.children].filter(
+      (element) => element !== overlay && !element.contains(overlay),
+    );
+    background.forEach((element) => element.setAttribute('inert', ''));
+    return () => background.forEach((element) => element.removeAttribute('inert'));
+  }, [open]);
+
+  const steps = data ? tourSteps(data.cvSuggestions, data.skillNames) : [];
+  if (!steps.length || dismissed) {
     return null;
   }
 
-  const total = data.steps.length;
-  const step = data.steps[index];
-  const last = index === total - 1;
-  const progress = tr(t.progress, { step: String(index + 1), total: String(total) });
+  const total = steps.length;
+  const position = Math.min(index, total - 1);
+  const step = steps[position];
+  const last = position === total - 1;
+  const progress = tr(t.progress, { step: String(position + 1), total: String(total) });
 
   return (
     <>
@@ -138,122 +230,142 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
         </div>
       </section>
 
-      {open ? (
-        <div className="fixed inset-0 z-50 grid animate-overlay-in place-items-center bg-[rgba(28,25,23,0.45)] p-16 motion-reduce:animate-none">
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={t.dialogAria}
-            className="grid w-full max-w-[560px] animate-dialog-in gap-16 rounded-2xl bg-pure-white p-24 shadow-xl motion-reduce:animate-none"
-          >
-            <div className="grid gap-8">
-              <div className="flex items-center justify-between gap-12 text-[13px] text-warm-gray">
-                <span>{progress}</span>
-                <button
-                  type="button"
-                  onClick={close}
-                  className="cursor-pointer border-none bg-transparent p-4 [font-family:inherit] text-[13px] text-warm-gray hover:text-ink-black"
-                >
-                  {t.close}
-                </button>
-              </div>
+      {open
+        ? createPortal(
+            <div
+              ref={overlayRef}
+              className="fixed inset-0 z-50 grid animate-overlay-in place-items-center bg-[rgba(28,25,23,0.45)] p-16 motion-reduce:animate-none"
+            >
               <div
-                role="progressbar"
-                aria-label={progress}
-                aria-valuemin={1}
-                aria-valuemax={total}
-                aria-valuenow={index + 1}
-                className="h-[6px] overflow-hidden rounded-full bg-sky-wash-soft"
+                ref={dialogRef}
+                role="dialog"
+                aria-modal="true"
+                aria-label={t.dialogAria}
+                className="grid max-h-[calc(100dvh-32px)] w-full max-w-[560px] animate-dialog-in grid-rows-[auto_minmax(0,1fr)_auto] gap-16 rounded-2xl bg-pure-white p-24 shadow-xl motion-reduce:animate-none"
               >
+                <div className="grid gap-8">
+                  <div className="flex items-center justify-between gap-12 text-[13px] text-warm-gray">
+                    <span>{progress}</span>
+                    <button
+                      type="button"
+                      onClick={close}
+                      className="cursor-pointer border-none bg-transparent p-4 [font-family:inherit] text-[13px] text-warm-gray hover:text-ink-black"
+                    >
+                      {t.close}
+                    </button>
+                  </div>
+                  <div
+                    role="progressbar"
+                    aria-label={progress}
+                    aria-valuemin={1}
+                    aria-valuemax={total}
+                    aria-valuenow={position + 1}
+                    className="h-[6px] overflow-hidden rounded-full bg-sky-wash-soft"
+                  >
+                    <div
+                      className="h-full rounded-full bg-cyan-text-strong transition-[width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
+                      style={{ width: `${((position + 1) / total) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
                 <div
-                  className="h-full rounded-full bg-cyan-text-strong transition-[width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
-                  style={{ width: `${((index + 1) / total) * 100}%` }}
-                />
-              </div>
-            </div>
-
-            <div key={index} className="grid animate-step-in gap-12 motion-reduce:animate-none">
-              {step.kind === 'suggestion' ? (
-                <>
-                  <h3
-                    ref={headingRef}
-                    tabIndex={-1}
-                    className="m-0 font-roobert text-(length:--text-subheading) font-medium text-ink-black outline-none"
-                  >
-                    {tr(t.sectionTitle, { section: step.suggestion.section })}
-                  </h3>
-                  <div className="grid gap-4 rounded-lg bg-sky-wash-soft p-12">
-                    <span className="text-(length:--text-label) font-semibold tracking-[0.08em] text-cyan-text-strong uppercase">
-                      {t.suggestion}
-                    </span>
-                    <p className="m-0 text-[15px] leading-[1.6] text-ink-black">
-                      {step.suggestion.suggested_text}
-                    </p>
-                  </div>
-                  <div className="grid gap-4">
-                    <span className="text-[13px] font-medium text-ink-black">{t.why}</span>
-                    <p className="m-0 text-[14px] leading-[1.6] text-warm-gray">
-                      {plainRationale(step.suggestion.rationale)}
-                    </p>
-                  </div>
-                  <p className="m-0 rounded-lg bg-teal-wash px-12 py-8 text-[13px] leading-[1.6] text-teal-text">
-                    {t.recruiters}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h3
-                    ref={headingRef}
-                    tabIndex={-1}
-                    className="m-0 font-roobert text-(length:--text-subheading) font-medium text-ink-black outline-none"
-                  >
-                    {t.skillsTitle}
-                  </h3>
-                  <p className="m-0 text-[14px] leading-[1.6] text-warm-gray">
-                    {tr(t.skillsCopy, { count: String(step.names.length) })}
-                  </p>
-                  <ul className="m-0 flex list-none flex-wrap gap-8 p-0">
-                    {step.names.slice(0, skillsShown).map((name) => (
-                      <li
-                        key={name}
-                        className="rounded-full bg-sky-wash-soft px-12 py-4 text-[13px] font-medium text-cyan-text-strong"
+                  key={position}
+                  className="grid min-h-0 animate-step-in content-start gap-12 overflow-y-auto motion-reduce:animate-none"
+                >
+                  {step.kind === 'suggestion' ? (
+                    <>
+                      <h3
+                        ref={headingRef}
+                        tabIndex={-1}
+                        className="m-0 font-roobert text-(length:--text-subheading) font-medium text-ink-black outline-none"
                       >
-                        {name}
-                      </li>
-                    ))}
-                    {step.names.length > skillsShown ? (
-                      <li className="rounded-full bg-stone-canvas px-12 py-4 text-[13px] text-warm-gray">
-                        +{step.names.length - skillsShown}
-                      </li>
-                    ) : null}
-                  </ul>
-                  <p className="m-0 text-[13px] leading-[1.6] text-warm-gray">{t.skillsAction}</p>
-                  <p className="m-0 rounded-lg bg-teal-wash px-12 py-8 text-[13px] leading-[1.6] text-teal-text">
-                    {t.recruiters}
-                  </p>
-                </>
-              )}
-            </div>
+                        {tr(t.sectionTitle, { section: step.suggestion.section })}
+                      </h3>
+                      <span
+                        className={cx(
+                          'justify-self-start rounded-full px-8 py-4 text-[12px] font-medium',
+                          statusTone[step.suggestion.verification_status],
+                        )}
+                      >
+                        {statusLabel(locale, step.suggestion.verification_status)}
+                      </span>
+                      <div className="grid gap-4 rounded-lg bg-sky-wash-soft p-12">
+                        <span className="text-(length:--text-label) font-semibold tracking-[0.08em] text-cyan-text-strong uppercase">
+                          {t.suggestion}
+                        </span>
+                        <p className="m-0 text-[15px] leading-[1.6] text-ink-black">
+                          {step.suggestion.suggested_text}
+                        </p>
+                      </div>
+                      <div className="grid gap-4">
+                        <span className="text-[13px] font-medium text-ink-black">{t.why}</span>
+                        <p className="m-0 text-[14px] leading-[1.6] text-warm-gray">
+                          {plainRationale(step.suggestion.rationale)}
+                        </p>
+                      </div>
+                      <p className="m-0 rounded-lg bg-teal-wash px-12 py-8 text-[13px] leading-[1.6] text-teal-text">
+                        {t.recruiters}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h3
+                        ref={headingRef}
+                        tabIndex={-1}
+                        className="m-0 font-roobert text-(length:--text-subheading) font-medium text-ink-black outline-none"
+                      >
+                        {t.skillsTitle}
+                      </h3>
+                      <p className="m-0 text-[14px] leading-[1.6] text-warm-gray">
+                        {tr(t.skillsCopy, { count: String(step.names.length) })}
+                      </p>
+                      <ul className="m-0 flex list-none flex-wrap gap-8 p-0">
+                        {step.names.slice(0, skillsShown).map((name) => (
+                          <li
+                            key={name}
+                            className="rounded-full bg-sky-wash-soft px-12 py-4 text-[13px] font-medium text-cyan-text-strong"
+                          >
+                            {name}
+                          </li>
+                        ))}
+                        {step.names.length > skillsShown ? (
+                          <li className="rounded-full bg-stone-canvas px-12 py-4 text-[13px] text-warm-gray">
+                            +{step.names.length - skillsShown}
+                          </li>
+                        ) : null}
+                      </ul>
+                      <p className="m-0 text-[13px] leading-[1.6] text-warm-gray">
+                        {t.skillsAction}
+                      </p>
+                      <p className="m-0 rounded-lg bg-teal-wash px-12 py-8 text-[13px] leading-[1.6] text-teal-text">
+                        {t.recruiters}
+                      </p>
+                    </>
+                  )}
+                </div>
 
-            <div className="flex flex-wrap justify-between gap-8">
-              <button
-                type="button"
-                className={cx(ghostButton, index === 0 && 'invisible')}
-                onClick={() => setIndex((current) => Math.max(current - 1, 0))}
-              >
-                {t.back}
-              </button>
-              <button
-                type="button"
-                className={primaryButton}
-                onClick={() => (last ? close() : setIndex((current) => current + 1))}
-              >
-                {last ? t.finish : t.next}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+                <div className="flex flex-wrap justify-between gap-8">
+                  <button
+                    type="button"
+                    className={cx(ghostButton, position === 0 && 'invisible')}
+                    onClick={() => setIndex(Math.max(position - 1, 0))}
+                  >
+                    {t.back}
+                  </button>
+                  <button
+                    type="button"
+                    className={primaryButton}
+                    onClick={() => (last ? close() : setIndex(position + 1))}
+                  >
+                    {last ? t.finish : t.next}
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }
