@@ -481,7 +481,7 @@
     "progress": "Paso {step} de {total}",
     "sectionTitle": "En tu {section}",
     "suggestion": "Te sugerimos",
-    "why": "Por qué: vemos un potencial que no estás aprovechando",
+    "why": "¿Por qué te lo sugerimos?",
     "recruiters": "Al resaltarlo, tu perfil se vuelve más llamativo para los recruiters.",
     "skillsTitle": "En tus skills",
     "skillsCopy": "Tu CV muestra {count} skills que tu perfil todavía no declara:",
@@ -489,7 +489,8 @@
     "next": "Siguiente",
     "back": "Anterior",
     "finish": "Terminar",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "languageNote": "La IA redactó esta sugerencia en inglés; pronto la escribirá en tu idioma."
   },
   "organized": {
     "title": "Tu perfil organizado",

@@ -299,6 +299,7 @@ export const labelsSchema = z.object({
     back: z.string(),
     finish: z.string(),
     close: z.string(),
+    languageNote: z.string(),
   }),
   organized: z.object({
     title: z.string(),

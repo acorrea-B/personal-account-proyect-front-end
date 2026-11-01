@@ -481,7 +481,7 @@
     "progress": "Step {step} of {total}",
     "sectionTitle": "In your {section}",
     "suggestion": "We suggest",
-    "why": "Why: we see potential you are not using yet",
+    "why": "Why do we suggest this?",
     "recruiters": "Highlighting it makes your profile stand out to recruiters.",
     "skillsTitle": "In your skills",
     "skillsCopy": "Your CV shows {count} skills your profile does not declare yet:",
@@ -489,7 +489,8 @@
     "next": "Next",
     "back": "Back",
     "finish": "Done",
-    "close": "Close"
+    "close": "Close",
+    "languageNote": "The AI wrote this suggestion in English; it will soon be written in your language."
   },
   "organized": {
     "title": "Your organized profile",

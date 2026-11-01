@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 import { cx, ghostButton, primaryButton } from '@/components/ui';
 import { fetchHarnessOutputs } from '@/lib/api/harness';
 import { fetchSkillSuggestions, fetchSuggestionsSummary } from '@/lib/api/suggestions';
-import { type Locale, labels, tr } from '@/lib/i18n';
+import { type Labels, type Locale, labels, tr } from '@/lib/i18n';
 import type { CvSuggestion, VerificationStatus } from '@/lib/schemas/harness';
 import {
   announceSuggestionsChanged,
@@ -31,6 +31,37 @@ const order: VerificationStatus[] = ['AllSupported', 'Mixed', 'AllInferred'];
 export const skillsShown = 8;
 
 const plainRationale = (rationale: string) => rationale.replace(/^\[inferred\]\s*/, '');
+
+// The language the harness wrote a suggestion in, as a BCP 47 tag; null
+// when it is not said or not known (nothing is assumed).
+export function modelLang(language: string | null | undefined): string | undefined {
+  const known: Record<string, string> = { english: 'en', spanish: 'es', español: 'es' };
+  return language ? known[language.trim().toLowerCase()] : undefined;
+}
+
+// The model names CV sections in its own words ("Summary", "Core Skills");
+// the known ones are shown with the CV section labels of the UI language,
+// any other as written.
+const sectionKeys: Record<string, keyof Labels['cvSections']> = {
+  summary: 'summary',
+  'professional summary': 'summary',
+  profile: 'summary',
+  experience: 'experience',
+  'work experience': 'experience',
+  education: 'education',
+  skills: 'skills',
+  'core skills': 'skills',
+  'technical skills': 'skills',
+  projects: 'projects',
+  links: 'links',
+  certifications: 'certifications',
+  languages: 'languages',
+};
+
+export function sectionName(locale: Locale, section: string): string {
+  const key = sectionKeys[section.trim().toLowerCase()];
+  return key ? labels(locale).cvSections[key] : section;
+}
 
 // Each step keeps what verification said: backed, partly backed or with no
 // evidence, so a claim the CV does not back never reads as settled advice.
@@ -292,7 +323,9 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
                         tabIndex={-1}
                         className="m-0 font-roobert text-(length:--text-subheading) font-medium text-ink-black outline-none"
                       >
-                        {tr(t.sectionTitle, { section: step.suggestion.section })}
+                        {tr(t.sectionTitle, {
+                          section: sectionName(locale, step.suggestion.section),
+                        })}
                       </h3>
                       <span
                         className={cx(
@@ -306,16 +339,28 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
                         <span className="text-(length:--text-label) font-semibold tracking-[0.08em] text-cyan-text-strong uppercase">
                           {t.suggestion}
                         </span>
-                        <p className="m-0 text-[15px] leading-[1.6] text-ink-black">
+                        <p
+                          lang={modelLang(step.suggestion.language)}
+                          className="m-0 text-[15px] leading-[1.6] text-ink-black"
+                        >
                           {step.suggestion.suggested_text}
                         </p>
                       </div>
                       <div className="grid gap-4">
-                        <span className="text-[13px] font-medium text-ink-black">{t.why}</span>
-                        <p className="m-0 text-[14px] leading-[1.6] text-warm-gray">
+                        <h4 className="m-0 text-[13px] font-semibold text-ink-black">{t.why}</h4>
+                        <p
+                          lang={modelLang(step.suggestion.language)}
+                          className="m-0 text-[14px] leading-[1.6] text-warm-gray"
+                        >
                           {plainRationale(step.suggestion.rationale)}
                         </p>
                       </div>
+                      {modelLang(step.suggestion.language) &&
+                      modelLang(step.suggestion.language) !== locale ? (
+                        <p className="m-0 text-[12px] leading-[1.5] text-warm-gray">
+                          {t.languageNote}
+                        </p>
+                      ) : null}
                       <p className="m-0 rounded-lg bg-teal-wash px-12 py-8 text-[13px] leading-[1.6] text-teal-text">
                         {t.recruiters}
                       </p>

@@ -61,6 +61,9 @@ export const cvSuggestionSchema = z.object({
   suggested_text: z.string(),
   rationale: z.string(),
   verification_status: verificationStatusSchema,
+  // The language the model wrote the suggestion in (the harness prompt is
+  // English-only today); the views say so when it is not the UI language.
+  language: z.string().nullish(),
 });
 
 export const levelAssessmentSchema = z.object({
