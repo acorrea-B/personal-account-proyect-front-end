@@ -399,5 +399,15 @@
     "loadFailed": "No se pudo cargar este resumen.",
     "retry": "Reintentar",
     "loadingAria": "Cargando tu siguiente paso"
+  },
+  "activity": {
+    "title": "Actividad reciente",
+    "cvSaved": "Guardaste una nueva versión de tu CV",
+    "journalEvidence": "Anotaste una entrada del diario usada como evidencia",
+    "journalPlain": "Anotaste una entrada del diario",
+    "check": "El harness verificó tu evolución: {verdict}",
+    "empty": "Tu actividad aparece aquí a medida que usas tu espacio.",
+    "partial": "Parte de tu actividad no se pudo cargar.",
+    "loadingAria": "Cargando tu actividad reciente"
   }
 }

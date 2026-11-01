@@ -159,6 +159,16 @@ export const labelsSchema = z.object({
     unmeasurable: z.string(),
     action: z.string(),
   }),
+  activity: z.object({
+    title: z.string(),
+    cvSaved: z.string(),
+    journalEvidence: z.string(),
+    journalPlain: z.string(),
+    check: z.string(),
+    empty: z.string(),
+    partial: z.string(),
+    loadingAria: z.string(),
+  }),
   home: z.object({
     nextEyebrow: z.string(),
     cvTitle: z.string(),
