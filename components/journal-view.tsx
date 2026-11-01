@@ -29,6 +29,7 @@ import {
 } from '@/lib/api/journal';
 import { fetchProfileSkills } from '@/lib/api/suggestions';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
+import { consentText } from '@/lib/consent-copy';
 import { type Locale, labels, tr } from '@/lib/i18n';
 import {
   journalListMax,
@@ -282,26 +283,28 @@ export function JournalView({ locale }: { locale: Locale }) {
             </div>
           </section>
         ) : !load.consented ? (
-          <section className={workspacePanel} aria-label={j.consentTitle}>
+          <>
             <JournalValue title={j.valueTitle} copy={j.intro} />
-            <AuthKicker>{j.consentTitle}</AuthKicker>
-            <blockquote className="m-0 max-h-[240px] overflow-y-auto rounded-lg border border-stone-border bg-stone-canvas p-16 text-[14px] leading-[1.6] whitespace-pre-wrap text-ink-black">
-              {load.consent.consent_text}
-            </blockquote>
-            <p className="m-0 text-(length:--text-label) text-warm-gray">
-              {tr(j.consentVersion, { version: load.consent.version })}
-            </p>
-            <div>
-              <button
-                type="button"
-                className={primaryButton}
-                disabled={confirming}
-                onClick={() => void confirm()}
-              >
-                {confirming ? j.consentConfirming : j.consentConfirm}
-              </button>
-            </div>
-          </section>
+            <section className={workspacePanel} aria-label={j.consentTitle}>
+              <AuthKicker>{j.consentTitle}</AuthKicker>
+              <blockquote className="m-0 max-h-[240px] overflow-y-auto rounded-lg border border-stone-border bg-stone-canvas p-16 text-[14px] leading-[1.6] whitespace-pre-wrap text-ink-black">
+                {consentText('journal', load.consent, locale)}
+              </blockquote>
+              <p className="m-0 text-(length:--text-label) text-warm-gray">
+                {tr(j.consentVersion, { version: load.consent.version })}
+              </p>
+              <div>
+                <button
+                  type="button"
+                  className={primaryButton}
+                  disabled={confirming}
+                  onClick={() => void confirm()}
+                >
+                  {confirming ? j.consentConfirming : j.consentConfirm}
+                </button>
+              </div>
+            </section>
+          </>
         ) : (
           <>
             <JournalValue title={j.valueTitle} copy={j.intro} />

@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/skeleton';
 import { AuthKicker, cx, ghostButton, inlineAlert, outlineButton } from '@/components/ui';
 import { ProblemError } from '@/lib/api/client';
 import { decideCatalogConsent, fetchCatalogConsent } from '@/lib/api/suggestions';
+import { consentText } from '@/lib/consent-copy';
 import { type Locale, labels, tr } from '@/lib/i18n';
 import type { CatalogConsent as Consent } from '@/lib/schemas/suggestions';
 
@@ -85,7 +86,7 @@ export function CatalogConsent({ accessToken, locale }: { accessToken: string; l
       ) : (
         <>
           <blockquote className="m-0 max-h-[160px] overflow-y-auto rounded-lg border border-stone-border bg-stone-canvas p-12 text-[14px] leading-[1.6] whitespace-pre-wrap text-ink-black">
-            {state.consent.consent_text}
+            {consentText('catalog', state.consent, locale)}
           </blockquote>
           <p className="m-0 text-(length:--text-label) text-warm-gray">
             {tr(t.version, { version: state.consent.version })}
