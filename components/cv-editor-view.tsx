@@ -183,7 +183,7 @@ export function CvEditorView({ locale }: { locale: Locale }) {
   if (!isHydrated || !isAuthorized || load.status === 'loading') {
     return (
       <AppShell locale={locale} back busy>
-        <div className={contentResolve}>
+        <div className={cx(contentResolve, 'grid gap-32')}>
           <WorkspaceBar
             identity={
               <>
@@ -207,7 +207,7 @@ export function CvEditorView({ locale }: { locale: Locale }) {
 
   return (
     <AppShell locale={locale} back>
-      <div className={contentResolve}>
+      <div className={cx(contentResolve, 'grid gap-32')}>
         <WorkspaceBar
           identity={
             <>

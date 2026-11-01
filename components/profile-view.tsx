@@ -55,7 +55,6 @@ import {
   ghostButton,
   inputClass,
   primaryButton,
-  workspacePanel,
 } from '@/components/ui';
 import { Skeleton } from '@/components/skeleton';
 import { CheckIcon, HomeIcon, MailIcon, ProfileIcon, UserIcon } from '@/components/icons';
@@ -464,7 +463,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
       <ProfileColumns
         aside={
           isUpdateFlow && load.status === 'ready' && accessToken ? (
-            <aside className={workspacePanel} aria-label={t.suggestions.title}>
+            <aside className="rounded-lg bg-pure-white" aria-label={t.suggestions.title}>
               <ul className="m-0 grid list-none p-0">
                 <SkillSuggestionsCard
                   accessToken={accessToken}
