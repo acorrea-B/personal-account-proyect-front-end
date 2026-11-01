@@ -413,5 +413,29 @@
     "loadFailed": "No se pudieron cargar las métricas de tu perfil.",
     "retry": "Reintentar",
     "loadingAria": "Cargando las métricas de tu perfil"
+  },
+  "home": {
+    "nextEyebrow": "Siguiente paso",
+    "cvTitle": "Escribe tu CV",
+    "cvCopy": "El harness lee de ahí tus skills y tu evidencia.",
+    "cvAction": "Abrir el editor del CV",
+    "suggestionsOne": "Revisa 1 skill que el harness encontró en tu CV",
+    "suggestionsOther": "Revisa {count} skills que el harness encontró en tu CV",
+    "suggestionsCopy": "Aceptarlas sube tu completitud y las deja respaldadas por evidencia.",
+    "suggestionsAction": "Revisar sugerencias",
+    "evolutionTitle": "Declara hacia dónde vas",
+    "evolutionCopy": "El harness revisa tu perfil frente al rol que buscas.",
+    "evolutionAction": "Declarar tu evolución",
+    "journalTitle": "Anota lo que hiciste hoy",
+    "journalCopy": "Las entradas del diario se vuelven la evidencia de tus skills.",
+    "journalAction": "Abrir el diario",
+    "evolutionEyebrow": "Evolución",
+    "noMode": "Aún no declaraste hacia dónde vas.",
+    "horizon": "Mes {month} de {months}",
+    "noChecks": "Aún sin verificaciones",
+    "openEvolution": "Ver verificaciones",
+    "loadFailed": "No se pudo cargar este resumen.",
+    "retry": "Reintentar",
+    "loadingAria": "Cargando tu siguiente paso"
   }
 }
