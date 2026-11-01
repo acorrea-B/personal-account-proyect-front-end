@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type ReactNode, useCallback, useEffect, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 
 import { ProblemError } from '@/lib/api/client';
 import { fetchCvText, getVersions } from '@/lib/api/cv';
@@ -248,8 +248,14 @@ export function DashboardView({ locale }: { locale: Locale }) {
     [t],
   );
 
+  // The dashboard loads once per visit. The session renews the access
+  // token in the background; reloading on it would put the page behind
+  // the skeleton and unmount the panels, losing a half-filled declaration.
+  // Retries and refreshes after a change call their loaders explicitly.
+  const loaded = useRef(false);
   useEffect(() => {
-    if (isHydrated && isAuthorized && accessToken) {
+    if (isHydrated && isAuthorized && accessToken && !loaded.current) {
+      loaded.current = true;
       loadProfile(accessToken);
       // The cv and the history ride the profile in parallel: the profile
       // panel never waits on the rail cards, each with its own retry.
