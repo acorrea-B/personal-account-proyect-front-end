@@ -44,10 +44,6 @@ vi.mock('@/lib/api/suggestions', () => ({
   decideSkillSuggestion: vi.fn(),
 }));
 
-// The tour has its own tests; here it would consume the suggestion mocks
-// the side column expects.
-vi.mock('@/components/suggestions-tour', () => ({ SuggestionsTour: () => null }));
-
 vi.mock('@/lib/api/harness', () => ({
   fetchHarnessOutputs: vi
     .fn()
@@ -312,6 +308,9 @@ describe('ProfileView', () => {
     await render('en');
     const t = labels('en').suggestions;
     expect(document.querySelector(`aside[aria-label="${t.title}"]`)).not.toBeNull();
+    // The CV improvements live on the CV page, not here.
+    expect(document.querySelector(`section[aria-label="${labels('en').ai.title}"]`)).toBeNull();
+    expect(document.body.textContent).not.toContain(labels('en').tour.bannerTitle);
     const accept = document.querySelector<HTMLButtonElement>(
       `button[aria-label="${tr(t.acceptAria, { skill: 'Rust' })}"]`,
     );

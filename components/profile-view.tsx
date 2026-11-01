@@ -28,12 +28,10 @@ import { updateProfileRequestSchema, type Profile } from '@/lib/schemas/profile'
 import { type Labels, type Locale, labels, tr } from '@/lib/i18n';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
-import { AiSuggestionsCard } from '@/components/ai-suggestions-card';
 import { AppShell } from '@/components/app-shell';
 import { CatalogConsent } from '@/components/catalog-consent';
 import { SkillCatalogInput } from '@/components/skill-catalog-input';
 import { SkillSuggestionsCard } from '@/components/skill-suggestions-card';
-import { SuggestionsTour } from '@/components/suggestions-tour';
 import { OrganizedProfile } from '@/components/organized-profile';
 import {
   AuthCard,
@@ -464,27 +462,21 @@ export function ProfileView({ locale }: { locale: Locale }) {
         </div>
       ) : null}
       {isUpdateFlow && load.status === 'ready' && accessToken ? (
-        <>
-          <SuggestionsTour accessToken={accessToken} locale={locale} />
-          <OrganizedProfile accessToken={accessToken} locale={locale} />
-        </>
+        <OrganizedProfile accessToken={accessToken} locale={locale} />
       ) : null}
       <ProfileColumns
         aside={
           isUpdateFlow && load.status === 'ready' && accessToken ? (
-            <div className="grid gap-16">
-              <aside className="rounded-lg bg-pure-white" aria-label={t.suggestions.title}>
-                <ul className="m-0 grid list-none p-0">
-                  <SkillSuggestionsCard
-                    accessToken={accessToken}
-                    locale={locale}
-                    onAccepted={acceptSuggestion}
-                    onBusyChange={holdSave}
-                  />
-                </ul>
-              </aside>
-              <AiSuggestionsCard accessToken={accessToken} locale={locale} />
-            </div>
+            <aside className="rounded-lg bg-pure-white" aria-label={t.suggestions.title}>
+              <ul className="m-0 grid list-none p-0">
+                <SkillSuggestionsCard
+                  accessToken={accessToken}
+                  locale={locale}
+                  onAccepted={acceptSuggestion}
+                  onBusyChange={holdSave}
+                />
+              </ul>
+            </aside>
           ) : null
         }
       >
