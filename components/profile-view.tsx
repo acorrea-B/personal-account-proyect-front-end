@@ -1,7 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { type SyntheticEvent, useCallback, useEffect, useState } from 'react';
+import {
+  type ReactNode,
+  type SyntheticEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { ProblemError } from '@/lib/api/client';
 import { searchCities } from '@/lib/api/geocoding';
@@ -24,6 +31,7 @@ import { AccountMenu } from '@/components/account-menu';
 import { AppShell } from '@/components/app-shell';
 import { CatalogConsent } from '@/components/catalog-consent';
 import { SkillCatalogInput } from '@/components/skill-catalog-input';
+import { SkillSuggestionsCard } from '@/components/skill-suggestions-card';
 import {
   AuthCard,
   AuthForm,
@@ -47,6 +55,7 @@ import {
   ghostButton,
   inputClass,
   primaryButton,
+  workspacePanel,
 } from '@/components/ui';
 import { Skeleton } from '@/components/skeleton';
 import { CheckIcon, HomeIcon, MailIcon, ProfileIcon, UserIcon } from '@/components/icons';
@@ -102,6 +111,8 @@ export function ProfileView({ locale }: { locale: Locale }) {
   const base = locale === 'es' ? '/es' : '';
   const { isHydrated, isAuthorized, session } = useRequireAuth();
   const accessToken = session?.accessToken ?? null;
+  const tokenRef = useRef(accessToken);
+  tokenRef.current = accessToken;
 
   const [load, setLoad] = useState<LoadState>({ status: 'loading' });
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -167,6 +178,41 @@ export function ProfileView({ locale }: { locale: Locale }) {
     setLocationTouched(false);
   }, []);
 
+  // A suggestion accepted beside the form: the server added the skill, so
+  // the form gains it without losing what the user is typing. The save
+  // waits while a decision syncs (`syncing`). The profile's version only
+  // moves forward when the server copy differs from the loaded one by the
+  // skills alone; a remote edit of any other field keeps the old version,
+  // so the next save meets the optimistic lock instead of overwriting it.
+  const [syncing, setSyncing] = useState(false);
+  const syncingRef = useRef(false);
+  const holdSave = useCallback((busy: boolean) => {
+    syncingRef.current = busy;
+    setSyncing(busy);
+  }, []);
+  const profileRef = useRef<Profile | null>(null);
+  profileRef.current = profile;
+  const acceptSuggestion = useCallback(async (skill: string) => {
+    setSkillsText((current) => withSkill(current, skill));
+    const token = tokenRef.current;
+    if (!token) {
+      return;
+    }
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        const fresh = await fetchProfile(token);
+        const known = profileRef.current;
+        if (known && sameBesidesSkills(known, fresh)) {
+          setProfile(fresh);
+        }
+        return;
+      } catch {
+        // one more try; then the known version stays and a save meets the
+        // optimistic lock
+      }
+    }
+  }, []);
+
   const loadProfile = useCallback(
     async (token: string) => {
       setLoad({ status: 'loading' });
@@ -210,8 +256,13 @@ export function ProfileView({ locale }: { locale: Locale }) {
     [populate, t.workspace],
   );
 
+  // Loads once per visit: the session renews the access token in the
+  // background, and reloading on it would repopulate the form under the
+  // user's typing.
+  const loaded = useRef(false);
   useEffect(() => {
-    if (isHydrated && isAuthorized && accessToken) {
+    if (isHydrated && isAuthorized && accessToken && !loaded.current) {
+      loaded.current = true;
       loadProfile(accessToken);
     }
   }, [isHydrated, isAuthorized, accessToken, loadProfile]);
@@ -283,6 +334,9 @@ export function ProfileView({ locale }: { locale: Locale }) {
 
   async function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (syncingRef.current) {
+      return;
+    }
     setFormNote(null);
     setFieldErrors({});
 
@@ -407,413 +461,430 @@ export function ProfileView({ locale }: { locale: Locale }) {
           </WorkspaceBar>
         </div>
       ) : null}
-      <AuthCard
-        wide={isUpdateFlow}
-        label={
-          load.status === 'ready' && profile
-            ? isUpdateFlow
-              ? t.profile.updateAria
-              : t.profile.onboardingAria
-            : t.profile.loadingAria
+      <ProfileColumns
+        aside={
+          isUpdateFlow && load.status === 'ready' && accessToken ? (
+            <aside className={workspacePanel} aria-label={t.suggestions.title}>
+              <ul className="m-0 grid list-none p-0">
+                <SkillSuggestionsCard
+                  accessToken={accessToken}
+                  locale={locale}
+                  onAccepted={acceptSuggestion}
+                  onBusyChange={holdSave}
+                />
+              </ul>
+            </aside>
+          ) : null
         }
       >
-        {load.status === 'loading' ? <ProfileCardSkeleton /> : null}
-        {load.status === 'ready' && profile ? (
-          <div className={contentResolve}>
-            {isUpdateFlow ? null : (
-              <header className="flex items-start justify-between gap-16">
-                <div>
-                  <AuthHeading>{t.profile.onboardingHeading}</AuthHeading>
-                  <AuthSubtitle>
-                    {tr(t.profile.onboardingSubtitle, { email: session?.user.email ?? '' })}
-                  </AuthSubtitle>
-                </div>
-                <button
-                  type="button"
-                  className="cursor-pointer border-none bg-transparent [font:inherit] text-cyan-text no-underline hover:text-cyan-text-strong hover:underline"
-                  onClick={() => void signOut()}
-                >
-                  {t.signOut}
-                </button>
-              </header>
-            )}
-            {isUpdateFlow ? <AuthHeading>{t.profile.updateHeading}</AuthHeading> : null}
-
-            {isUpdateFlow ? null : (
-              <AuthSteps
-                label={t.profile.phasesAria}
-                steps={[
-                  { icon: UserIcon, label: t.register.stepAccount },
-                  { icon: MailIcon, label: t.register.stepVerify },
-                  { icon: ProfileIcon, label: t.register.stepProfile, active: true },
-                ]}
-              />
-            )}
-
-            {showToast ? (
-              <SaveToast
-                icon={CheckIcon}
-                dismissLabel={t.versionDetail.dismiss}
-                onDismiss={() => setShowToast(false)}
-              >
-                {isUpdateFlow ? t.profile.toastUpdate : t.profile.toastOnboarding}
-              </SaveToast>
-            ) : null}
-
-            {isUpdateFlow ? null : <AuthKicker>{t.profile.onboardingKicker}</AuthKicker>}
-          </div>
-        ) : null}
-
-        {load.status === 'error' ? (
-          <div
-            role="alert"
-            className="rounded-lg border border-stone-muted px-12 py-8 text-[12px] leading-[1.6] text-soot"
-          >
-            <p>{load.error}</p>
-            <button
-              type="button"
-              className={ghostButton}
-              onClick={() => accessToken && loadProfile(accessToken)}
-            >
-              {t.cvCard.retry}
-            </button>
-          </div>
-        ) : null}
-
-        {load.status === 'ready' && profile ? (
-          <div className={contentResolve}>
-            <AuthForm
-              method="post"
-              onSubmit={handleSubmit}
-              noValidate
-              aria-label={t.profile.fieldsAria}
-            >
-              <Field
-                label={t.panel.fullName}
-                id="setup-full-name"
-                name="full_name"
-                autoComplete="name"
-                maxLength={200}
-                value={fullName}
-                onChange={(event) => setFullName(event.target.value)}
-                aria-invalid={Boolean(fieldErrors.full_name || nameLiveProblem)}
-                aria-describedby={
-                  fieldErrors.full_name || nameLiveProblem ? 'setup-full-name-error' : undefined
-                }
-              />
-              {fieldErrors.full_name || nameLiveProblem ? (
-                <FieldError id="setup-full-name-error">
-                  {fieldErrors.full_name ?? nameLiveProblem}
-                </FieldError>
-              ) : null}
-
-              <Field
-                label={t.panel.headline}
-                id="setup-headline"
-                name="headline"
-                placeholder={t.profile.headlinePlaceholder}
-                maxLength={120}
-                value={headline}
-                onChange={(event) => setHeadline(event.target.value)}
-                aria-invalid={Boolean(fieldErrors.headline)}
-                aria-describedby={fieldErrors.headline ? 'setup-headline-error' : undefined}
-              />
-              {fieldErrors.headline ? (
-                <FieldError id="setup-headline-error">{fieldErrors.headline}</FieldError>
-              ) : null}
-
-              <label className="grid gap-4" htmlFor="setup-bio">
-                {t.panel.bio}
-                <textarea
-                  className="min-h-[96px] max-w-full resize-y aria-invalid:border-alert focus-visible:border-cyan-text! focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none"
-                  id="setup-bio"
-                  name="bio"
-                  rows={4}
-                  maxLength={2000}
-                  value={bio}
-                  onChange={(event) => {
-                    // Newlines normalize on the way out; the limit is the
-                    // api contract (2000).
-                    setBio(event.target.value.replace(/\r\n?/g, '\n').slice(0, 2000));
-                  }}
-                  aria-invalid={Boolean(fieldErrors.bio)}
-                  aria-describedby={fieldErrors.bio ? 'setup-bio-error' : undefined}
-                />
-              </label>
-              {fieldErrors.bio ? (
-                <FieldError id="setup-bio-error">{fieldErrors.bio}</FieldError>
-              ) : null}
-              <p
-                className="m-0 text-right text-(length:--text-label) text-warm-gray"
-                aria-hidden="true"
-              >
-                {tr(t.profile.bioCounter, { current: String(bio.length), max: '2000' })}
-              </p>
-
-              <div
-                className="relative grid gap-4"
-                // The list closes only when focus leaves the whole field.
-                onBlur={(event) => {
-                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-                    setShowSuggestions(false);
-                  }
-                }}
-              >
-                <label className="grid gap-4" htmlFor="setup-location">
-                  {t.panel.location}
-                  <div className="relative grid">
-                    <input
-                      className={cx(inputClass, 'pr-[34px]')}
-                      id="setup-location"
-                      name="location"
-                      role="combobox"
-                      autoComplete="off"
-                      aria-busy={isSearching}
-                      aria-expanded={showSuggestions && suggestions.length > 0}
-                      aria-controls="setup-location-suggestions"
-                      aria-autocomplete="list"
-                      aria-activedescendant={
-                        showSuggestions && suggestions.length > 0 && highlight >= 0
-                          ? `setup-location-option-${highlight}`
-                          : undefined
-                      }
-                      maxLength={120}
-                      value={location}
-                      onChange={(event) => {
-                        setLocation(event.target.value);
-                        setLocationTouched(true);
-                        setShowSuggestions(true);
-                        setHighlight(-1);
-                      }}
-                      onKeyDown={(event) => {
-                        if (!suggestions.length) {
-                          return;
-                        }
-                        if (event.key === 'ArrowDown') {
-                          event.preventDefault();
-                          setHighlight((previous) => (previous + 1) % suggestions.length);
-                        } else if (event.key === 'ArrowUp') {
-                          event.preventDefault();
-                          setHighlight((previous) =>
-                            previous <= 0 ? suggestions.length - 1 : previous - 1,
-                          );
-                        } else if (event.key === 'Enter' && highlight >= 0) {
-                          event.preventDefault();
-                          pickSuggestion(highlight);
-                        } else if (event.key === 'Escape') {
-                          setShowSuggestions(false);
-                        }
-                      }}
-                      aria-invalid={Boolean(fieldErrors.location)}
-                      aria-describedby={fieldErrors.location ? 'setup-location-error' : undefined}
-                    />
-                    {isSearching ? (
-                      <Spinner className="absolute top-1/2 right-[10px] -mt-[7px]" />
-                    ) : null}
+        <AuthCard
+          wide={isUpdateFlow}
+          label={
+            load.status === 'ready' && profile
+              ? isUpdateFlow
+                ? t.profile.updateAria
+                : t.profile.onboardingAria
+              : t.profile.loadingAria
+          }
+        >
+          {load.status === 'loading' ? <ProfileCardSkeleton /> : null}
+          {load.status === 'ready' && profile ? (
+            <div className={contentResolve}>
+              {isUpdateFlow ? null : (
+                <header className="flex items-start justify-between gap-16">
+                  <div>
+                    <AuthHeading>{t.profile.onboardingHeading}</AuthHeading>
+                    <AuthSubtitle>
+                      {tr(t.profile.onboardingSubtitle, { email: session?.user.email ?? '' })}
+                    </AuthSubtitle>
                   </div>
-                </label>
-                {isSearching || (searched && !suggestions.length) ? (
-                  <p role="status" className="m-0 text-(length:--text-label) text-warm-gray">
-                    {isSearching ? t.profile.searchingPlaces : t.profile.noPlaces}
-                  </p>
-                ) : null}
-                {showSuggestions && suggestions.length ? (
-                  <ul
-                    id="setup-location-suggestions"
-                    className="absolute right-0 left-0 z-10 m-0 list-none rounded-lg border border-stone-border bg-pure-white p-4 shadow-sm"
-                    role="listbox"
-                  >
-                    {suggestions.map((suggestion, index) => (
-                      <li
-                        key={`${suggestion}#${index}`}
-                        id={`setup-location-option-${index}`}
-                        role="option"
-                        aria-selected={index === highlight}
-                      >
-                        <button
-                          type="button"
-                          className={cx(
-                            'flex min-h-[44px] w-full cursor-pointer items-center rounded-md border-none px-[14px] py-12 text-left [font-family:inherit] text-[15px] [font-weight:inherit] [line-height:inherit] text-ink-black hover:bg-sky-wash',
-                            // One background at a time: the keyboard highlight must win.
-                            index === highlight ? 'bg-sky-wash' : 'bg-transparent',
-                          )}
-                          // Same combobox rules as the skills catalog: options stay
-                          // out of the tab order, mousedown only keeps the focus
-                          // in the field and the pick runs on click (keyboard and
-                          // assistive activation included).
-                          tabIndex={-1}
-                          onMouseDown={(event) => event.preventDefault()}
-                          onClick={() => pickSuggestion(index)}
-                          onMouseEnter={() => setHighlight(index)}
-                        >
-                          {suggestion}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </div>
-              {fieldErrors.location ? (
-                <FieldError id="setup-location-error">{fieldErrors.location}</FieldError>
-              ) : null}
-
-              <label className="grid gap-4" htmlFor="setup-skills">
-                {t.panel.skills}
-                {accessToken ? (
-                  <SkillCatalogInput
-                    id="setup-skills"
-                    name="skills"
-                    placeholder="rust, typescript, sql"
-                    value={skillsText}
-                    onValueChange={setSkillsText}
-                    accessToken={accessToken}
-                    locale={locale}
-                    aria-invalid={Boolean(fieldErrors.skills)}
-                    aria-describedby={fieldErrors.skills ? 'setup-skills-error' : undefined}
-                  />
-                ) : null}
-              </label>
-              <AuthFormNote hidden>{t.profile.skillsNote}</AuthFormNote>
-              {skillsDraft.length ? <SkillChips skills={skillsDraft} /> : null}
-              {fieldErrors.skills ? (
-                <FieldError id="setup-skills-error">{fieldErrors.skills}</FieldError>
-              ) : null}
-              {accessToken ? <CatalogConsent accessToken={accessToken} locale={locale} /> : null}
-
-              <div className="grid gap-8">
-                <AuthKicker>{t.profile.linksKicker}</AuthKicker>
-                <datalist id="link-types">
-                  <option value="github" />
-                  <option value="linkedin" />
-                  <option value="x" />
-                  <option value="website" />
-                  <option value="blog" />
-                </datalist>
-                {linksDraft.map((row, index) => (
-                  <div key={index} className="grid gap-4">
-                    <div className="grid grid-cols-[minmax(120px,200px)_minmax(0,1fr)_auto] items-center gap-8 max-sm:grid-cols-1">
-                      <input
-                        className={linkInput}
-                        id={`link-type-${index}`}
-                        name={`link-type-${index}`}
-                        list="link-types"
-                        placeholder={t.profile.linkTypePlaceholder}
-                        maxLength={40}
-                        value={row.type}
-                        aria-label={tr(t.profile.linkTypeAria, { index: String(index + 1) })}
-                        aria-invalid={Boolean(rowProblems[index])}
-                        onChange={(event) =>
-                          setLinksDraft((previous) =>
-                            previous.map((item, itemIndex) =>
-                              itemIndex === index ? { ...item, type: event.target.value } : item,
-                            ),
-                          )
-                        }
-                      />
-                      <input
-                        className={linkInput}
-                        id={`link-url-${index}`}
-                        name={`link-url-${index}`}
-                        type="url"
-                        inputMode="url"
-                        placeholder={t.profile.linkUrlPlaceholder}
-                        maxLength={2048}
-                        value={row.url}
-                        aria-label={tr(t.profile.linkUrlAria, { index: String(index + 1) })}
-                        aria-invalid={Boolean(rowProblems[index])}
-                        onBlur={() =>
-                          setLinksDraft((previous) =>
-                            previous.map((item, itemIndex) =>
-                              itemIndex === index
-                                ? {
-                                    ...item,
-                                    url: normalizeProfileLinkUrl(item.url),
-                                  }
-                                : item,
-                            ),
-                          )
-                        }
-                        onChange={(event) =>
-                          setLinksDraft((previous) =>
-                            previous.map((item, itemIndex) =>
-                              itemIndex === index ? { ...item, url: event.target.value } : item,
-                            ),
-                          )
-                        }
-                      />
-                      <button
-                        type="button"
-                        className="text-cyan-text no-underline hover:text-cyan-text-strong hover:underline"
-                        aria-label={tr(t.profile.removeLinkAria, { index: String(index + 1) })}
-                        onClick={() =>
-                          setLinksDraft((previous) =>
-                            previous.filter((_, itemIndex) => itemIndex !== index),
-                          )
-                        }
-                      >
-                        {t.profile.removeLink}
-                      </button>
-                    </div>
-                    {rowProblems[index] ? (
-                      <p role="alert" className="text-[12px] leading-[1.5] text-alert">
-                        {rowProblems[index]}
-                      </p>
-                    ) : null}
-                  </div>
-                ))}
-                {linksDraft.length < 10 ? (
                   <button
                     type="button"
-                    className={ghostButton}
-                    onClick={() =>
-                      setLinksDraft((previous) => [...previous, { type: '', url: '' }])
-                    }
+                    className="cursor-pointer border-none bg-transparent [font:inherit] text-cyan-text no-underline hover:text-cyan-text-strong hover:underline"
+                    onClick={() => void signOut()}
                   >
-                    {t.profile.addLink}
+                    {t.signOut}
                   </button>
-                ) : null}
-                {fieldErrors.links ? (
-                  <FieldError id="setup-links-error">{fieldErrors.links}</FieldError>
-                ) : null}
-              </div>
+                </header>
+              )}
+              {isUpdateFlow ? <AuthHeading>{t.profile.updateHeading}</AuthHeading> : null}
 
-              {formNote ? <FormMessage tone="status">{formNote}</FormMessage> : null}
+              {isUpdateFlow ? null : (
+                <AuthSteps
+                  label={t.profile.phasesAria}
+                  steps={[
+                    { icon: UserIcon, label: t.register.stepAccount },
+                    { icon: MailIcon, label: t.register.stepVerify },
+                    { icon: ProfileIcon, label: t.register.stepProfile, active: true },
+                  ]}
+                />
+              )}
 
-              <div className="flex flex-wrap gap-8 max-sm:flex-col max-sm:items-stretch">
-                <button
-                  type="submit"
-                  className={cx(primaryButton, 'max-sm:w-full')}
-                  disabled={save.status === 'saving' || save.status === 'saved'}
+              {showToast ? (
+                <SaveToast
+                  icon={CheckIcon}
+                  dismissLabel={t.versionDetail.dismiss}
+                  onDismiss={() => setShowToast(false)}
                 >
-                  {save.status === 'saving' ? (
-                    <>
-                      <Spinner className="ml-8" /> {t.cvEditor.saving}
-                    </>
-                  ) : save.status === 'saved' ? (
-                    t.profile.savedCheck
-                  ) : isUpdateFlow ? (
-                    t.profile.updateCta
-                  ) : (
-                    t.profile.onboardingCta
-                  )}
-                </button>
-                {isUpdateFlow ? null : showToast ? (
-                  <Link className={cx(ghostButton, 'max-sm:w-full')} href={`${base}/app/`}>
-                    {t.profile.openWorkspace}
-                  </Link>
+                  {isUpdateFlow ? t.profile.toastUpdate : t.profile.toastOnboarding}
+                </SaveToast>
+              ) : null}
+
+              {isUpdateFlow ? null : <AuthKicker>{t.profile.onboardingKicker}</AuthKicker>}
+            </div>
+          ) : null}
+
+          {load.status === 'error' ? (
+            <div
+              role="alert"
+              className="rounded-lg border border-stone-muted px-12 py-8 text-[12px] leading-[1.6] text-soot"
+            >
+              <p>{load.error}</p>
+              <button
+                type="button"
+                className={ghostButton}
+                onClick={() => accessToken && loadProfile(accessToken)}
+              >
+                {t.cvCard.retry}
+              </button>
+            </div>
+          ) : null}
+
+          {load.status === 'ready' && profile ? (
+            <div className={contentResolve}>
+              <AuthForm
+                method="post"
+                onSubmit={handleSubmit}
+                noValidate
+                aria-label={t.profile.fieldsAria}
+              >
+                <Field
+                  label={t.panel.fullName}
+                  id="setup-full-name"
+                  name="full_name"
+                  autoComplete="name"
+                  maxLength={200}
+                  value={fullName}
+                  onChange={(event) => setFullName(event.target.value)}
+                  aria-invalid={Boolean(fieldErrors.full_name || nameLiveProblem)}
+                  aria-describedby={
+                    fieldErrors.full_name || nameLiveProblem ? 'setup-full-name-error' : undefined
+                  }
+                />
+                {fieldErrors.full_name || nameLiveProblem ? (
+                  <FieldError id="setup-full-name-error">
+                    {fieldErrors.full_name ?? nameLiveProblem}
+                  </FieldError>
                 ) : null}
-                {isUpdateFlow ? (
-                  // The persistent way back: never tied to the toast's
-                  // five seconds, so the exit does not vanish with it.
-                  <Link className={cx(ghostButton, 'max-sm:w-full')} href={`${base}/app/`}>
-                    <HomeIcon /> {t.cvEditor.back}
-                  </Link>
+
+                <Field
+                  label={t.panel.headline}
+                  id="setup-headline"
+                  name="headline"
+                  placeholder={t.profile.headlinePlaceholder}
+                  maxLength={120}
+                  value={headline}
+                  onChange={(event) => setHeadline(event.target.value)}
+                  aria-invalid={Boolean(fieldErrors.headline)}
+                  aria-describedby={fieldErrors.headline ? 'setup-headline-error' : undefined}
+                />
+                {fieldErrors.headline ? (
+                  <FieldError id="setup-headline-error">{fieldErrors.headline}</FieldError>
                 ) : null}
-              </div>
-            </AuthForm>
-          </div>
-        ) : null}
-      </AuthCard>
+
+                <label className="grid gap-4" htmlFor="setup-bio">
+                  {t.panel.bio}
+                  <textarea
+                    className="min-h-[96px] max-w-full resize-y aria-invalid:border-alert focus-visible:border-cyan-text! focus-visible:shadow-[0_0_0_3px_var(--color-sky-wash)] focus-visible:outline-none"
+                    id="setup-bio"
+                    name="bio"
+                    rows={4}
+                    maxLength={2000}
+                    value={bio}
+                    onChange={(event) => {
+                      // Newlines normalize on the way out; the limit is the
+                      // api contract (2000).
+                      setBio(event.target.value.replace(/\r\n?/g, '\n').slice(0, 2000));
+                    }}
+                    aria-invalid={Boolean(fieldErrors.bio)}
+                    aria-describedby={fieldErrors.bio ? 'setup-bio-error' : undefined}
+                  />
+                </label>
+                {fieldErrors.bio ? (
+                  <FieldError id="setup-bio-error">{fieldErrors.bio}</FieldError>
+                ) : null}
+                <p
+                  className="m-0 text-right text-(length:--text-label) text-warm-gray"
+                  aria-hidden="true"
+                >
+                  {tr(t.profile.bioCounter, { current: String(bio.length), max: '2000' })}
+                </p>
+
+                <div
+                  className="relative grid gap-4"
+                  // The list closes only when focus leaves the whole field.
+                  onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                      setShowSuggestions(false);
+                    }
+                  }}
+                >
+                  <label className="grid gap-4" htmlFor="setup-location">
+                    {t.panel.location}
+                    <div className="relative grid">
+                      <input
+                        className={cx(inputClass, 'pr-[34px]')}
+                        id="setup-location"
+                        name="location"
+                        role="combobox"
+                        autoComplete="off"
+                        aria-busy={isSearching}
+                        aria-expanded={showSuggestions && suggestions.length > 0}
+                        aria-controls="setup-location-suggestions"
+                        aria-autocomplete="list"
+                        aria-activedescendant={
+                          showSuggestions && suggestions.length > 0 && highlight >= 0
+                            ? `setup-location-option-${highlight}`
+                            : undefined
+                        }
+                        maxLength={120}
+                        value={location}
+                        onChange={(event) => {
+                          setLocation(event.target.value);
+                          setLocationTouched(true);
+                          setShowSuggestions(true);
+                          setHighlight(-1);
+                        }}
+                        onKeyDown={(event) => {
+                          if (!suggestions.length) {
+                            return;
+                          }
+                          if (event.key === 'ArrowDown') {
+                            event.preventDefault();
+                            setHighlight((previous) => (previous + 1) % suggestions.length);
+                          } else if (event.key === 'ArrowUp') {
+                            event.preventDefault();
+                            setHighlight((previous) =>
+                              previous <= 0 ? suggestions.length - 1 : previous - 1,
+                            );
+                          } else if (event.key === 'Enter' && highlight >= 0) {
+                            event.preventDefault();
+                            pickSuggestion(highlight);
+                          } else if (event.key === 'Escape') {
+                            setShowSuggestions(false);
+                          }
+                        }}
+                        aria-invalid={Boolean(fieldErrors.location)}
+                        aria-describedby={fieldErrors.location ? 'setup-location-error' : undefined}
+                      />
+                      {isSearching ? (
+                        <Spinner className="absolute top-1/2 right-[10px] -mt-[7px]" />
+                      ) : null}
+                    </div>
+                  </label>
+                  {isSearching || (searched && !suggestions.length) ? (
+                    <p role="status" className="m-0 text-(length:--text-label) text-warm-gray">
+                      {isSearching ? t.profile.searchingPlaces : t.profile.noPlaces}
+                    </p>
+                  ) : null}
+                  {showSuggestions && suggestions.length ? (
+                    <ul
+                      id="setup-location-suggestions"
+                      className="absolute right-0 left-0 z-10 m-0 list-none rounded-lg border border-stone-border bg-pure-white p-4 shadow-sm"
+                      role="listbox"
+                    >
+                      {suggestions.map((suggestion, index) => (
+                        <li
+                          key={`${suggestion}#${index}`}
+                          id={`setup-location-option-${index}`}
+                          role="option"
+                          aria-selected={index === highlight}
+                        >
+                          <button
+                            type="button"
+                            className={cx(
+                              'flex min-h-[44px] w-full cursor-pointer items-center rounded-md border-none px-[14px] py-12 text-left [font-family:inherit] text-[15px] [font-weight:inherit] [line-height:inherit] text-ink-black hover:bg-sky-wash',
+                              // One background at a time: the keyboard highlight must win.
+                              index === highlight ? 'bg-sky-wash' : 'bg-transparent',
+                            )}
+                            // Same combobox rules as the skills catalog: options stay
+                            // out of the tab order, mousedown only keeps the focus
+                            // in the field and the pick runs on click (keyboard and
+                            // assistive activation included).
+                            tabIndex={-1}
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={() => pickSuggestion(index)}
+                            onMouseEnter={() => setHighlight(index)}
+                          >
+                            {suggestion}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+                {fieldErrors.location ? (
+                  <FieldError id="setup-location-error">{fieldErrors.location}</FieldError>
+                ) : null}
+
+                <label className="grid gap-4" htmlFor="setup-skills">
+                  {t.panel.skills}
+                  {accessToken ? (
+                    <SkillCatalogInput
+                      id="setup-skills"
+                      name="skills"
+                      placeholder="rust, typescript, sql"
+                      value={skillsText}
+                      onValueChange={setSkillsText}
+                      accessToken={accessToken}
+                      locale={locale}
+                      aria-invalid={Boolean(fieldErrors.skills)}
+                      aria-describedby={fieldErrors.skills ? 'setup-skills-error' : undefined}
+                    />
+                  ) : null}
+                </label>
+                <AuthFormNote hidden>{t.profile.skillsNote}</AuthFormNote>
+                {skillsDraft.length ? <SkillChips skills={skillsDraft} /> : null}
+                {fieldErrors.skills ? (
+                  <FieldError id="setup-skills-error">{fieldErrors.skills}</FieldError>
+                ) : null}
+                {accessToken ? <CatalogConsent accessToken={accessToken} locale={locale} /> : null}
+
+                <div className="grid gap-8">
+                  <AuthKicker>{t.profile.linksKicker}</AuthKicker>
+                  <datalist id="link-types">
+                    <option value="github" />
+                    <option value="linkedin" />
+                    <option value="x" />
+                    <option value="website" />
+                    <option value="blog" />
+                  </datalist>
+                  {linksDraft.map((row, index) => (
+                    <div key={index} className="grid gap-4">
+                      <div className="grid grid-cols-[minmax(120px,200px)_minmax(0,1fr)_auto] items-center gap-8 max-sm:grid-cols-1">
+                        <input
+                          className={linkInput}
+                          id={`link-type-${index}`}
+                          name={`link-type-${index}`}
+                          list="link-types"
+                          placeholder={t.profile.linkTypePlaceholder}
+                          maxLength={40}
+                          value={row.type}
+                          aria-label={tr(t.profile.linkTypeAria, { index: String(index + 1) })}
+                          aria-invalid={Boolean(rowProblems[index])}
+                          onChange={(event) =>
+                            setLinksDraft((previous) =>
+                              previous.map((item, itemIndex) =>
+                                itemIndex === index ? { ...item, type: event.target.value } : item,
+                              ),
+                            )
+                          }
+                        />
+                        <input
+                          className={linkInput}
+                          id={`link-url-${index}`}
+                          name={`link-url-${index}`}
+                          type="url"
+                          inputMode="url"
+                          placeholder={t.profile.linkUrlPlaceholder}
+                          maxLength={2048}
+                          value={row.url}
+                          aria-label={tr(t.profile.linkUrlAria, { index: String(index + 1) })}
+                          aria-invalid={Boolean(rowProblems[index])}
+                          onBlur={() =>
+                            setLinksDraft((previous) =>
+                              previous.map((item, itemIndex) =>
+                                itemIndex === index
+                                  ? {
+                                      ...item,
+                                      url: normalizeProfileLinkUrl(item.url),
+                                    }
+                                  : item,
+                              ),
+                            )
+                          }
+                          onChange={(event) =>
+                            setLinksDraft((previous) =>
+                              previous.map((item, itemIndex) =>
+                                itemIndex === index ? { ...item, url: event.target.value } : item,
+                              ),
+                            )
+                          }
+                        />
+                        <button
+                          type="button"
+                          className="text-cyan-text no-underline hover:text-cyan-text-strong hover:underline"
+                          aria-label={tr(t.profile.removeLinkAria, { index: String(index + 1) })}
+                          onClick={() =>
+                            setLinksDraft((previous) =>
+                              previous.filter((_, itemIndex) => itemIndex !== index),
+                            )
+                          }
+                        >
+                          {t.profile.removeLink}
+                        </button>
+                      </div>
+                      {rowProblems[index] ? (
+                        <p role="alert" className="text-[12px] leading-[1.5] text-alert">
+                          {rowProblems[index]}
+                        </p>
+                      ) : null}
+                    </div>
+                  ))}
+                  {linksDraft.length < 10 ? (
+                    <button
+                      type="button"
+                      className={ghostButton}
+                      onClick={() =>
+                        setLinksDraft((previous) => [...previous, { type: '', url: '' }])
+                      }
+                    >
+                      {t.profile.addLink}
+                    </button>
+                  ) : null}
+                  {fieldErrors.links ? (
+                    <FieldError id="setup-links-error">{fieldErrors.links}</FieldError>
+                  ) : null}
+                </div>
+
+                {formNote ? <FormMessage tone="status">{formNote}</FormMessage> : null}
+
+                <div className="flex flex-wrap gap-8 max-sm:flex-col max-sm:items-stretch">
+                  <button
+                    type="submit"
+                    className={cx(primaryButton, 'max-sm:w-full')}
+                    disabled={save.status === 'saving' || save.status === 'saved' || syncing}
+                  >
+                    {save.status === 'saving' ? (
+                      <>
+                        <Spinner className="ml-8" /> {t.cvEditor.saving}
+                      </>
+                    ) : save.status === 'saved' ? (
+                      t.profile.savedCheck
+                    ) : isUpdateFlow ? (
+                      t.profile.updateCta
+                    ) : (
+                      t.profile.onboardingCta
+                    )}
+                  </button>
+                  {isUpdateFlow ? null : showToast ? (
+                    <Link className={cx(ghostButton, 'max-sm:w-full')} href={`${base}/app/`}>
+                      {t.profile.openWorkspace}
+                    </Link>
+                  ) : null}
+                  {isUpdateFlow ? (
+                    // The persistent way back: never tied to the toast's
+                    // five seconds, so the exit does not vanish with it.
+                    <Link className={cx(ghostButton, 'max-sm:w-full')} href={`${base}/app/`}>
+                      <HomeIcon /> {t.cvEditor.back}
+                    </Link>
+                  ) : null}
+                </div>
+              </AuthForm>
+            </div>
+          ) : null}
+        </AuthCard>
+      </ProfileColumns>
     </>
   );
 
@@ -842,5 +913,44 @@ function ProfileCardSkeleton() {
       <Skeleton width="100%" height={52} />
       <Skeleton width={140} height={40} />
     </div>
+  );
+}
+
+// The skills text with one more name: kept as typed, the name appended
+// once (case-insensitive) after a comma.
+export function withSkill(text: string, skill: string): string {
+  const names = text
+    .split(',')
+    .map((name) => name.trim())
+    .filter(Boolean);
+  if (names.some((name) => name.toLowerCase() === skill.toLowerCase())) {
+    return text;
+  }
+  return [...names, skill].join(', ');
+}
+
+// The update flow puts the harness suggestions beside the form (stacked
+// under 860px); onboarding keeps the single centered card.
+function ProfileColumns({ aside, children }: { aside: ReactNode; children: ReactNode }) {
+  if (!aside) {
+    return <>{children}</>;
+  }
+  return (
+    <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(260px,0.9fr)] items-start gap-16 max-md:grid-cols-1">
+      {children}
+      {aside}
+    </div>
+  );
+}
+
+// Whether two copies of the profile agree on everything but the skills
+// (and the version stamp): an accepted suggestion changes only those.
+export function sameBesidesSkills(a: Profile, b: Profile): boolean {
+  return (
+    a.full_name === b.full_name &&
+    (a.headline ?? null) === (b.headline ?? null) &&
+    (a.bio ?? null) === (b.bio ?? null) &&
+    (a.location ?? null) === (b.location ?? null) &&
+    JSON.stringify(a.links ?? []) === JSON.stringify(b.links ?? [])
   );
 }

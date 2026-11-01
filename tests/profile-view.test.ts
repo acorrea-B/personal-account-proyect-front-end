@@ -36,6 +36,12 @@ vi.mock('@/lib/api/suggestions', () => ({
     decided_at: null,
   }),
   decideCatalogConsent: vi.fn(),
+  fetchSuggestionsSummary: vi.fn().mockResolvedValue({
+    skills: { pending: 0, revision_id: null, created_at: null },
+    cv: { pending: 0, revision_id: null, created_at: null },
+  }),
+  fetchSkillSuggestions: vi.fn().mockResolvedValue({ revision_id: null, suggestions: [] }),
+  decideSkillSuggestion: vi.fn(),
 }));
 
 vi.mock('@/lib/api/geocoding', async () => ({
@@ -44,8 +50,13 @@ vi.mock('@/lib/api/geocoding', async () => ({
 }));
 
 import { ProblemError } from '@/lib/api/client';
-import { labels } from '@/lib/i18n';
-import { ProfileView } from '../components/profile-view';
+import { labels, tr } from '@/lib/i18n';
+import {
+  decideSkillSuggestion,
+  fetchSkillSuggestions,
+  fetchSuggestionsSummary,
+} from '@/lib/api/suggestions';
+import { ProfileView, withSkill } from '../components/profile-view';
 
 (globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -262,5 +273,126 @@ describe('ProfileView', () => {
       option.click();
     });
     expect(input.value).toBe('Medellín, CO');
+  });
+  it('puts the harness suggestions beside the form and adds an accepted one to the skills', async () => {
+    const revision = '22222222-2222-4222-8222-222222222222';
+    vi.mocked(fetchSuggestionsSummary).mockResolvedValueOnce({
+      skills: { pending: 1, revision_id: revision, created_at: null },
+      cv: { pending: 0, revision_id: null, created_at: null },
+    });
+    vi.mocked(fetchSkillSuggestions).mockResolvedValueOnce({
+      revision_id: revision,
+      suggestions: [
+        {
+          skill_key: 'rust',
+          display_name: 'Rust',
+          evidence: { quote: 'Built payment services in Rust', cv_section: 'experience' },
+        },
+      ],
+    });
+    vi.mocked(decideSkillSuggestion).mockResolvedValueOnce({
+      skill_key: 'rust',
+      decision: 'accepted',
+      revision_id: revision,
+      decided_at: '2026-10-31T10:00:00Z',
+    });
+    fetchProfileMock
+      .mockResolvedValueOnce(LIVE_PROFILE)
+      .mockResolvedValueOnce({ ...LIVE_PROFILE, updated_at: '2026-10-31T10:00:01.000Z' });
+    await render('en');
+    const t = labels('en').suggestions;
+    expect(document.querySelector(`aside[aria-label="${t.title}"]`)).not.toBeNull();
+    const accept = document.querySelector<HTMLButtonElement>(
+      `button[aria-label="${tr(t.acceptAria, { skill: 'Rust' })}"]`,
+    );
+    await act(async () => accept?.click());
+    expect(decideSkillSuggestion).toHaveBeenCalledWith('token-1', 'rust', 'accepted', revision);
+    expect(document.querySelector<HTMLInputElement>('input[name="skills"]')?.value).toBe(
+      'TypeScript, Next.js, Rust',
+    );
+    expect(fetchProfileMock).toHaveBeenCalledTimes(2);
+  });
+
+  async function acceptRust(): Promise<void> {
+    const revision = '22222222-2222-4222-8222-222222222222';
+    vi.mocked(fetchSuggestionsSummary).mockResolvedValueOnce({
+      skills: { pending: 1, revision_id: revision, created_at: null },
+      cv: { pending: 0, revision_id: null, created_at: null },
+    });
+    vi.mocked(fetchSkillSuggestions).mockResolvedValueOnce({
+      revision_id: revision,
+      suggestions: [
+        {
+          skill_key: 'rust',
+          display_name: 'Rust',
+          evidence: { quote: 'Built payment services in Rust', cv_section: 'experience' },
+        },
+      ],
+    });
+    vi.mocked(decideSkillSuggestion).mockResolvedValueOnce({
+      skill_key: 'rust',
+      decision: 'accepted',
+      revision_id: revision,
+      decided_at: '2026-10-31T10:00:00Z',
+    });
+    await render('en');
+    const accept = document.querySelector<HTMLButtonElement>(
+      `button[aria-label="${tr(labels('en').suggestions.acceptAria, { skill: 'Rust' })}"]`,
+    );
+    await act(async () => accept?.click());
+  }
+
+  const submitButton = () =>
+    [...document.querySelectorAll('button')].find((button) => button.type === 'submit');
+
+  it('holds the save until the accepted suggestion has synced the profile', async () => {
+    let answer: (value: unknown) => void = () => {};
+    fetchProfileMock
+      .mockResolvedValueOnce(LIVE_PROFILE)
+      .mockReturnValueOnce(new Promise((resolve) => (answer = resolve)));
+    await acceptRust();
+    expect(submitButton()?.disabled).toBe(true);
+    await act(async () => answer({ ...LIVE_PROFILE, updated_at: '2026-10-31T10:00:01.000Z' }));
+    expect(submitButton()?.disabled).toBe(false);
+  });
+
+  it('moves the version forward when only the skills changed on the server', async () => {
+    fetchProfileMock.mockResolvedValueOnce(LIVE_PROFILE).mockResolvedValueOnce({
+      ...LIVE_PROFILE,
+      skills: ['TypeScript', 'Next.js', 'Rust'],
+      updated_at: '2026-10-31T10:00:01.000Z',
+    });
+    updateProfileMock.mockResolvedValueOnce(LIVE_PROFILE);
+    await acceptRust();
+    await save();
+    expect(updateProfileMock.mock.calls[0][2]).toBe('2026-10-31T10:00:01.000Z');
+  });
+
+  it('keeps the loaded version when another tab edited the profile meanwhile', async () => {
+    fetchProfileMock.mockResolvedValueOnce(LIVE_PROFILE).mockResolvedValueOnce({
+      ...LIVE_PROFILE,
+      headline: 'Edited in another tab',
+      updated_at: '2026-10-31T10:00:01.000Z',
+    });
+    updateProfileMock.mockResolvedValueOnce(LIVE_PROFILE);
+    await acceptRust();
+    await save();
+    expect(updateProfileMock.mock.calls[0][2]).toBe(LIVE_PROFILE.updated_at);
+  });
+
+  it('keeps the onboarding card alone, without the suggestions', async () => {
+    fetchProfileMock.mockResolvedValueOnce(PLACEHOLDER_PROFILE);
+    await render('en');
+    expect(
+      document.querySelector(`aside[aria-label="${labels('en').suggestions.title}"]`),
+    ).toBeNull();
+  });
+});
+
+describe('withSkill', () => {
+  it('appends a new name after a comma and never repeats one', () => {
+    expect(withSkill('', 'Rust')).toBe('Rust');
+    expect(withSkill('TypeScript, Next.js, ', 'Rust')).toBe('TypeScript, Next.js, Rust');
+    expect(withSkill('TypeScript, rust', 'Rust')).toBe('TypeScript, rust');
   });
 });
