@@ -54,7 +54,12 @@ export function OrganizedProfile({ accessToken, locale }: { accessToken: string;
   }
 
   const profile = state.profile;
-  if (!profile || (!profile.experience_items.length && !profile.education_items.length)) {
+  if (
+    !profile ||
+    (!profile.experience_items.length &&
+      !profile.education_items.length &&
+      !profile.canonical_skills.length)
+  ) {
     return null;
   }
 

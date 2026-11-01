@@ -14,7 +14,6 @@ import {
   type IconProps,
 } from '@/components/icons';
 import { cx, linkClass } from '@/components/ui';
-import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { type Locale, labels, tr } from '@/lib/i18n';
 import { usePendingSuggestions } from '@/lib/suggestions-signal';
 
@@ -52,8 +51,7 @@ export function AppNav({ locale }: { locale: Locale }) {
   const t = labels(locale).nav;
   const base = locale === 'es' ? '/es' : '';
   const active = activeSection(usePathname());
-  const { session } = useRequireAuth();
-  const pending = usePendingSuggestions(session?.accessToken ?? null);
+  const pending = usePendingSuggestions();
   return (
     <nav aria-label={t.label} className="min-w-0">
       <ul className="m-0 grid list-none gap-4 p-0 max-md:flex max-md:flex-wrap">
