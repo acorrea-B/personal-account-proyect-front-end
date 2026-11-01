@@ -30,7 +30,12 @@ import {
 import { fetchProfileSkills } from '@/lib/api/suggestions';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { type Locale, labels, tr } from '@/lib/i18n';
-import { journalTextMax, type JournalConsent, type JournalEntry } from '@/lib/schemas/journal';
+import {
+  journalListMax,
+  journalTextMax,
+  type JournalConsent,
+  type JournalEntry,
+} from '@/lib/schemas/journal';
 import type { ProfileSkill } from '@/lib/schemas/suggestions';
 
 // An entry happened on a day (stored as that day at 00:00 UTC): it reads
@@ -43,6 +48,8 @@ function formatDay(iso: string, locale: Locale): string {
     timeZone: 'UTC',
   }).format(new Date(iso));
 }
+
+const journalPage = 50;
 
 type JournalLoad =
   | { status: 'loading' }
@@ -76,6 +83,10 @@ export function JournalView({ locale }: { locale: Locale }) {
   const [saving, setSaving] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  // The api lists the newest entries up to a limit (at most 200, no cursor):
+  // the view starts at 50 and widens on demand.
+  const [limit, setLimit] = useState(journalPage);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [notice, setNotice] = useState<{ tone: 'alert' | 'status'; text: string } | null>(null);
 
   const loadJournal = useCallback(
@@ -84,7 +95,7 @@ export function JournalView({ locale }: { locale: Locale }) {
       try {
         const [consent, entries, skills] = await Promise.all([
           fetchJournalConsent(token),
-          fetchJournalEntries(token),
+          fetchJournalEntries(token, journalPage),
           // The skill links are optional: a failed read just offers none.
           fetchProfileSkills(token).catch(() => [] as ProfileSkill[]),
         ]);
@@ -119,6 +130,23 @@ export function JournalView({ locale }: { locale: Locale }) {
       void loadJournal(accessToken);
     }
   }, [isHydrated, isAuthorized, accessToken, loadJournal]);
+
+  async function showOlder() {
+    if (!accessToken) {
+      return;
+    }
+    const next = Math.min(limit + journalPage, journalListMax);
+    setLoadingOlder(true);
+    try {
+      const entries = await fetchJournalEntries(accessToken, next);
+      updateEntries(() => entries);
+      setLimit(next);
+    } catch {
+      setNotice({ tone: 'alert', text: j.loadFailed });
+    } finally {
+      setLoadingOlder(false);
+    }
+  }
 
   // Every mutation lands on the latest list (a save and a delete may
   // overlap), never on the copy captured when the request started.
@@ -442,6 +470,21 @@ export function JournalView({ locale }: { locale: Locale }) {
               ) : (
                 <p className="m-0 text-[14px] text-warm-gray">{j.empty}</p>
               )}
+              {load.entries.length >= limit && limit < journalListMax ? (
+                <div>
+                  <button
+                    type="button"
+                    className={ghostButton}
+                    disabled={loadingOlder}
+                    onClick={() => void showOlder()}
+                  >
+                    {j.showOlder}
+                  </button>
+                </div>
+              ) : null}
+              {load.entries.length >= journalListMax ? (
+                <p className="m-0 text-(length:--text-label) text-warm-gray">{j.limitNote}</p>
+              ) : null}
             </section>
           </>
         )}

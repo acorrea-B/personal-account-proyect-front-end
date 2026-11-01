@@ -312,6 +312,8 @@
     "back": "Back to workspace",
     "loadingAria": "Loading your journal",
     "railCopy": "Write down what you did; your entries back your skills.",
-    "open": "Open journal"
+    "open": "Open journal",
+    "showOlder": "Show older entries",
+    "limitNote": "Showing your latest 200 entries; older ones are kept but cannot be listed here yet."
   }
 }

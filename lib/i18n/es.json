@@ -312,6 +312,8 @@
     "back": "Volver a mi espacio",
     "loadingAria": "Cargando tu diario",
     "railCopy": "Anota lo que hiciste; tus entradas respaldan tus habilidades.",
-    "open": "Abrir diario"
+    "open": "Abrir diario",
+    "showOlder": "Ver entradas anteriores",
+    "limitNote": "Se muestran tus últimas 200 entradas; las anteriores se conservan, pero aún no se pueden listar aquí."
   }
 }
