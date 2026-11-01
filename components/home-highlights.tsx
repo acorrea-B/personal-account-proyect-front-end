@@ -198,7 +198,7 @@ export function HomeHighlights({
             {copy.action}
           </Link>
           {step === 'suggestions' ? (
-            <span className="text-[13px] text-warm-gray">{h.nextHint}</span>
+            <span className="text-[13px] text-soot">{h.nextHint}</span>
           ) : null}
         </div>
       </section>
