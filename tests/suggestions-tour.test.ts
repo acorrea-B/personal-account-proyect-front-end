@@ -6,16 +6,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@/lib/api/harness', () => ({ fetchHarnessOutputs: vi.fn() }));
 vi.mock('@/lib/api/suggestions', () => ({
   fetchSuggestionsSummary: vi.fn(),
-  fetchSkillSuggestions: vi.fn(),
 }));
 
-import { SuggestionsTour, skillsShown, tourSteps } from '../components/suggestions-tour';
+import { SuggestionsTour, tourSteps } from '../components/suggestions-tour';
 import { fetchHarnessOutputs } from '@/lib/api/harness';
-import { fetchSkillSuggestions, fetchSuggestionsSummary } from '@/lib/api/suggestions';
+import { fetchSuggestionsSummary } from '@/lib/api/suggestions';
 import { labels, tr, type Locale } from '../lib/i18n';
 import type { CvSuggestion, VerificationStatus } from '../lib/schemas/harness';
 import {
-  announceSuggestionsChanged,
   markCvRevisionSeen,
   readSeenCvRevision,
   suggestionsChangedEvent,
@@ -34,7 +32,7 @@ const suggestion = (section: string, status: VerificationStatus): CvSuggestion =
 
 const REV = '44444444-4444-4444-8444-444444444444';
 
-function serve(cv: CvSuggestion[] | null, skills: string[]) {
+function serve(cv: CvSuggestion[] | null) {
   vi.mocked(fetchHarnessOutputs).mockResolvedValue({
     runAt: '2026-11-01T10:00:00Z',
     metrics: [],
@@ -43,16 +41,8 @@ function serve(cv: CvSuggestion[] | null, skills: string[]) {
     roles: [],
   });
   vi.mocked(fetchSuggestionsSummary).mockResolvedValue({
-    skills: { pending: skills.length, revision_id: REV, created_at: null },
+    skills: { pending: 0, revision_id: REV, created_at: null },
     cv: { pending: cv?.length ?? 0, revision_id: cv ? REV : null, created_at: null },
-  });
-  vi.mocked(fetchSkillSuggestions).mockResolvedValue({
-    revision_id: REV,
-    suggestions: skills.map((name) => ({
-      skill_key: name.toLowerCase(),
-      display_name: name,
-      evidence: { quote: `Used ${name}`, cv_section: 'skills' },
-    })),
   });
 }
 
@@ -89,33 +79,30 @@ afterEach(() => {
 });
 
 describe('tourSteps', () => {
-  it('walks the backed advice first, never the blocked, then the skills', () => {
-    const steps = tourSteps(
-      [
-        suggestion('Links', 'AllInferred'),
-        suggestion('Projects', 'Blocked'),
-        suggestion('Summary', 'AllSupported'),
-        suggestion('Experience', 'Mixed'),
-      ],
-      ['Django'],
-    );
+  it('walks the backed advice first, never the blocked, then the summary', () => {
+    const steps = tourSteps([
+      suggestion('Links', 'AllInferred'),
+      suggestion('Projects', 'Blocked'),
+      suggestion('Summary', 'AllSupported'),
+      suggestion('Experience', 'Mixed'),
+    ]);
     expect(
       steps.map((step) => (step.kind === 'suggestion' ? step.suggestion.section : step.kind)),
-    ).toEqual(['Summary', 'Experience', 'Links', 'summary', 'skills']);
-    expect(tourSteps(null, [])).toEqual([]);
+    ).toEqual(['Summary', 'Experience', 'Links', 'summary']);
+    expect(tourSteps(null)).toEqual([]);
   });
 });
 
 describe('SuggestionsTour', () => {
   it('invites to start and walks every step with its progress', async () => {
-    serve([suggestion('Summary', 'AllSupported'), suggestion('Experience', 'Mixed')], ['Django']);
+    serve([suggestion('Summary', 'AllSupported'), suggestion('Experience', 'Mixed')]);
     await render('es');
     const t = labels('es').tour;
     expect(document.body.textContent).toContain(t.bannerTitle);
     await press(t.start);
     const dialog = document.querySelector('[role="dialog"]');
     expect(dialog?.getAttribute('aria-modal')).toBe('true');
-    expect(dialog?.textContent).toContain(tr(t.progress, { step: '1', total: '4' }));
+    expect(dialog?.textContent).toContain(tr(t.progress, { step: '1', total: '3' }));
     expect(dialog?.textContent).toContain(
       tr(t.sectionTitle, { section: labels('es').cvSections.summary }),
     );
@@ -138,10 +125,6 @@ describe('SuggestionsTour', () => {
     expect(generate?.disabled).toBe(true);
     expect(summary.textContent).toContain(t.generateSoon);
     expect(readTourChoices(REV)).toEqual({ Summary: 'apply', Experience: 'skip' });
-    await press(t.next);
-    expect(document.querySelector('[role="dialog"]')?.textContent).toContain(
-      tr(t.skillsCopy, { count: '1' }),
-    );
     const announced = vi.fn();
     window.addEventListener(suggestionsChangedEvent, announced);
     await press(t.finish);
@@ -154,7 +137,7 @@ describe('SuggestionsTour', () => {
   });
 
   it('is a modal outside the page: inert background and focus kept inside', async () => {
-    serve([suggestion('Summary', 'AllSupported'), suggestion('Links', 'AllInferred')], []);
+    serve([suggestion('Summary', 'AllSupported'), suggestion('Links', 'AllInferred')]);
     await render('en');
     const t = labels('en').tour;
     await press(t.start);
@@ -176,7 +159,7 @@ describe('SuggestionsTour', () => {
   });
 
   it('keeps the verification status on each step', async () => {
-    serve([suggestion('Summary', 'AllSupported'), suggestion('Links', 'AllInferred')], []);
+    serve([suggestion('Summary', 'AllSupported'), suggestion('Links', 'AllInferred')]);
     await render('es');
     const a = labels('es').ai;
     await press(labels('es').tour.start);
@@ -185,28 +168,8 @@ describe('SuggestionsTour', () => {
     expect(document.querySelector('[role="dialog"]')?.textContent).toContain(a.statusInferred);
   });
 
-  it('follows the decisions taken in the skill suggestions card', async () => {
-    serve(null, ['Django', 'Rust']);
-    await render('en');
-    vi.mocked(fetchSkillSuggestions).mockResolvedValue({ revision_id: REV, suggestions: [] });
-    await act(async () => announceSuggestionsChanged());
-    // Every skill was decided: nothing is left to walk.
-    expect(document.body.textContent).not.toContain(labels('en').tour.bannerTitle);
-  });
-
-  it('releases the page when the last step disappears while open', async () => {
-    serve(null, ['Django']);
-    await render('en');
-    await press(labels('en').tour.start);
-    expect(container?.hasAttribute('inert')).toBe(true);
-    vi.mocked(fetchSkillSuggestions).mockResolvedValue({ revision_id: REV, suggestions: [] });
-    await act(async () => announceSuggestionsChanged());
-    expect(document.querySelector('[role="dialog"]')).toBeNull();
-    expect(container?.hasAttribute('inert')).toBe(false);
-  });
-
   it('asks why in plain words, names the section and says when the AI wrote in English', async () => {
-    serve([{ ...suggestion('Core Skills', 'AllSupported'), language: 'English' }], []);
+    serve([{ ...suggestion('Core Skills', 'AllSupported'), language: 'English' }]);
     await render('es');
     const t = labels('es').tour;
     await press(t.start);
@@ -221,7 +184,7 @@ describe('SuggestionsTour', () => {
   });
 
   it('adds no language note when the AI wrote in the UI language', async () => {
-    serve([{ ...suggestion('Summary', 'AllSupported'), language: 'English' }], []);
+    serve([{ ...suggestion('Summary', 'AllSupported'), language: 'English' }]);
     await render('en');
     await press(labels('en').tour.start);
     expect(document.querySelector('[role="dialog"]')?.textContent).not.toContain(
@@ -230,7 +193,7 @@ describe('SuggestionsTour', () => {
   });
 
   it('says when no improvement was chosen and remembers the choices on return', async () => {
-    serve([suggestion('Summary', 'AllSupported')], []);
+    serve([suggestion('Summary', 'AllSupported')]);
     await render('en');
     const t = labels('en').tour;
     await press(t.start);
@@ -245,17 +208,8 @@ describe('SuggestionsTour', () => {
     expect(document.querySelector('[role="dialog"]')?.textContent).toContain(t.skipped);
   });
 
-  it('shows a few skills and counts the rest', async () => {
-    const names = Array.from({ length: skillsShown + 3 }, (_, n) => `Tool${n}`);
-    serve(null, names);
-    await render('en');
-    await press(labels('en').tour.start);
-    expect(document.querySelectorAll('[role="dialog"] li')).toHaveLength(skillsShown + 1);
-    expect(document.querySelector('[role="dialog"]')?.textContent).toContain('+3');
-  });
-
   it('closing decides nothing: the invitation stays and starts from the first step', async () => {
-    serve([suggestion('Summary', 'AllSupported'), suggestion('Links', 'Mixed')], ['Django']);
+    serve([suggestion('Summary', 'AllSupported'), suggestion('Links', 'Mixed')]);
     await render('en');
     const t = labels('en').tour;
     await press(t.start);
@@ -271,7 +225,7 @@ describe('SuggestionsTour', () => {
     expect(readSeenCvRevision()).toBeNull();
     await press(t.start);
     const dialog = document.querySelector('[role="dialog"]');
-    expect(dialog?.textContent).toContain(tr(t.progress, { step: '1', total: '4' }));
+    expect(dialog?.textContent).toContain(tr(t.progress, { step: '1', total: '3' }));
     expect(dialog?.textContent).toContain(
       tr(t.sectionTitle, { section: labels('en').cvSections.summary }),
     );
@@ -280,37 +234,31 @@ describe('SuggestionsTour', () => {
   it('offers the CV steps again while an improvement waits, even after an old close', async () => {
     // A close under the previous behavior marked the revision as walked.
     markCvRevisionSeen(REV);
-    serve([suggestion('Summary', 'AllSupported')], []);
+    serve([suggestion('Summary', 'AllSupported')]);
     await render('en');
     expect(document.body.textContent).toContain(labels('en').tour.bannerTitle);
   });
 
-  it('stays hidden once every improvement was decided and no skills wait', async () => {
+  it('invites no more once every improvement was decided', async () => {
     window.localStorage.setItem(
       'profile.tour.cvChoices',
       JSON.stringify({ revision: REV, choices: { Summary: 'apply' } }),
     );
-    serve([suggestion('Summary', 'AllSupported')], []);
+    serve([suggestion('Summary', 'AllSupported')]);
     await render('en');
     expect(document.body.textContent).not.toContain(labels('en').tour.bannerTitle);
   });
 
-  it('lets the decided improvements be reviewed again from the profile', async () => {
+  it('lets the decided improvements be reviewed again from the CV page', async () => {
     window.localStorage.setItem(
       'profile.tour.cvChoices',
       JSON.stringify({ revision: REV, choices: { Summary: 'apply', Links: 'skip' } }),
     );
-    serve([suggestion('Summary', 'AllSupported'), suggestion('Links', 'Mixed')], ['Django']);
+    serve([suggestion('Summary', 'AllSupported'), suggestion('Links', 'Mixed')]);
     await render('es');
     const t = labels('es').tour;
-    // Skills still wait, so the invitation shows; the review entry waits for it.
-    expect(document.body.textContent).toContain(t.bannerTitle);
-    await press(t.start);
-    expect(document.querySelector('[role="dialog"]')?.textContent).toContain(
-      tr(t.progress, { step: '1', total: '1' }),
-    );
-    await press(t.finish);
-    // Finished: the review entry stays, with the CV steps only.
+    // Everything was decided: no invitation, the review entry instead.
+    expect(document.body.textContent).not.toContain(t.bannerTitle);
     // Only the applied improvement counts as chosen; the skipped one does not.
     expect(document.body.textContent).toContain(tr(t.summaryCount, { count: '1' }));
     await press(t.review);
@@ -326,7 +274,7 @@ describe('SuggestionsTour', () => {
       'profile.tour.cvChoices',
       JSON.stringify({ revision: REV, choices: { Summary: 'skip' } }),
     );
-    serve([suggestion('Summary', 'AllSupported')], []);
+    serve([suggestion('Summary', 'AllSupported')]);
     await render('en');
     const t = labels('en').tour;
     expect(document.body.textContent).toContain(t.review);
@@ -336,13 +284,12 @@ describe('SuggestionsTour', () => {
   it('stays hidden when the suggestions cannot load', async () => {
     vi.mocked(fetchHarnessOutputs).mockRejectedValue(new Error('down'));
     vi.mocked(fetchSuggestionsSummary).mockRejectedValue(new Error('down'));
-    vi.mocked(fetchSkillSuggestions).mockRejectedValue(new Error('down'));
     await render('en');
     expect(document.body.textContent).toBe('');
   });
 
   it('can be left for later', async () => {
-    serve([suggestion('Summary', 'AllSupported')], []);
+    serve([suggestion('Summary', 'AllSupported')]);
     await render('en');
     await press(labels('en').tour.later);
     expect(document.body.textContent).not.toContain(labels('en').tour.bannerTitle);
