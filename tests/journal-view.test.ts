@@ -124,6 +124,9 @@ describe('JournalView', () => {
     await render('es');
     const j = labels('es').journal;
     expect(document.body.textContent).toContain('Your entries stay private to you.');
+    // Why the journal matters comes before the consent and the composer.
+    const value = document.querySelector(`section[aria-label="${j.valueTitle}"]`);
+    expect(value?.textContent).toContain(j.intro);
     expect(document.querySelector('textarea')).toBeNull();
     // The consent gate keeps the way back: the shell leads with it.
     const back = document.querySelector('main > a');
@@ -132,6 +135,10 @@ describe('JournalView', () => {
     await click(byText(j.consentConfirm));
     expect(confirmJournalConsent).toHaveBeenCalledWith('token', 'journal-v1');
     expect(document.querySelector('textarea')).not.toBeNull();
+    expect(document.querySelector(`section[aria-label="${j.valueTitle}"]`)).not.toBeNull();
+    expect(document.querySelector('label[for="journal-text"]')?.textContent).toContain(
+      j.composerLabel,
+    );
     expect(document.body.textContent).toContain(j.empty);
   });
 
