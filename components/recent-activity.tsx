@@ -53,12 +53,16 @@ export function RecentActivity({ accessToken, locale }: { accessToken: string; l
     const token = tokenRef.current;
     const [current, versions, entries, checks] = await Promise.allSettled([
       // The current cv carries its newest save; a 404 is "no cv yet".
-      fetchCvText(token).catch((error: unknown) => {
-        if (error instanceof ProblemError && error.problem.status === 404) {
-          return null;
+      (async () => {
+        try {
+          return await fetchCvText(token);
+        } catch (error) {
+          if (error instanceof ProblemError && error.problem.status === 404) {
+            return null;
+          }
+          throw error;
         }
-        throw error;
-      }),
+      })(),
       getVersions(token),
       fetchJournalEntries(token, activityLimit),
       fetchEvolutionHistory(token, activityLimit),
