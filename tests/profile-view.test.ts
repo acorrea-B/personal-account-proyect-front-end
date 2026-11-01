@@ -222,4 +222,26 @@ describe('ProfileView', () => {
       labels('en').profile.conflictNote,
     );
   });
+
+  it('lets the keyboard and assistive tech pick a location option', async () => {
+    fetchProfileMock.mockResolvedValueOnce(LIVE_PROFILE);
+    searchCitiesMock.mockResolvedValue([{ label: 'Medellín, CO' }, { label: 'Madrid, ES' }]);
+    await render('en');
+    typeInto('location', 'Me');
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+    });
+    const input = document.getElementById('setup-location') as HTMLInputElement;
+    const option = document.querySelector('[role="option"] button') as HTMLButtonElement;
+    expect(option.tabIndex).toBe(-1);
+    await act(async () => {
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    });
+    const active = input.getAttribute('aria-activedescendant');
+    expect(document.getElementById(active as string)?.textContent).toBe('Medellín, CO');
+    await act(async () => {
+      option.click();
+    });
+    expect(input.value).toBe('Medellín, CO');
+  });
 });

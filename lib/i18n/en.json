@@ -315,5 +315,9 @@
     "open": "Open journal",
     "showOlder": "Show older entries",
     "limitNote": "Showing your latest 200 entries; older ones are kept but cannot be listed here yet."
+  },
+  "validation": {
+    "emailInvalid": "Enter a valid email address, like name@example.com.",
+    "passwordRequired": "Enter your password."
   }
 }

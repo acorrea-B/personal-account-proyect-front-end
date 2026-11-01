@@ -315,5 +315,9 @@
     "open": "Abrir diario",
     "showOlder": "Ver entradas anteriores",
     "limitNote": "Se muestran tus últimas 200 entradas; las anteriores se conservan, pero aún no se pueden listar aquí."
+  },
+  "validation": {
+    "emailInvalid": "Escribe un correo válido, como nombre@ejemplo.com.",
+    "passwordRequired": "Escribe tu contraseña."
   }
 }
