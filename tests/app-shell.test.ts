@@ -21,7 +21,11 @@ vi.mock('@/lib/api/suggestions', () => ({ fetchSuggestionsSummary: vi.fn() }));
 import { AppShell, activeSection } from '../components/app-shell';
 import { fetchSuggestionsSummary } from '@/lib/api/suggestions';
 import { labels, tr, type Locale } from '../lib/i18n';
-import { announceSuggestionsChanged, pendingCount } from '../lib/suggestions-signal';
+import {
+  announceSuggestionsChanged,
+  markCvRevisionSeen,
+  pendingCount,
+} from '../lib/suggestions-signal';
 
 const summary = (skills: number, cv: number, cvRevision: string | null = 'rev-cv-1') => ({
   skills: { pending: skills, revision_id: 'rev-skills', created_at: null },
@@ -59,9 +63,10 @@ afterEach(() => {
 });
 
 describe('pendingCount', () => {
-  it('counts the pending skill suggestions', () => {
-    expect(pendingCount(summary(2, 3))).toBe(2);
-    expect(pendingCount(summary(0, 3))).toBe(0);
+  it('counts the pending skills and the CV suggestions of a revision not walked yet', () => {
+    expect(pendingCount(summary(2, 3), null)).toBe(5);
+    expect(pendingCount(summary(2, 3), 'rev-cv-1')).toBe(2);
+    expect(pendingCount(summary(0, 3, null), null)).toBe(0);
   });
 });
 
@@ -77,7 +82,7 @@ describe('the profile marker', () => {
     session = { accessToken: 'token' };
     vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(2, 3));
     await render('es');
-    expect(marker()).toBe(tr(labels('es').nav.pendingAria, { count: '2' }));
+    expect(marker()).toBe(tr(labels('es').nav.pendingAria, { count: '5' }));
     expect(fetchSuggestionsSummary).toHaveBeenCalledWith('token');
   });
 
@@ -89,6 +94,14 @@ describe('the profile marker', () => {
     vi.mocked(fetchSuggestionsSummary).mockResolvedValueOnce(summary(0, 0));
     await act(async () => announceSuggestionsChanged());
     expect(fetchSuggestionsSummary).toHaveBeenCalledTimes(2);
+    expect(marker()).toBeNull();
+  });
+
+  it('stops counting a CV revision the tour already walked', async () => {
+    session = { accessToken: 'token' };
+    markCvRevisionSeen('rev-cv-1');
+    vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(0, 3));
+    await render('en');
     expect(marker()).toBeNull();
   });
 

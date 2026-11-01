@@ -37,17 +37,23 @@ export function markCvRevisionSeen(revisionId: string): void {
   }
 }
 
-// What waits for the user in the profile: the pending skill suggestions.
-export function pendingCount(summary: SuggestionsSummary): number {
-  return summary.skills.pending;
+// What waits for the user in the profile: the pending skill suggestions,
+// plus the CV suggestions of a revision the tour has not walked yet.
+export function pendingCount(
+  summary: SuggestionsSummary,
+  seenCvRevision: string | null = null,
+): number {
+  const cv =
+    summary.cv.revision_id && summary.cv.revision_id !== seenCvRevision ? summary.cv.pending : 0;
+  return summary.skills.pending + cv;
 }
 
 // The pending count for the menu marker. It reads the stored session
 // without starting a session lifecycle of its own: the page owns token
 // refresh, and a second lifecycle would rotate the refresh token under it.
 // 0 without a session or when the summary cannot be read (the marker is a
-// hint, never an error); read on mount, after each decision and whenever
-// the page stores a refreshed session.
+// hint, never an error); read on mount, after each decision or walked tour,
+// and whenever the page stores a refreshed session.
 export function usePendingSuggestions(): number {
   const [count, setCount] = useState(0);
 
@@ -63,7 +69,7 @@ export function usePendingSuggestions(): number {
       .then(() => fetchSuggestionsSummary(token))
       .then((summary) => {
         if (live) {
-          setCount(pendingCount(summary));
+          setCount(pendingCount(summary, readSeenCvRevision()));
         }
       })
       .catch(() => undefined);

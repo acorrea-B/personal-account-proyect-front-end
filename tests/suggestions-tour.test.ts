@@ -18,6 +18,7 @@ import {
   announceSuggestionsChanged,
   markCvRevisionSeen,
   readSeenCvRevision,
+  suggestionsChangedEvent,
 } from '../lib/suggestions-signal';
 
 (globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
@@ -124,7 +125,12 @@ describe('SuggestionsTour', () => {
     expect(document.querySelector('[role="dialog"]')?.textContent).toContain(
       tr(t.skillsCopy, { count: '1' }),
     );
+    const announced = vi.fn();
+    window.addEventListener(suggestionsChangedEvent, announced);
     await press(t.finish);
+    window.removeEventListener(suggestionsChangedEvent, announced);
+    // The menu marker reads the count again without the walked revision.
+    expect(announced).toHaveBeenCalledTimes(1);
     expect(document.querySelector('[role="dialog"]')).toBeNull();
     expect(document.body.textContent).not.toContain(t.bannerTitle);
     expect(readSeenCvRevision()).toBe(REV);
