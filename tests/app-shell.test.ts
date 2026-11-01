@@ -9,8 +9,22 @@ vi.mock('next/navigation', () => ({
   usePathname: () => pathname,
 }));
 
+let session: { accessToken: string } | null = null;
+vi.mock('@/lib/auth/useRequireAuth', () => ({
+  useRequireAuth: () => ({ session, isHydrated: true, isAuthorized: Boolean(session) }),
+}));
+
+vi.mock('@/lib/api/suggestions', () => ({ fetchSuggestionsSummary: vi.fn() }));
+
 import { AppShell, activeSection } from '../components/app-shell';
-import { labels, type Locale } from '../lib/i18n';
+import { fetchSuggestionsSummary } from '@/lib/api/suggestions';
+import { labels, tr, type Locale } from '../lib/i18n';
+import { markCvRevisionSeen, pendingCount, seenCvRevisionKey } from '../lib/suggestions-signal';
+
+const summary = (skills: number, cv: number, cvRevision: string | null = 'rev-cv-1') => ({
+  skills: { pending: skills, revision_id: 'rev-skills', created_at: null },
+  cv: { pending: cv, revision_id: cvRevision, created_at: null },
+});
 
 (globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -37,6 +51,54 @@ afterEach(() => {
   root = null;
   container = null;
   pathname = '/app/';
+  session = null;
+  window.localStorage.clear();
+  vi.mocked(fetchSuggestionsSummary).mockReset();
+});
+
+describe('pendingCount', () => {
+  it('counts the pending skills and the CV suggestions of a revision not walked yet', () => {
+    expect(pendingCount(summary(2, 3), null)).toBe(5);
+    expect(pendingCount(summary(2, 3), 'rev-cv-1')).toBe(2);
+    expect(pendingCount(summary(0, 3, null), null)).toBe(0);
+  });
+});
+
+describe('the profile marker', () => {
+  const marker = () => {
+    const profile = [...document.querySelectorAll('nav a')].find((link) =>
+      link.getAttribute('href')?.endsWith('/app/profile'),
+    );
+    return profile?.querySelector('.sr-only')?.textContent ?? null;
+  };
+
+  it('marks the profile while suggestions wait there', async () => {
+    session = { accessToken: 'token' };
+    vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(2, 3));
+    await render('es');
+    expect(marker()).toBe(tr(labels('es').nav.pendingAria, { count: '5' }));
+    expect(fetchSuggestionsSummary).toHaveBeenCalledWith('token');
+  });
+
+  it('stops counting a CV revision the tour already walked', async () => {
+    session = { accessToken: 'token' };
+    markCvRevisionSeen('rev-cv-1');
+    expect(window.localStorage.getItem(seenCvRevisionKey)).toBe('rev-cv-1');
+    vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(0, 3));
+    await render('en');
+    expect(marker()).toBeNull();
+  });
+
+  it('stays quiet without a session or when the summary fails', async () => {
+    await render('en');
+    expect(fetchSuggestionsSummary).not.toHaveBeenCalled();
+    act(() => root?.unmount());
+    session = { accessToken: 'token' };
+    vi.mocked(fetchSuggestionsSummary).mockRejectedValue(new Error('down'));
+    await render('en');
+    expect(marker()).toBeNull();
+    expect(document.querySelector('[role="alert"]')).toBeNull();
+  });
 });
 
 describe('activeSection', () => {
