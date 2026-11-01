@@ -9,6 +9,7 @@ import { fetchSkillSuggestions, fetchSuggestionsSummary } from '@/lib/api/sugges
 import { type Locale, labels, tr } from '@/lib/i18n';
 import type { CvSuggestion, VerificationStatus } from '@/lib/schemas/harness';
 import {
+  announceSuggestionsChanged,
   markCvRevisionSeen,
   readSeenCvRevision,
   suggestionsChangedEvent,
@@ -134,6 +135,8 @@ export function SuggestionsTour({ accessToken, locale }: { accessToken: string; 
     setDismissed(true);
     if (data?.cvRevision) {
       markCvRevisionSeen(data.cvRevision);
+      // The menu marker stops counting the walked revision.
+      announceSuggestionsChanged();
     }
     startRef.current?.focus();
   }, [data]);
