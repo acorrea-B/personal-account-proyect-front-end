@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { CvHistoryCard, type CvHistoryState } from '@/components/cv-timeline';
 import { CvVersionDetail } from '@/components/cv-version-detail';
-import { workspacePanel } from '@/components/ui';
 import { ProblemError } from '@/lib/api/client';
 import { getVersions } from '@/lib/api/cv';
 import { type Locale, labels } from '@/lib/i18n';
@@ -69,7 +68,9 @@ export function CvHistoryPanel({
   }, [refreshKey, loadHistory]);
 
   return (
-    <aside className={workspacePanel} aria-label={t.history.title}>
+    // The rail card brings its own frame: the aside only gives it the
+    // white ground, never a second border around it.
+    <aside className="rounded-lg bg-pure-white" aria-label={t.history.title}>
       <ul className="m-0 grid list-none p-0">
         <CvHistoryCard state={history} locale={locale} onSelect={setDetailId} />
       </ul>
