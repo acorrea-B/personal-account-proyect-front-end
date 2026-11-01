@@ -115,7 +115,9 @@ describe('SuggestionsTour', () => {
     const dialog = document.querySelector('[role="dialog"]');
     expect(dialog?.getAttribute('aria-modal')).toBe('true');
     expect(dialog?.textContent).toContain(tr(t.progress, { step: '1', total: '3' }));
-    expect(dialog?.textContent).toContain(tr(t.sectionTitle, { section: 'Summary' }));
+    expect(dialog?.textContent).toContain(
+      tr(t.sectionTitle, { section: labels('es').cvSections.summary }),
+    );
     expect(dialog?.textContent).toContain('Summary reason');
     expect(dialog?.textContent).not.toContain('[inferred]');
     expect(document.activeElement?.tagName).toBe('H3');
@@ -186,6 +188,30 @@ describe('SuggestionsTour', () => {
     await act(async () => announceSuggestionsChanged());
     expect(document.querySelector('[role="dialog"]')).toBeNull();
     expect(container?.hasAttribute('inert')).toBe(false);
+  });
+
+  it('asks why in plain words, names the section and says when the AI wrote in English', async () => {
+    serve([{ ...suggestion('Core Skills', 'AllSupported'), language: 'English' }], []);
+    await render('es');
+    const t = labels('es').tour;
+    await press(t.start);
+    const dialog = document.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog.querySelector('h3')?.textContent).toBe(
+      tr(t.sectionTitle, { section: labels('es').cvSections.skills }),
+    );
+    expect(dialog.querySelector('h4')?.textContent).toBe(t.why);
+    expect(dialog.textContent).not.toContain('Por qué: vemos');
+    expect(dialog.textContent).toContain(t.languageNote);
+    expect(dialog.querySelector('[lang="en"]')?.textContent).toBe('Core Skills text');
+  });
+
+  it('adds no language note when the AI wrote in the UI language', async () => {
+    serve([{ ...suggestion('Summary', 'AllSupported'), language: 'English' }], []);
+    await render('en');
+    await press(labels('en').tour.start);
+    expect(document.querySelector('[role="dialog"]')?.textContent).not.toContain(
+      labels('en').tour.languageNote,
+    );
   });
 
   it('shows a few skills and counts the rest', async () => {
