@@ -12,7 +12,7 @@ const routerStub = { push: pushMock, replace: replaceMock };
 
 vi.mock('next/navigation', () => ({
   useRouter: () => routerStub,
-  usePathname: () => null,
+  usePathname: () => '/app/',
 }));
 
 const requireAuthMock = vi.fn();
@@ -70,7 +70,6 @@ vi.mock('@/lib/auth/session', async () => ({
 }));
 
 import { ProblemError } from '@/lib/api/client';
-import { formatWhen } from '@/components/cv-timeline';
 import { labels, tr } from '@/lib/i18n';
 import { DashboardView } from '../components/dashboard-view';
 
@@ -149,7 +148,7 @@ describe('DashboardView', () => {
     });
   }
 
-  it('greets the ready profile with the dictionary labels on the en tree', async () => {
+  it('greets the ready profile and summarizes it on the en tree', async () => {
     authorizedSession();
     fetchProfileMock.mockResolvedValueOnce(PROFILE);
     await render('en');
@@ -161,41 +160,31 @@ describe('DashboardView', () => {
     expect(document.body.textContent).toContain(
       t.workspace.signedInAs.replace('{email}', 'juan@example.com'),
     );
-    expect(document.body.textContent).toContain(t.panel.fullName);
-    expect(document.body.textContent).toContain(t.panel.headline);
-    expect(document.body.textContent).toContain(t.suggestions.title);
-    expect(document.body.textContent).toContain(t.evolution.title);
+    // The home summarizes: the metrics, the next step (here: declare the
+    // evolution) and the evolution card; the flows live on their pages.
     expect(document.body.textContent).toContain(t.metrics.none);
-    // Next.js came from an accepted suggestion: its chip says so to
-    // assistive tech and the legend explains the check.
-    expect(document.body.textContent).toContain(`Next.js (${t.panel.acceptedSkill})`);
-    expect(document.body.textContent).toContain(t.panel.acceptedLegend);
-    const panel = document.querySelector<HTMLAnchorElement>(
-      'section[aria-label] a[href*="/app/profile"]',
-    );
-    expect(hrefOf(panel)).toBe('/app/profile');
-    expect(document.body.textContent).toContain(
-      tr(t.panel.updatedNote, { date: formatWhen(PROFILE.updated_at) }),
-    );
+    expect(document.body.textContent).toContain(t.home.evolutionTitle);
+    expect(document.body.textContent).toContain(t.home.noMode);
+    expect(document.body.textContent).not.toContain(t.panel.fullName);
+    expect(document.querySelector('nav a[aria-current="page"]')?.textContent).toBe(t.nav.home);
+    expect(document.querySelector('main > a')).toBeNull();
     expect(replaceMock).not.toHaveBeenCalled();
   });
 
-  it('greets the ready profile with the dictionary labels on the es tree', async () => {
+  it('sends a user without a cv to write one on the es tree', async () => {
     authorizedSession();
     fetchProfileMock.mockResolvedValueOnce(PROFILE);
+    fetchCvMock.mockReset().mockRejectedValueOnce(new ProblemError({ status: 404 }));
     await render('es');
     const t = labels('es');
     expect(document.querySelector('h1')?.textContent).toBe(
       tr(t.workspace.greeting, { name: 'Juan' }),
     );
-    expect(document.querySelector('section[aria-label] > div > p')?.textContent).toBe(
-      t.panel.eyebrow,
+    expect(document.body.textContent).toContain(t.home.cvTitle);
+    const action = [...document.querySelectorAll<HTMLAnchorElement>('a')].find(
+      (link) => link.textContent === t.home.cvAction,
     );
-    const panel = document.querySelector<HTMLAnchorElement>(
-      'section[aria-label] a[href*="/app/profile"]',
-    );
-    expect(hrefOf(panel)).toBe('/es/app/profile');
-    expect(document.body.textContent).toContain(t.suggestions.none);
+    expect(hrefOf(action ?? null)).toBe('/es/app/cv');
   });
 
   it("routes the incomplete profile to the tree's setup page", async () => {
@@ -260,35 +249,13 @@ describe('DashboardView', () => {
     expect(fetchProfileMock.mock.calls.length).toBe(calls);
   });
 
-  it('retries the CV card with the current token after a renewal', async () => {
+  it('never claims a missing cv when the cv read fails', async () => {
     authorizedSession();
     fetchProfileMock.mockResolvedValue(PROFILE);
     fetchCvMock.mockReset().mockRejectedValueOnce(new Error('network'));
     await render('en');
-    requireAuthMock.mockReturnValue({
-      isHydrated: true,
-      isAuthorized: true,
-      session: {
-        accessToken: 'token-2',
-        refreshToken: 'refresh-1',
-        user: {
-          id: 'user-1',
-          email: 'juan@example.com',
-          verified: true,
-          created_at: '2026-10-25T00:00:00.000Z',
-        },
-      },
-    });
-    await act(async () => {
-      root?.render(createElement(DashboardView, { locale: 'en' }));
-    });
-    fetchCvMock.mockResolvedValue(CV);
-    const retry = [...document.querySelectorAll('button')].find(
-      (button) => button.textContent === labels('en').cvCard.retry,
-    );
-    await act(async () => {
-      retry?.click();
-    });
-    expect(fetchCvMock).toHaveBeenLastCalledWith('token-2');
+    const t = labels('en');
+    expect(document.body.textContent).not.toContain(t.home.cvTitle);
+    expect(document.body.textContent).toContain(t.home.evolutionTitle);
   });
 });
