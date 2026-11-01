@@ -82,6 +82,16 @@ describe('RegisterView', () => {
     });
   }
 
+  it('says the client-side validation in the tree language', async () => {
+    await render('es');
+    await act(async () => {
+      (document.querySelector('button[type="submit"]') as HTMLButtonElement).click();
+    });
+    const v = labels('es').validation;
+    expect(document.getElementById('email-error')?.textContent).toBe(v.emailInvalid);
+    expect(document.getElementById('password-error')?.textContent).toBe(v.passwordRequired);
+  });
+
   it('speaks the english dictionary: copy, stepper and routes', async () => {
     await render('en');
     const t = labels('en').register;

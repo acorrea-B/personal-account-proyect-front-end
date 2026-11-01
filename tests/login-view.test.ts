@@ -114,6 +114,16 @@ describe('LoginView', () => {
     expect(languageEntry.getAttribute('hrefLang')).toBe('en');
   });
 
+  it('says the client-side validation in the tree language', async () => {
+    await render('es');
+    await act(async () => {
+      (document.querySelector('button[type="submit"]') as HTMLButtonElement).click();
+    });
+    const v = labels('es').validation;
+    expect(document.getElementById('email-error')?.textContent).toBe(v.emailInvalid);
+    expect(document.getElementById('password-error')?.textContent).toBe(v.passwordRequired);
+  });
+
   it('maps the 401 problem to the dictionary label of the tree', async () => {
     for (const locale of ['en', 'es'] as const) {
       await render(locale);
