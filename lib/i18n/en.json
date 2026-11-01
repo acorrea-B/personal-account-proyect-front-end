@@ -397,7 +397,7 @@
     "limit": "Recommended limit: {limit}",
     "evidence": "Confirmed evidence",
     "evidenceOf": "of {total} journal entries",
-    "confirmPending": "Confirm the {count} pending",
+    "confirmPending": "{count} not used as evidence · Open the journal",
     "notMeasured": "Not measured yet",
     "deltaShort": "{points} pts",
     "up": "Up {points} points since the previous revision",
