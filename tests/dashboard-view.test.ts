@@ -35,7 +35,7 @@ vi.mock('@/lib/api/cv', async () => ({
 }));
 
 vi.mock('@/lib/api/benchmark', () => ({
-  fetchLatestBenchmark: vi.fn().mockResolvedValue(null),
+  fetchBenchmarkTrend: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock('@/lib/api/evolution', () => ({
@@ -165,7 +165,7 @@ describe('DashboardView', () => {
     expect(document.body.textContent).toContain(t.panel.headline);
     expect(document.body.textContent).toContain(t.suggestions.title);
     expect(document.body.textContent).toContain(t.evolution.title);
-    expect(document.body.textContent).toContain(t.health.title);
+    expect(document.body.textContent).toContain(t.metrics.none);
     // Next.js came from an accepted suggestion: its chip says so to
     // assistive tech and the legend explains the check.
     expect(document.body.textContent).toContain(`Next.js (${t.panel.acceptedSkill})`);

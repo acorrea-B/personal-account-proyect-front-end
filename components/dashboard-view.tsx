@@ -38,7 +38,7 @@ import { CvVersionDetail } from '@/components/cv-version-detail';
 import { Skeleton } from '@/components/skeleton';
 import { SkillSuggestionsCard } from '@/components/skill-suggestions-card';
 import { EvolutionCard } from '@/components/evolution-card';
-import { ProfileHealthCard } from '@/components/profile-health-card';
+import { ProfileMetrics } from '@/components/profile-metrics';
 import { CheckIcon } from '@/components/icons';
 
 type WorkspaceLoad =
@@ -411,7 +411,7 @@ export function DashboardView({ locale }: { locale: Locale }) {
                   {tr(t.panel.updatedNote, { date: formatWhen(profile.updated_at, locale) })}
                 </AuthFormNote>
               </section>
-              {accessToken ? <ProfileHealthCard accessToken={accessToken} locale={locale} /> : null}
+              {accessToken ? <ProfileMetrics accessToken={accessToken} locale={locale} /> : null}
               {accessToken ? <EvolutionCard accessToken={accessToken} locale={locale} /> : null}
             </div>
 
