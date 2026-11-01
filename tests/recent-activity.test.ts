@@ -53,6 +53,9 @@ async function render(token = 'token') {
 }
 
 const rows = () =>
+  [...document.querySelectorAll('li')].map((li) => li.querySelectorAll('span')[1]?.textContent);
+
+const kinds = () =>
   [...document.querySelectorAll('li')].map((li) => li.querySelector('span')?.textContent);
 
 beforeEach(() => {
@@ -97,6 +100,8 @@ describe('RecentActivity', () => {
       a.cvSaved,
     ]);
     expect(rows()).toHaveLength(activityLimit);
+    // Each event carries a neutral label naming its kind.
+    expect(kinds()).toEqual([a.kindJournal, a.kindCv, a.kindCheck, a.kindJournal, a.kindCv]);
     expect(document.body.textContent).not.toContain('private text');
     expect(fetchJournalEntries).toHaveBeenCalledWith('token', activityLimit);
   });

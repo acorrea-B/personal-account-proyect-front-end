@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { formatWhen } from '@/components/cv-timeline';
 import { Skeleton } from '@/components/skeleton';
 import {
   Eyebrow,
@@ -58,7 +59,7 @@ export function horizonMonth(declaredAt: string, horizonMonths: number, now = Da
 }
 
 const verdictTone: Record<LoopVerdict, string> = {
-  on_track: 'bg-teal-wash text-teal-text',
+  on_track: 'bg-teal-wash-soft text-teal-text',
   fixable_deviation: 'bg-sky-wash-soft text-cyan-text-strong',
   structural: 'bg-[rgba(185,28,28,0.08)] text-alert',
   unmeasurable: 'bg-stone-canvas text-warm-gray',
@@ -115,7 +116,10 @@ export function HomeHighlights({
     return (
       <div className={grid} aria-label={h.loadingAria}>
         {[0, 1].map((index) => (
-          <section key={index} className={workspacePanel}>
+          <section
+            key={index}
+            className={cx(workspacePanel, index === 0 ? 'flex-[2_1_420px]' : 'flex-[1_1_280px]')}
+          >
             <Skeleton width={90} height={12} />
             <Skeleton width="80%" height={20} />
             <Skeleton width="60%" height={14} />
@@ -175,31 +179,34 @@ export function HomeHighlights({
 
   return (
     <div className={grid}>
+      {/* The focus (design-professional-ui): the one next step takes two
+          thirds of the row on the brand tint, with the primary action;
+          the evolution summary supports it. */}
       <section
-        className={cx(
-          workspacePanel,
-          'animate-tile-in border-cyan-edge/40 bg-[linear-gradient(135deg,var(--color-sky-wash-soft),var(--color-pure-white)_65%)] motion-reduce:animate-none',
-        )}
+        className="grid flex-[2_1_420px] animate-tile-in content-start gap-12 rounded-2xl border border-sky-wash bg-sky-wash-soft px-32 py-24 motion-reduce:animate-none max-sm:px-24"
         aria-label={h.nextEyebrow}
       >
         <span className="text-(length:--text-label) font-semibold tracking-[0.08em] text-cyan-text uppercase">
           {h.nextEyebrow}
         </span>
-        <h2 className="m-0 font-roobert text-title-sm leading-[1.3] font-medium text-ink-black">
+        <h2 className="m-0 font-roobert text-[24px] leading-[1.25] font-medium text-ink-black">
           {copy.title}
         </h2>
-        <p className="m-0 text-[14px] leading-[1.6] text-warm-gray">{copy.body}</p>
-        <div>
+        <p className="m-0 max-w-[60ch] text-[15px] leading-[1.6] text-soot">{copy.body}</p>
+        <div className="flex flex-wrap items-center gap-16">
           <Link className={cx(primaryButton, 'no-underline')} href={`${base}${copy.path}`}>
             {copy.action}
           </Link>
+          {step === 'suggestions' ? (
+            <span className="text-[13px] text-soot">{h.nextHint}</span>
+          ) : null}
         </div>
       </section>
 
       <section
         className={cx(
           workspacePanel,
-          'animate-tile-in bg-[linear-gradient(135deg,var(--color-teal-wash),var(--color-pure-white)_60%)] [animation-delay:90ms] motion-reduce:animate-none',
+          'flex-[1_1_280px] animate-tile-in content-start [animation-delay:90ms] motion-reduce:animate-none',
         )}
         aria-label={h.evolutionEyebrow}
       >
@@ -208,10 +215,25 @@ export function HomeHighlights({
           {state.lastCheck ? (
             <span
               className={cx(
-                'rounded-full px-12 py-4 text-(length:--text-label) font-medium',
+                'inline-flex items-center gap-4 rounded-full px-12 py-4 text-(length:--text-label) font-medium',
                 verdictTone[state.lastCheck.verdict],
               )}
             >
+              {state.lastCheck.verdict === 'on_track' ? (
+                <svg
+                  aria-hidden="true"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 12l5 5L20 7" />
+                </svg>
+              ) : null}
               {t.evolution[state.lastCheck.verdict]}
             </span>
           ) : null}
@@ -247,7 +269,11 @@ export function HomeHighlights({
                 />
               </div>
             </div>
-            {state.lastCheck ? null : (
+            {state.lastCheck ? (
+              <span className="text-[12px] text-warm-gray">
+                {tr(h.lastCheck, { date: formatWhen(state.lastCheck.created_at, locale) })}
+              </span>
+            ) : (
               <p className="m-0 text-[14px] text-warm-gray">{h.noChecks}</p>
             )}
           </>
@@ -262,4 +288,4 @@ export function HomeHighlights({
   );
 }
 
-const grid = 'grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] items-start gap-16';
+const grid = 'flex flex-wrap items-stretch gap-16';

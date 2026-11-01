@@ -11,7 +11,8 @@ import { fetchEvolutionHistory } from '@/lib/api/evolution';
 import { fetchJournalEntries } from '@/lib/api/journal';
 import { type Locale, labels, tr } from '@/lib/i18n';
 
-export type ActivityItem = { id: string; at: string; text: string };
+export type ActivityKind = 'cv' | 'journal' | 'check';
+export type ActivityItem = { id: string; at: string; text: string; kind: ActivityKind };
 
 // How many events the home lists, and how many each source contributes
 // at most (the newest of each).
@@ -71,12 +72,13 @@ export function RecentActivity({ accessToken, locale }: { accessToken: string; l
       ...cvSaves(
         current.status === 'fulfilled' ? (current.value?.updated_at ?? null) : null,
         versions.status === 'fulfilled' ? versions.value.map((version) => version.archived_at) : [],
-      ).map((at) => ({ id: `cv-${at}`, at, text: a.cvSaved })),
+      ).map((at) => ({ id: `cv-${at}`, at, text: a.cvSaved, kind: 'cv' as const })),
       ...(entries.status === 'fulfilled'
         ? entries.value.map((entry) => ({
             id: `journal-${entry.id}`,
             at: entry.created_at,
             text: entry.user_confirmed_as_evidence ? a.journalEvidence : a.journalPlain,
+            kind: 'journal' as const,
           }))
         : []),
       ...(checks.status === 'fulfilled'
@@ -84,6 +86,7 @@ export function RecentActivity({ accessToken, locale }: { accessToken: string; l
             id: `check-${check.id}`,
             at: check.created_at,
             text: tr(a.check, { verdict: t.evolution[check.verdict] }),
+            kind: 'check' as const,
           }))
         : []),
     ]
@@ -118,10 +121,18 @@ export function RecentActivity({ accessToken, locale }: { accessToken: string; l
           {state.items.map((item) => (
             <li
               key={item.id}
-              className="flex items-baseline justify-between gap-12 border-t border-stone-border py-12 text-[14px] text-ink-black first:border-t-0 first:pt-0"
+              className="flex flex-wrap items-center gap-x-12 gap-y-4 border-t border-stone-border py-12 text-[14px] text-ink-black first:border-t-0 first:pt-0"
             >
-              <span>{item.text}</span>
-              <time dateTime={item.at} className="shrink-0 text-[13px] text-warm-gray">
+              {/* A neutral kind label: grouping without a color per category. */}
+              <span className="min-w-[72px] flex-none rounded-full bg-stone-canvas px-8 py-[2px] text-center text-[12px] font-medium text-soot">
+                {{ cv: a.kindCv, journal: a.kindJournal, check: a.kindCheck }[item.kind]}
+              </span>
+              {/* On a phone the kind and the date share a line, the event below. */}
+              <span className="min-w-0 flex-1 max-sm:order-3 max-sm:basis-full">{item.text}</span>
+              <time
+                dateTime={item.at}
+                className="shrink-0 text-[13px] text-warm-gray max-sm:ml-auto"
+              >
                 {formatWhen(item.at, locale)}
               </time>
             </li>

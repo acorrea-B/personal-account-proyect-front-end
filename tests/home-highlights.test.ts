@@ -106,6 +106,8 @@ describe('HomeHighlights', () => {
     await render(true);
     const h = labels('en').home;
     expect(document.body.textContent).toContain(tr(h.suggestionsOther, { count: '3' }));
+    // The person decides: the hint says so next to the primary action.
+    expect(document.body.textContent).toContain(h.nextHint);
     expect(hrefOf(h.suggestionsAction)).toBe('/app/profile');
   });
 
@@ -118,6 +120,7 @@ describe('HomeHighlights', () => {
     const meter = document.querySelector('[role="meter"]');
     expect(meter?.getAttribute('aria-valuemax')).toBe('12');
     expect(hrefOf(t.home.openEvolution)).toBe('/app/evolution');
+    expect(document.body.textContent).toContain(t.home.lastCheck.split('{date}')[0]);
     expect(fetchEvolutionHistory).toHaveBeenCalledWith('token', 1);
   });
 
