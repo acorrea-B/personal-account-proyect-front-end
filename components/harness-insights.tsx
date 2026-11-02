@@ -6,6 +6,7 @@ import { formatWhen } from '@/components/cv-timeline';
 import { Skeleton } from '@/components/skeleton';
 import { cx, ghostButton, workspacePanel } from '@/components/ui';
 import { type HarnessOutputs, fetchHarnessOutputs } from '@/lib/api/harness';
+import { type LevelDimensionState, type LevelJudgment } from '@/lib/schemas/harness';
 import { type Labels, type Locale, labels, tr } from '@/lib/i18n';
 
 type InsightsState =
@@ -23,6 +24,97 @@ const percent = (value: number, locale: Locale) =>
 function dimensionLabel(a: Labels['ai'], dimension: string): string {
   const key = `dimension_${dimension}` as keyof Labels['ai'];
   return a[key] ?? dimension.replaceAll('_', ' ');
+}
+
+// The judged level's dimensions, in reading order (level-assessment).
+const judgedDimensions = [
+  'technical_depth',
+  'impact',
+  'ownership_scope',
+  'complexity',
+  'leadership',
+] as const;
+
+// State chips: teal only for evidence; a gap is neutral, never a warning,
+// because missing information is not a weakness (audit H01).
+const stateChip: Record<LevelDimensionState, string> = {
+  evidenced: 'bg-teal-wash text-teal-text',
+  no_signal: 'bg-stone-canvas text-warm-gray',
+  unknown: 'border border-stone-border text-warm-gray',
+};
+
+// The level the harness judged from the CV: the label, then each dimension
+// with its state and the CV quotes behind it. No score: none is published.
+function JudgedLevel({ a, level }: { a: Labels['ai']; level: LevelJudgment }) {
+  return (
+    <>
+      <p className="m-0 font-roobert text-[20px] font-semibold text-ink-black">
+        {a[`levelLabel_${level.label}`]}
+      </p>
+      {level.label === 'not_determined' ? (
+        <p className="m-0 text-[13px] text-warm-gray">{a.levelUndeterminedHint}</p>
+      ) : null}
+      <ul className="m-0 grid list-none gap-12 p-0">
+        {judgedDimensions.map((name) => {
+          const dimension = level.dimensions[name];
+          if (!dimension) {
+            return null;
+          }
+          const [first, ...more] = dimension.facts;
+          return (
+            <li key={name} className="grid gap-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-8 text-[13px]">
+                <span className="text-ink-black">{a[`levelDim_${name}`]}</span>
+                <span
+                  className={cx(
+                    'rounded-full px-8 py-[2px] text-[12px]',
+                    stateChip[dimension.state],
+                  )}
+                >
+                  {a[`levelState_${dimension.state}`]}
+                </span>
+              </div>
+              {first ? (
+                <blockquote className="m-0 border-l-2 border-teal-text pl-8 text-[13px] leading-[1.5] text-ink-black">
+                  {first}
+                </blockquote>
+              ) : (
+                <span className="text-[12px] leading-[1.5] text-warm-gray">
+                  {dimension.rationale}
+                </span>
+              )}
+              {more.length ? (
+                <details className="text-[12px] text-warm-gray">
+                  <summary className="cursor-pointer">
+                    {tr(a.levelMoreQuotes, { count: String(more.length) })}
+                  </summary>
+                  <ul className="m-0 mt-4 grid list-none gap-4 p-0">
+                    {more.map((quote) => (
+                      <li
+                        key={quote}
+                        className="border-l-2 border-stone-border pl-8 text-ink-black"
+                      >
+                        {quote}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              ) : null}
+              {dimension.dropped_facts.length ? (
+                <span className="text-[12px] text-warm-gray">
+                  {tr(a.levelDropped, { count: String(dimension.dropped_facts.length) })}
+                </span>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+      {level.rationale ? (
+        <p className="m-0 text-[13px] leading-[1.5] text-ink-black">{level.rationale}</p>
+      ) : null}
+      <p className="m-0 text-[12px] text-warm-gray">{a.levelJudgedNote}</p>
+    </>
+  );
 }
 
 function Panel({ title, children }: { title: string; children: ReactNode }) {
@@ -88,7 +180,7 @@ export function HarnessInsights({ accessToken, locale }: { accessToken: string; 
 
   const { outputs } = state;
   const latest = outputs.metrics[outputs.metrics.length - 1]?.metrics ?? null;
-  if (!latest && !outputs.level && !outputs.roles.length) {
+  if (!latest && !outputs.level && !outputs.levelJudgment && !outputs.roles.length) {
     return (
       <section className={workspacePanel} aria-label={a.qualityTitle}>
         <p className="m-0 text-[14px] text-warm-gray">{a.noRun}</p>
@@ -130,7 +222,11 @@ export function HarnessInsights({ accessToken, locale }: { accessToken: string; 
         </Panel>
       ) : null}
 
-      {outputs.level ? (
+      {outputs.levelJudgment ? (
+        <Panel title={a.levelTitle}>
+          <JudgedLevel a={a} level={outputs.levelJudgment} />
+        </Panel>
+      ) : outputs.level ? (
         <Panel title={a.levelTitle}>
           <div className="flex flex-wrap items-baseline gap-8">
             <span className="font-roobert text-[20px] font-semibold text-ink-black capitalize">
