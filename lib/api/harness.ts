@@ -6,12 +6,14 @@ import {
   cvSuggestionSchema,
   harnessRevisionsEnvelopeSchema,
   levelAssessmentSchema,
+  levelJudgmentSchema,
   profileMetricsSchema,
   targetRoleSchema,
   type CanonicalProfile,
   type CvSuggestion,
   type HarnessRevision,
   type LevelAssessment,
+  type LevelJudgment,
   type ProfileMetricsOutput,
   type TargetRole,
 } from '../schemas/harness';
@@ -35,6 +37,9 @@ export type HarnessOutputs = {
   metrics: MetricsPoint[];
   cvSuggestions: CvSuggestion[] | null;
   level: LevelAssessment | null;
+  // The level judged from the CV (level_judgment); absent from callers that
+  // do not read it. It replaces the rubric's level once the view reads it.
+  levelJudgment?: LevelJudgment | null;
   roles: TargetRole[];
   // How the harness organized the profile; absent from callers that do not
   // read it.
@@ -75,6 +80,7 @@ export function harnessOutputs(revisions: HarnessRevision[]): HarnessOutputs {
     metrics,
     cvSuggestions: latest(revisions, 'cv_suggestions', cvSuggestionSchema.array()),
     level: latest(revisions, 'level_assessment', levelAssessmentSchema),
+    levelJudgment: latest(revisions, 'level_judgment', levelJudgmentSchema),
     roles: latest(revisions, 'target_roles', targetRoleSchema.array()) ?? [],
     profile: latest(revisions, 'canonical_profile', canonicalProfileSchema),
   };

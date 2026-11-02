@@ -74,6 +74,29 @@ export const levelAssessmentSchema = z.object({
   ),
 });
 
+// The level the harness judged from the CV (output level_judgment,
+// level-assessment contract; harness decisions E1, E2, D15). Each dimension
+// is evidenced with verbatim CV quotes, shows no signal, or is unknown; the
+// label may be not_determined. There is no numeric score by design.
+export const levelDimensionStateSchema = z.enum(['evidenced', 'no_signal', 'unknown']);
+
+export const levelJudgmentSchema = z.object({
+  label: z.enum(['junior', 'mid', 'senior', 'not_determined']),
+  dimensions: z.record(
+    z.string(),
+    z.object({
+      state: levelDimensionStateSchema,
+      facts: z.array(z.string()),
+      dropped_facts: z.array(z.string()).default([]),
+      rationale: z.string(),
+    }),
+  ),
+  rationale: z.string(),
+  // Whether the quotes semantically support the judgment was not assessed
+  // (harness decision D2); the quotes exist verbatim in the CV.
+  support: z.string(),
+});
+
 export const targetRoleSchema = z.object({
   role_id: z.string(),
   display_name: z.string(),
@@ -103,5 +126,7 @@ export type ProfileMetricsOutput = z.infer<typeof profileMetricsSchema>;
 export type VerificationStatus = z.infer<typeof verificationStatusSchema>;
 export type CvSuggestion = z.infer<typeof cvSuggestionSchema>;
 export type LevelAssessment = z.infer<typeof levelAssessmentSchema>;
+export type LevelJudgment = z.infer<typeof levelJudgmentSchema>;
+export type LevelDimensionState = z.infer<typeof levelDimensionStateSchema>;
 export type TargetRole = z.infer<typeof targetRoleSchema>;
 export type CanonicalProfile = z.infer<typeof canonicalProfileSchema>;

@@ -115,12 +115,45 @@ describe('harnessOutputs', () => {
     expect(harnessOutputs(many).metrics).toHaveLength(metricsWindow);
   });
 
+  it('reads the level the harness judged, with its quotes and no score', () => {
+    const judgment = {
+      schema: 'level-assessment/0.1.1',
+      label: 'senior',
+      dimensions: {
+        leadership: {
+          state: 'evidenced',
+          facts: ['Technical lead of a two-developer backend team'],
+          dropped_facts: [],
+          rationale: 'r',
+        },
+        impact: { state: 'unknown', facts: [], dropped_facts: ['Invented'], rationale: 'r' },
+      },
+      rationale: 'r',
+      support: 'not_assessed',
+    };
+    const outputs = harnessOutputs([
+      revision(1, '2026-11-02T23:25:00Z', 'level_judgment', judgment),
+    ]);
+    expect(outputs.levelJudgment?.label).toBe('senior');
+    expect(outputs.levelJudgment?.dimensions.leadership.facts).toEqual([
+      'Technical lead of a two-developer backend team',
+    ]);
+    expect(outputs.levelJudgment?.dimensions.impact.state).toBe('unknown');
+  });
+
+  it('leaves out a level judgment with an unknown label', () => {
+    const broken = { label: 'expert', dimensions: {}, rationale: 'r', support: 'not_assessed' };
+    const outputs = harnessOutputs([revision(1, '2026-11-02T23:25:00Z', 'level_judgment', broken)]);
+    expect(outputs.levelJudgment).toBeNull();
+  });
+
   it('answers empty before the first run', () => {
     expect(harnessOutputs([])).toEqual({
       runAt: null,
       metrics: [],
       cvSuggestions: null,
       level: null,
+      levelJudgment: null,
       roles: [],
       profile: null,
     });
