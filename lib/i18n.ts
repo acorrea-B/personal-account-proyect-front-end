@@ -77,6 +77,8 @@ export const labelsSchema = z.object({
     additional: z.string(),
   }),
   journal: z.object({
+    showMore: z.string(),
+    showLess: z.string(),
     showOlder: z.string(),
     limitNote: z.string(),
     open: z.string(),

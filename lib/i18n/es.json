@@ -303,6 +303,8 @@
     "back": "Volver a mi espacio",
     "loadingAria": "Cargando tu diario",
     "open": "Abrir diario",
+    "showMore": "Ver más",
+    "showLess": "Ver menos",
     "showOlder": "Ver entradas anteriores",
     "limitNote": "Se muestran tus últimas 200 entradas; las anteriores se conservan, pero aún no se pueden listar aquí.",
     "valueTitle": "Tus logros no deberían perderse en el día a día"
