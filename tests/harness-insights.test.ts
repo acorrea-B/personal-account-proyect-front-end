@@ -136,7 +136,11 @@ describe('HarnessInsights', () => {
     expect(text).toContain(a.levelLabel_senior);
     expect(text).toContain(a.levelState_evidenced);
     expect(text).toContain('Technical lead of a two-developer backend team');
-    expect(text).toContain(tr(a.levelMoreQuotes, { count: '1' }));
+    expect(text).toContain(tr(a.levelEvidenceSummary, { count: '1', total: '2' }));
+    // The quotes are behind one disclosure, so the panel stays compact.
+    const details = document.querySelector('details');
+    expect(details?.open).toBe(false);
+    expect(details?.textContent).toContain('Mentored two engineers');
     expect(text).toContain(a.levelState_unknown);
     expect(text).toContain(tr(a.levelDropped, { count: '1' }));
     expect(document.querySelectorAll('[role="meter"]')).toHaveLength(0);

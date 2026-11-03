@@ -35,84 +35,100 @@ const judgedDimensions = [
   'leadership',
 ] as const;
 
-// State chips: teal only for evidence; a gap is neutral, never a warning,
+// State marks: teal only for evidence; a gap is neutral, never a warning,
 // because missing information is not a weakness (audit H01).
-const stateChip: Record<LevelDimensionState, string> = {
-  evidenced: 'bg-teal-wash text-teal-text',
-  no_signal: 'bg-stone-canvas text-warm-gray',
-  unknown: 'border border-stone-border text-warm-gray',
+const stateDot: Record<LevelDimensionState, string> = {
+  evidenced: 'bg-teal-text',
+  no_signal: 'bg-ash-gray',
+  unknown: 'border border-ash-gray',
 };
 
-// The level the harness judged from the CV: the label, then each dimension
-// with its state and the CV quotes behind it. No score: none is published.
+const stateText: Record<LevelDimensionState, string> = {
+  evidenced: 'text-teal-text',
+  no_signal: 'text-warm-gray',
+  unknown: 'text-warm-gray',
+};
+
+// The level the harness judged from the CV, compact like the other panels:
+// the label, how many dimensions the CV evidences and one short row per
+// dimension. The quotes, the rationale and the note open on demand.
 function JudgedLevel({ a, level }: { a: Labels['ai']; level: LevelJudgment }) {
+  const present = judgedDimensions.filter((name) => level.dimensions[name]);
+  const evidenced = present.filter((name) => level.dimensions[name]?.state === 'evidenced');
   return (
     <>
-      <p className="m-0 font-roobert text-[20px] font-semibold text-ink-black">
-        {a[`levelLabel_${level.label}`]}
-      </p>
-      {level.label === 'not_determined' ? (
-        <p className="m-0 text-[13px] text-warm-gray">{a.levelUndeterminedHint}</p>
-      ) : null}
-      <ul className="m-0 grid list-none gap-12 p-0">
-        {judgedDimensions.map((name) => {
-          const dimension = level.dimensions[name];
-          if (!dimension) {
-            return null;
-          }
-          const [first, ...more] = dimension.facts;
+      <div className="grid gap-4">
+        <p className="m-0 font-roobert text-[20px] font-semibold text-ink-black">
+          {a[`levelLabel_${level.label}`]}
+        </p>
+        <p className="m-0 text-[13px] text-warm-gray">
+          {level.label === 'not_determined'
+            ? a.levelUndeterminedHint
+            : tr(a.levelEvidenceSummary, {
+                count: String(evidenced.length),
+                total: String(present.length),
+              })}
+        </p>
+      </div>
+      <ul className="m-0 grid list-none gap-8 p-0">
+        {present.map((name) => {
+          const state = level.dimensions[name]!.state;
           return (
-            <li key={name} className="grid gap-4">
-              <div className="flex flex-wrap items-baseline justify-between gap-8 text-[13px]">
-                <span className="text-ink-black">{a[`levelDim_${name}`]}</span>
+            <li key={name} className="flex items-center justify-between gap-8 text-[13px]">
+              <span className="text-ink-black">{a[`levelDim_${name}`]}</span>
+              <span className={cx('flex items-center gap-4 text-[12px]', stateText[state])}>
                 <span
-                  className={cx(
-                    'rounded-full px-8 py-[2px] text-[12px]',
-                    stateChip[dimension.state],
-                  )}
-                >
-                  {a[`levelState_${dimension.state}`]}
+                  aria-hidden="true"
+                  className={cx('size-[8px] rounded-full', stateDot[state])}
+                />
+                {a[`levelState_${state}`]}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <details className="text-[13px]">
+        <summary className="cursor-pointer text-[13px] font-medium text-ink-black">
+          {a.levelShowEvidence}
+        </summary>
+        <div className="mt-8 grid gap-12">
+          {present.map((name) => {
+            const dimension = level.dimensions[name]!;
+            return (
+              <div key={name} className="grid gap-4">
+                <span className="text-[12px] font-medium text-ink-black">
+                  {a[`levelDim_${name}`]}
                 </span>
-              </div>
-              {first ? (
-                <blockquote className="m-0 border-l-2 border-teal-text pl-8 text-[13px] leading-[1.5] text-ink-black">
-                  {first}
-                </blockquote>
-              ) : (
-                <span className="text-[12px] leading-[1.5] text-warm-gray">
-                  {dimension.rationale}
-                </span>
-              )}
-              {more.length ? (
-                <details className="text-[12px] text-warm-gray">
-                  <summary className="cursor-pointer">
-                    {tr(a.levelMoreQuotes, { count: String(more.length) })}
-                  </summary>
-                  <ul className="m-0 mt-4 grid list-none gap-4 p-0">
-                    {more.map((quote) => (
+                {dimension.facts.length ? (
+                  <ul className="m-0 grid list-none gap-4 p-0">
+                    {dimension.facts.map((quote) => (
                       <li
                         key={quote}
-                        className="border-l-2 border-stone-border pl-8 text-ink-black"
+                        className="border-l-2 border-teal-text pl-8 text-[12px] leading-[1.5] text-ink-black"
                       >
                         {quote}
                       </li>
                     ))}
                   </ul>
-                </details>
-              ) : null}
-              {dimension.dropped_facts.length ? (
-                <span className="text-[12px] text-warm-gray">
-                  {tr(a.levelDropped, { count: String(dimension.dropped_facts.length) })}
-                </span>
-              ) : null}
-            </li>
-          );
-        })}
-      </ul>
-      {level.rationale ? (
-        <p className="m-0 text-[13px] leading-[1.5] text-ink-black">{level.rationale}</p>
-      ) : null}
-      <p className="m-0 text-[12px] text-warm-gray">{a.levelJudgedNote}</p>
+                ) : (
+                  <span className="text-[12px] leading-[1.5] text-warm-gray">
+                    {dimension.rationale}
+                  </span>
+                )}
+                {dimension.dropped_facts.length ? (
+                  <span className="text-[12px] text-warm-gray">
+                    {tr(a.levelDropped, { count: String(dimension.dropped_facts.length) })}
+                  </span>
+                ) : null}
+              </div>
+            );
+          })}
+          {level.rationale ? (
+            <p className="m-0 text-[12px] leading-[1.5] text-ink-black">{level.rationale}</p>
+          ) : null}
+          <p className="m-0 text-[12px] text-warm-gray">{a.levelJudgedNote}</p>
+        </div>
+      </details>
     </>
   );
 }
