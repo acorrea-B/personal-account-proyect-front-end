@@ -145,6 +145,8 @@ describe('harnessOutputs', () => {
     const broken = { label: 'expert', dimensions: {}, rationale: 'r', support: 'not_assessed' };
     const outputs = harnessOutputs([revision(1, '2026-11-02T23:25:00Z', 'level_judgment', broken)]);
     expect(outputs.levelJudgment).toBeNull();
+  });
+
   it('reads metrics 2.0.0, where a judged level has no score', () => {
     // Harness D16: the level comes from the model's judgment, without a
     // numeric score; the metrics must still be read, with the older runs.
