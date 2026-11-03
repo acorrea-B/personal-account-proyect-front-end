@@ -1,6 +1,18 @@
-import { describe, expect, it } from 'vitest';
+// @vitest-environment jsdom
+import { act, createElement } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('@/lib/api/journal', () => ({
+  fetchJournalEntries: vi.fn(),
+}));
+
+import { JournalCadenceChart } from '../components/journal-cadence';
+import { fetchJournalEntries } from '@/lib/api/journal';
+import { labels, tr } from '../lib/i18n';
 import { journalCadence, weekStart } from '../lib/journal-cadence';
+
+(globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
 
 const day = (date: string, evidence = true) => ({
   occurred_at: `${date}T00:00:00Z`,
@@ -73,5 +85,89 @@ describe('journalCadence', () => {
     const cadence = journalCadence([day('2026-08-18')], now, true);
     expect(cadence.weeks[0]).toMatchObject({ partial: true, known: true });
     expect(cadence.coveredFrom).toBe('2026-08-18');
+  });
+});
+
+const stored = (id: number, date: string, evidence = true) => ({
+  id: `44444444-4444-4444-8444-${String(id).padStart(12, '0')}`,
+  text: 'Entry.',
+  occurred_at: `${date}T00:00:00Z`,
+  created_at: '2026-11-03T10:00:00Z',
+  user_confirmed_as_evidence: evidence,
+  linked_skill_ids: [],
+  consent_version: 'journal-v1',
+});
+
+describe('JournalCadenceChart', () => {
+  let root: Root | null = null;
+  let container: HTMLDivElement | null = null;
+
+  afterEach(() => {
+    if (root) {
+      act(() => root?.unmount());
+    }
+    container?.remove();
+    root = null;
+    vi.mocked(fetchJournalEntries).mockReset();
+  });
+
+  async function render(locale: 'en' | 'es' = 'en') {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    await act(async () => {
+      root = createRoot(container as HTMLDivElement);
+      root.render(
+        createElement(JournalCadenceChart, { accessToken: 'token', locale, now: () => now }),
+      );
+    });
+  }
+
+  const weeks = () => [...document.querySelectorAll('ol > li')];
+
+  it('reads up to 200 entries and shows the total, the evidence and one readout per week', async () => {
+    vi.mocked(fetchJournalEntries).mockResolvedValue([
+      stored(1, '2026-11-03'),
+      stored(2, '2026-11-02', false),
+      stored(3, '2026-10-21'),
+    ]);
+    await render('es');
+    const c = labels('es').cadence;
+    expect(fetchJournalEntries).toHaveBeenCalledWith('token', 200);
+    expect(document.body.textContent).toContain(tr(c.headline, { evidence: '2' }));
+    expect(weeks()).toHaveLength(12);
+    const current = weeks()[11];
+    expect(current.getAttribute('aria-label')).toContain('2 entradas, 1 como evidencia');
+    expect(current.getAttribute('tabindex')).toBe('0');
+    // A week without entries reads zero, never "not loaded".
+    expect(weeks()[0].getAttribute('aria-label')).toContain('0 entradas');
+    expect(document.querySelector('figcaption')).toBeNull();
+  });
+
+  it('says from which day the counts hold when the read was cut', async () => {
+    vi.mocked(fetchJournalEntries).mockResolvedValue(
+      Array.from({ length: 200 }, (_, index) =>
+        stored(index, index < 100 ? '2026-11-03' : '2026-10-21'),
+      ),
+    );
+    await render('en');
+    const c = labels('en').cadence;
+    expect(document.querySelector('figcaption')?.textContent).toContain('Oct 21');
+    expect(weeks()[0].getAttribute('aria-label')).toBe(tr(c.weekUnknown, { week: 'Aug 17' }));
+    const cut = weeks().find((week) => week.getAttribute('aria-label')?.includes('Oct 19'));
+    expect(cut?.getAttribute('aria-label')).toContain('at least 100');
+  });
+
+  it('invites the first entry when the window is empty', async () => {
+    vi.mocked(fetchJournalEntries).mockResolvedValue([]);
+    await render('en');
+    expect(document.body.textContent).toContain(labels('en').cadence.empty);
+    expect(weeks()).toHaveLength(0);
+  });
+
+  it('says the journal could not be read instead of drawing zeros', async () => {
+    vi.mocked(fetchJournalEntries).mockRejectedValue(new Error('network'));
+    await render('en');
+    expect(document.body.textContent).toContain(labels('en').cadence.failed);
+    expect(weeks()).toHaveLength(0);
   });
 });
