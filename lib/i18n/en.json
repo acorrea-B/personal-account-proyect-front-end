@@ -309,6 +309,8 @@
     "back": "Back to workspace",
     "loadingAria": "Loading your journal",
     "open": "Open journal",
+    "showMore": "Show more",
+    "showLess": "Show less",
     "showOlder": "Show older entries",
     "limitNote": "Showing your latest 200 entries; older ones are kept but cannot be listed here yet.",
     "valueTitle": "Your achievements should not get lost in the day to day"

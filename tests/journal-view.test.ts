@@ -35,6 +35,7 @@ import {
 import { ProblemError } from '@/lib/api/client';
 import { fetchProfileSkills } from '@/lib/api/suggestions';
 import { labels, tr, type Locale } from '../lib/i18n';
+import { previewJournalText } from '../lib/journal-preview';
 
 (globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -378,5 +379,52 @@ describe('JournalView', () => {
     const list = document.querySelector(`ul[aria-label="${j.listAria}"]`)?.textContent ?? '';
     expect(list).not.toContain('Shipped payments.');
     expect(list).toContain('Led the review.');
+  });
+
+  it('shows the opening of a long entry and opens it on demand', async () => {
+    const long = `Shipped the payments flow. ${'Measured every step of the rollout. '.repeat(5)}`;
+    vi.mocked(fetchJournalEntries).mockResolvedValue([entry(E1, long), entry(E2, 'Short note.')]);
+    await render('es');
+    const j = labels('es').journal;
+    const list = () => document.querySelector(`ul[aria-label="${j.listAria}"]`)?.textContent ?? '';
+    expect(list()).toContain(previewJournalText(long).text);
+    expect(list()).not.toContain(long.trim());
+    expect(list()).toContain('Short note.');
+    const toggles = () => [...document.querySelectorAll('button[aria-controls^="journal-entry-"]')];
+    // Only the long entry offers "show more".
+    expect(toggles()).toHaveLength(1);
+    expect(toggles()[0]?.getAttribute('aria-expanded')).toBe('false');
+    await click(byText(j.showMore));
+    expect(list()).toContain(long.trim());
+    expect(toggles()[0]?.getAttribute('aria-expanded')).toBe('true');
+    await click(byText(j.showLess));
+    expect(list()).not.toContain(long.trim());
+  });
+});
+
+describe('previewJournalText', () => {
+  it('keeps an entry of up to 100 characters whole, line breaks included', () => {
+    const text = 'Line one.\nLine two.';
+    expect(previewJournalText(text)).toEqual({ text, truncated: false });
+    expect(previewJournalText('a'.repeat(100)).truncated).toBe(false);
+  });
+
+  it('cuts a longer entry on a word boundary within 100 characters', () => {
+    const preview = previewJournalText(`${'word '.repeat(30)}end`);
+    expect(preview.truncated).toBe(true);
+    expect(preview.text.endsWith('word…')).toBe(true);
+    expect(Array.from(preview.text).length).toBeLessThanOrEqual(101);
+  });
+
+  it('folds line breaks so every collapsed entry takes the same room', () => {
+    const preview = previewJournalText(`Title\n\n${'detail '.repeat(30)}`);
+    expect(preview.text.startsWith('Title detail')).toBe(true);
+    expect(preview.text).not.toContain('\n');
+  });
+
+  it('cuts a text without spaces at the limit and never splits an emoji', () => {
+    expect(previewJournalText('x'.repeat(150)).text).toBe(`${'x'.repeat(100)}…`);
+    const emoji = previewJournalText('🚀'.repeat(120));
+    expect(emoji.text).toBe(`${'🚀'.repeat(100)}…`);
   });
 });
