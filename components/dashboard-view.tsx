@@ -14,6 +14,7 @@ import { AccountMenu } from '@/components/account-menu';
 import { AppShell } from '@/components/app-shell';
 import { HomeHighlights } from '@/components/home-highlights';
 import { ProfileMetrics } from '@/components/profile-metrics';
+import { JournalCadenceChart } from '@/components/journal-cadence';
 import { RecentActivity } from '@/components/recent-activity';
 import {
   AuthSubtitle,
@@ -203,7 +204,10 @@ export function DashboardView({ locale }: { locale: Locale }) {
                 <HomeHighlights accessToken={accessToken} locale={locale} hasCv={hasCv !== false} />
               }
             />
-            <RecentActivity accessToken={accessToken} locale={locale} />
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-16">
+              <JournalCadenceChart accessToken={accessToken} locale={locale} />
+              <RecentActivity accessToken={accessToken} locale={locale} />
+            </div>
           </>
         ) : null}
       </div>

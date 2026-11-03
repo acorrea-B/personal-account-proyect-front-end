@@ -275,6 +275,19 @@
     "languages": "Languages",
     "additional": "Additional information"
   },
+  "cadence": {
+    "title": "Your journal, week by week",
+    "open": "Open journal",
+    "loadingAria": "Loading your journal chart",
+    "failed": "Your journal could not be read right now.",
+    "empty": "No entries in the last 12 weeks yet. A short note a day keeps your evidence growing.",
+    "headline": "entries in the last 12 weeks · {evidence} marked as evidence",
+    "chartAria": "Journal entries per week, last 12 weeks",
+    "week": "Week of {week}: {entries} entries, {evidence} as evidence",
+    "weekPartial": "Week of {week}: at least {entries} entries, {evidence} as evidence (older entries not loaded)",
+    "weekUnknown": "Week of {week}: not loaded",
+    "coveredFrom": "Counts start on {day}: entries beyond your latest 200 are not loaded here."
+  },
   "journal": {
     "title": "Journal",
     "intro": "Day to day you solve big problems and reach important achievements, but you do not see them: delivering what is due right now erases the visibility of those achievements, big solutions and proposals. Try to write what you did today and what impact it could have, big or small. Our job is to summarize your journal and help you organize, classify and bring it into your profile and your list of key achievements, always at hand when a new opportunity comes.",

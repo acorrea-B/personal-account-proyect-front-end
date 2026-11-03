@@ -275,6 +275,19 @@
     "languages": "Idiomas",
     "additional": "Información adicional"
   },
+  "cadence": {
+    "title": "Tu diario, semana a semana",
+    "open": "Abrir diario",
+    "loadingAria": "Cargando el gráfico de tu diario",
+    "failed": "No se pudo leer tu diario en este momento.",
+    "empty": "Aún no hay entradas en las últimas 12 semanas. Una nota corta al día mantiene tu evidencia creciendo.",
+    "headline": "entradas en las últimas 12 semanas · {evidence} como evidencia",
+    "chartAria": "Entradas del diario por semana, últimas 12 semanas",
+    "week": "Semana del {week}: {entries} entradas, {evidence} como evidencia",
+    "weekPartial": "Semana del {week}: al menos {entries} entradas, {evidence} como evidencia (las anteriores no se cargaron)",
+    "weekUnknown": "Semana del {week}: sin cargar",
+    "coveredFrom": "Los conteos empiezan el {day}: las entradas más allá de tus últimas 200 no se cargan aquí."
+  },
   "journal": {
     "title": "Diario",
     "intro": "En el día a día resuelves problemas grandes y logras cosas importantes, pero no las ves: la entrega inmediata de obligaciones borra la visibilidad de esos logros, de las grandes soluciones y de tus propuestas. Intenta escribir qué hiciste hoy y qué impacto pudo tener, grande o pequeño. Nuestro trabajo será resumir tu diario y ayudarte a organizarlo, clasificarlo e integrarlo en tu perfil y en tu lista de logros importantes, que tendrás siempre a mano ante una nueva oportunidad laboral.",
