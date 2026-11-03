@@ -1,5 +1,6 @@
 import { ProblemError, refresh, revoke } from '../api/client';
 import { userSchema, type TokenPair, tokenPairSchema } from '../schemas/auth';
+import { forgetKnownProfile } from '../api/profile';
 
 export const ACCESS_TOKEN_KEY = 'auth.accessToken';
 export const REFRESH_TOKEN_KEY = 'auth.refreshToken';
@@ -100,6 +101,7 @@ export async function signOut(): Promise<void> {
     }
   }
   clearSession();
+  forgetKnownProfile();
 }
 
 // Cross-view handoff for the unverified-email flow (static export: pages

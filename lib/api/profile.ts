@@ -37,6 +37,20 @@ async function readProblem(response: Response): Promise<ProblemError> {
 }
 
 // GET /v1/profile (US3): the own profile's public shape behind a Bearer token.
+// The last profile this tab read, in memory only (never stored): a view
+// opened from the workspace knows at once whether it is the update flow and
+// keeps the workspace frame, instead of starting on the onboarding page and
+// jumping into the frame when its own fetch answers. Cleared on sign-out.
+let knownProfile: Profile | null = null;
+
+export function lastKnownProfile(): Profile | null {
+  return knownProfile;
+}
+
+export function forgetKnownProfile(): void {
+  knownProfile = null;
+}
+
 export async function fetchProfile(accessToken: string): Promise<Profile> {
   const response = await fetchProfileResource(`${apiBaseUrl}/v1/profile`, {
     method: 'GET',
@@ -48,7 +62,11 @@ export async function fetchProfile(accessToken: string): Promise<Profile> {
   }
 
   const data: unknown = await response.json();
-  return profileEnvelopeSchema.parse(data as z.infer<typeof profileEnvelopeSchema>).profile;
+  const profile = profileEnvelopeSchema.parse(
+    data as z.infer<typeof profileEnvelopeSchema>,
+  ).profile;
+  knownProfile = profile;
+  return profile;
 }
 
 // The api seeds every profile with the placeholder 'User' (the 1:1 insert
