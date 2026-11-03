@@ -32,6 +32,7 @@ import {
   fetchJournalConsent,
   fetchJournalEntries,
 } from '@/lib/api/journal';
+import { ProblemError } from '@/lib/api/client';
 import { fetchProfileSkills } from '@/lib/api/suggestions';
 import { labels, tr, type Locale } from '../lib/i18n';
 
@@ -183,7 +184,11 @@ describe('JournalView', () => {
   });
 
   it('keeps an entry saved while a delete is in flight', async () => {
-    vi.mocked(fetchJournalEntries).mockResolvedValue([entry(E1, 'Shipped payments.')]);
+    // The re-read after the delete started before the save committed: it
+    // lists neither entry, and the saved one stays in view.
+    vi.mocked(fetchJournalEntries)
+      .mockResolvedValueOnce([entry(E1, 'Shipped payments.')])
+      .mockResolvedValueOnce([]);
     let finishDelete: () => void = () => {};
     vi.mocked(deleteJournalEntry).mockReturnValue(
       new Promise<void>((resolve) => {
@@ -254,7 +259,9 @@ describe('JournalView', () => {
   });
 
   it('deletes an entry only after the confirmation', async () => {
-    vi.mocked(fetchJournalEntries).mockResolvedValue([entry(E1, 'Shipped payments.')]);
+    vi.mocked(fetchJournalEntries)
+      .mockResolvedValueOnce([entry(E1, 'Shipped payments.')])
+      .mockResolvedValueOnce([]);
     vi.mocked(deleteJournalEntry).mockResolvedValue(undefined);
     await render('en');
     const j = labels('en').journal;
@@ -299,7 +306,10 @@ describe('JournalView', () => {
       Array.from({ length: count }, (_, index) =>
         entry(`44444444-4444-4444-8444-${String(index).padStart(12, '0')}`, `Entry ${index}`),
       );
-    vi.mocked(fetchJournalEntries).mockResolvedValueOnce(page(50));
+    // The re-read after the delete still fills its page of 50.
+    vi.mocked(fetchJournalEntries)
+      .mockResolvedValueOnce(page(51).slice(0, 50))
+      .mockResolvedValueOnce(page(51).slice(1));
     vi.mocked(deleteJournalEntry).mockResolvedValue(undefined);
     await render('en');
     const j = labels('en').journal;
@@ -307,7 +317,7 @@ describe('JournalView', () => {
       (button) => button.getAttribute('aria-label')?.startsWith('Delete the entry') ?? false,
     );
     await click(byText(j.deleteConfirm));
-    expect(document.querySelectorAll(`ul[aria-label="${j.listAria}"] > li`)).toHaveLength(49);
+    expect(document.querySelectorAll(`ul[aria-label="${j.listAria}"] > li`)).toHaveLength(50);
     expect(document.body.textContent).toContain(j.showOlder);
     vi.mocked(fetchJournalEntries).mockReturnValueOnce(new Promise(() => {}));
     await click(byText(j.showOlder));
@@ -316,5 +326,57 @@ describe('JournalView', () => {
     );
     expect(deletes.every((button) => button.disabled)).toBe(true);
     expect((document.querySelector('fieldset') as HTMLFieldSetElement).disabled).toBe(true);
+  });
+
+  it('re-reads your entries from the api after a delete', async () => {
+    vi.mocked(fetchJournalEntries)
+      .mockResolvedValueOnce([entry(E1, 'Shipped payments.')])
+      .mockResolvedValueOnce([entry(E2, 'Written in another tab.')]);
+    vi.mocked(deleteJournalEntry).mockResolvedValue(undefined);
+    await render('en');
+    const j = labels('en').journal;
+    await click(
+      (button) => button.getAttribute('aria-label')?.startsWith('Delete the entry') ?? false,
+    );
+    await click(byText(j.deleteConfirm));
+    expect(fetchJournalEntries).toHaveBeenCalledTimes(2);
+    expect(fetchJournalEntries).toHaveBeenLastCalledWith('token', 50);
+    const list = document.querySelector(`ul[aria-label="${j.listAria}"]`)?.textContent ?? '';
+    expect(list).toContain('Written in another tab.');
+    expect(list).not.toContain('Shipped payments.');
+  });
+
+  it('re-reads your entries when the entry was already gone', async () => {
+    vi.mocked(fetchJournalEntries)
+      .mockResolvedValueOnce([entry(E1, 'Shipped payments.')])
+      .mockResolvedValueOnce([]);
+    vi.mocked(deleteJournalEntry).mockRejectedValue(
+      new ProblemError({ type: 'about:blank', title: 'Not Found', status: 404 }),
+    );
+    await render('en');
+    const j = labels('en').journal;
+    await click(
+      (button) => button.getAttribute('aria-label')?.startsWith('Delete the entry') ?? false,
+    );
+    await click(byText(j.deleteConfirm));
+    expect(fetchJournalEntries).toHaveBeenCalledTimes(2);
+    expect(document.body.textContent).toContain(j.empty);
+    expect(document.querySelector('[role="alert"]')).toBeNull();
+  });
+
+  it('keeps the list when the re-read after a delete fails', async () => {
+    vi.mocked(fetchJournalEntries)
+      .mockResolvedValueOnce([entry(E1, 'Shipped payments.'), entry(E2, 'Led the review.')])
+      .mockRejectedValueOnce(new Error('network'));
+    vi.mocked(deleteJournalEntry).mockResolvedValue(undefined);
+    await render('en');
+    const j = labels('en').journal;
+    await click(
+      (button) => button.getAttribute('aria-label')?.startsWith('Delete the entry') ?? false,
+    );
+    await click(byText(j.deleteConfirm));
+    const list = document.querySelector(`ul[aria-label="${j.listAria}"]`)?.textContent ?? '';
+    expect(list).not.toContain('Shipped payments.');
+    expect(list).toContain('Led the review.');
   });
 });
