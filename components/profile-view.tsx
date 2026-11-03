@@ -213,6 +213,24 @@ export function ProfileView({ locale }: { locale: Locale }) {
     }
   }, []);
 
+  // "Add all": every accepted skill joins the form, then one profile reload.
+  const acceptSuggestions = useCallback(async (skills: string[]) => {
+    setSkillsText((current) => skills.reduce((text, skill) => withSkill(text, skill), current));
+    const token = tokenRef.current;
+    if (!token) {
+      return;
+    }
+    try {
+      const fresh = await fetchProfile(token);
+      const known = profileRef.current;
+      if (known && sameBesidesSkills(known, fresh)) {
+        setProfile(fresh);
+      }
+    } catch {
+      // the known version stays and a save meets the optimistic lock
+    }
+  }, []);
+
   const loadProfile = useCallback(
     async (token: string) => {
       setLoad({ status: 'loading' });
@@ -473,6 +491,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
                   accessToken={accessToken}
                   locale={locale}
                   onAccepted={acceptSuggestion}
+                  onAcceptedMany={acceptSuggestions}
                   onBusyChange={holdSave}
                 />
               </ul>

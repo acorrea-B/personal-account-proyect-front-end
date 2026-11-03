@@ -49,11 +49,15 @@ export function SkillSuggestionsCard({
   accessToken,
   locale,
   onAccepted,
+  onAcceptedMany,
   onBusyChange,
 }: {
   accessToken: string;
   locale: Locale;
   onAccepted: (skill: string) => void | Promise<void>;
+  // Told once after "add all" with every skill it added, so the host
+  // reloads the profile once instead of once per skill.
+  onAcceptedMany?: (skills: string[]) => void | Promise<void>;
   // Told when a decision starts and when it (and the host's onAccepted)
   // finished: a host form holds its save meanwhile.
   onBusyChange?: (busy: boolean) => void;
@@ -68,6 +72,8 @@ export function SkillSuggestionsCard({
   const [deciding, setDeciding] = useState<string | null>(null);
   const [shown, setShown] = useState(suggestionsPage);
   const [notice, setNotice] = useState<{ tone: 'alert' | 'status'; text: string } | null>(null);
+  // "Add all" progress: how many it added of how many it set out to add.
+  const [bulk, setBulk] = useState<{ done: number; total: number } | null>(null);
 
   const readError = useCallback(
     (error: unknown) =>
@@ -146,6 +152,72 @@ export function SkillSuggestionsCard({
     }
   }
 
+  // Adds every pending suggestion, one decision after another (the API
+  // decides one skill per request). It stops, keeping what it added, at the
+  // profile's 100-skill limit, on a busy service or on any failure; the
+  // rest stay pending. A changed revision reloads the list.
+  async function acceptAll() {
+    if (state.kind !== 'ready' || !state.revisionId || !state.suggestions.length) {
+      return;
+    }
+    const revisionId = state.revisionId;
+    const queue = [...state.suggestions];
+    const added: SkillSuggestion[] = [];
+    setDeciding('*');
+    onBusyChange?.(true);
+    setNotice(null);
+    setBulk({ done: 0, total: queue.length });
+    let stop: { tone: 'alert' | 'status'; text: string } | null = null;
+    for (const suggestion of queue) {
+      try {
+        await decideSkillSuggestion(accessToken, suggestion.skill_key, 'accepted', revisionId);
+        added.push(suggestion);
+        setBulk({ done: added.length, total: queue.length });
+      } catch (error) {
+        const status = error instanceof ProblemError ? error.problem.status : 0;
+        stop =
+          status === 422
+            ? { tone: 'alert', text: tr(t.addAllLimit, { count: String(added.length) }) }
+            : status === 404
+              ? { tone: 'status', text: t.changed }
+              : status === 429 || status === 503
+                ? { tone: 'alert', text: tr(t.addAllBusy, { count: String(added.length) }) }
+                : { tone: 'alert', text: tr(t.addAllFailed, { count: String(added.length) }) };
+        break;
+      }
+    }
+    const addedKeys = new Set(added.map((item) => item.skill_key));
+    setState({
+      ...state,
+      suggestions: state.suggestions.filter((item) => !addedKeys.has(item.skill_key)),
+      summary: {
+        ...state.summary,
+        skills: {
+          ...state.summary.skills,
+          pending: Math.max(state.summary.skills.pending - added.length, 0),
+        },
+      },
+    });
+    if (added.length) {
+      announceSuggestionsChanged();
+      const names = added.map((item) => item.display_name);
+      if (onAcceptedMany) {
+        await onAcceptedMany(names);
+      } else {
+        for (const name of names) {
+          await onAccepted(name);
+        }
+      }
+    }
+    if (stop?.text === t.changed) {
+      await load();
+    }
+    setNotice(stop ?? { tone: 'status', text: tr(t.addAllDone, { count: String(added.length) }) });
+    setBulk(null);
+    setDeciding(null);
+    onBusyChange?.(false);
+  }
+
   return (
     <RailItem icon={SignalIcon}>
       <RailTitle>{t.title}</RailTitle>
@@ -166,7 +238,26 @@ export function SkillSuggestionsCard({
         <>
           {state.suggestions.length ? (
             <>
-              <StatusChip>{tr(t.pending, { count: String(state.suggestions.length) })}</StatusChip>
+              <div className="flex flex-wrap items-center justify-between gap-8">
+                <StatusChip>
+                  {tr(t.pending, { count: String(state.suggestions.length) })}
+                </StatusChip>
+                {state.suggestions.length > 1 ? (
+                  <button
+                    type="button"
+                    className={cx(outlineButton, 'min-h-[44px] px-12')}
+                    disabled={deciding !== null}
+                    onClick={() => void acceptAll()}
+                  >
+                    {bulk
+                      ? tr(t.addAllProgress, {
+                          done: String(bulk.done),
+                          total: String(bulk.total),
+                        })
+                      : tr(t.addAll, { count: String(state.suggestions.length) })}
+                  </button>
+                ) : null}
+              </div>
               <ul className="m-0 grid list-none p-0" aria-label={t.listAria}>
                 {state.suggestions.slice(0, shown).map((suggestion) => {
                   const busy = deciding === suggestion.skill_key;
