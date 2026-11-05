@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   fetchProfile,
+  forgetKnownProfile,
+  lastKnownProfile,
   isProfileIncomplete,
   linkRowProblem,
   fullNameProblem,
@@ -9,6 +11,7 @@ import {
   profileReadMessage,
   updateProfile,
 } from '../lib/api/profile';
+import { clearSession } from '../lib/auth/session';
 import { profileSchema, updateProfileRequestSchema } from '../lib/schemas/profile';
 
 describe('profile schema', () => {
@@ -177,6 +180,55 @@ describe('fetchProfile', () => {
 
     expect(result.full_name).toBe('Juan Pérez');
     expect(result.updated_at).toBe(profile.updated_at);
+  });
+
+  it('remembers the last profile read, in memory, until it is forgotten', async () => {
+    // A view opened from the workspace knows its flow from the first frame.
+    const profile = {
+      id: '11111111-1111-4111-8111-111111111111',
+      email: 'juan@example.com',
+      full_name: 'Juan Pérez',
+      created_at: '2026-10-27T00:00:00.000Z',
+      updated_at: '2026-10-27T00:00:00.000Z',
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ profile }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    );
+    forgetKnownProfile();
+    expect(lastKnownProfile()).toBeNull();
+    await fetchProfile(accessToken);
+    expect(lastKnownProfile()?.full_name).toBe('Juan Pérez');
+    forgetKnownProfile();
+    expect(lastKnownProfile()).toBeNull();
+  });
+
+  it('forgets the profile when the session ends, an expired one included', async () => {
+    const profile = {
+      id: '11111111-1111-4111-8111-111111111111',
+      email: 'juan@example.com',
+      full_name: 'Juan Pérez',
+      created_at: '2026-10-27T00:00:00.000Z',
+      updated_at: '2026-10-27T00:00:00.000Z',
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ profile }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    );
+    await fetchProfile(accessToken);
+    expect(lastKnownProfile()).not.toBeNull();
+    clearSession();
+    expect(lastKnownProfile()).toBeNull();
   });
 
   it('fails closed on a bare profile outside the envelope', async () => {

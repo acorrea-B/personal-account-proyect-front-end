@@ -17,6 +17,7 @@ import {
   fullNameProblem,
   linkRowProblem,
   normalizeProfileLinkUrl,
+  lastKnownProfile,
   profileWriteFlow,
   updateProfile,
   type ProfileFlow,
@@ -140,7 +141,13 @@ export function ProfileView({ locale }: { locale: Locale }) {
   // load, then frozen. Both flows share PUT /v1/profile, but onboarding
   // replaces the placeholder while update keeps a live profile — their
   // background rules differ.
-  const [flow, setFlow] = useState<ProfileFlow>('onboarding');
+  // Opened from the workspace, the tab already read the profile: the flow is
+  // known from the first frame, so the page never starts on the onboarding
+  // frame and jumps into the workspace frame when the fetch answers.
+  const [flow, setFlow] = useState<ProfileFlow>(() => {
+    const known = lastKnownProfile();
+    return known ? profileWriteFlow(known) : 'onboarding';
+  });
   // The save toast: pinned to the bottom of the viewport, so the
   // confirmation is visible wherever the user is in the form. It
   // auto-dismisses after 5 seconds and stays dismissible by hand.
@@ -447,12 +454,18 @@ export function ProfileView({ locale }: { locale: Locale }) {
   const firstName = profile ? profile.full_name.trim().split(/\s+/)[0] : '';
 
   if (!isHydrated || !isAuthorized) {
-    return (
-      <AuthPage busy>
-        <AuthCard label={t.profile.loadingAria}>
-          <ProfileCardSkeleton />
-        </AuthCard>
-      </AuthPage>
+    const waiting = (
+      <AuthCard label={t.profile.loadingAria}>
+        <ProfileCardSkeleton />
+      </AuthCard>
+    );
+    // The update flow waits inside the workspace frame, the menu in place.
+    return flow === 'update' ? (
+      <AppShell locale={locale} back busy>
+        {waiting}
+      </AppShell>
+    ) : (
+      <AuthPage busy>{waiting}</AuthPage>
     );
   }
 

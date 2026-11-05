@@ -1,5 +1,6 @@
 import { ProblemError, refresh, revoke } from '../api/client';
 import { userSchema, type TokenPair, tokenPairSchema } from '../schemas/auth';
+import { forgetKnownProfile } from '../api/profile';
 
 export const ACCESS_TOKEN_KEY = 'auth.accessToken';
 export const REFRESH_TOKEN_KEY = 'auth.refreshToken';
@@ -50,6 +51,9 @@ export function clearSession(): void {
   window.sessionStorage.removeItem(ACCESS_TOKEN_KEY);
   window.sessionStorage.removeItem(REFRESH_TOKEN_KEY);
   window.sessionStorage.removeItem(USER_KEY);
+  // Every way a session ends, an expired one included: the next person in
+  // this tab must not start from the previous profile.
+  forgetKnownProfile();
 }
 
 // Single-flight guard: gotrue rotates the refresh token with reuse-kill, so
