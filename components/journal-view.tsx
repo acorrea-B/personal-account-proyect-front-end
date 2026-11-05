@@ -31,6 +31,7 @@ import { fetchProfileSkills } from '@/lib/api/suggestions';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { consentText } from '@/lib/consent-copy';
 import { type Locale, labels, tr } from '@/lib/i18n';
+import { previewJournalText } from '@/lib/journal-preview';
 import {
   journalListMax,
   journalTextMax,
@@ -92,6 +93,8 @@ export function JournalView({ locale }: { locale: Locale }) {
   // shown list but never hides older entries that still exist.
   const [hasMore, setHasMore] = useState(false);
   const [notice, setNotice] = useState<{ tone: 'alert' | 'status'; text: string } | null>(null);
+  // The entries opened past their preview; the rest show their opening only.
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set());
   // Entries saved in this view that no read has listed yet: a re-read that
   // started before their save committed must not drop them from the view.
   const savedHere = useRef(new Set<string>());
@@ -138,6 +141,16 @@ export function JournalView({ locale }: { locale: Locale }) {
       void loadJournal(accessToken);
     }
   }, [isHydrated, isAuthorized, accessToken, loadJournal]);
+
+  function toggleEntry(id: string) {
+    setExpanded((current) => {
+      const next = new Set(current);
+      if (!next.delete(id)) {
+        next.add(id);
+      }
+      return next;
+    });
+  }
 
   async function showOlder() {
     if (!accessToken) {
@@ -447,6 +460,8 @@ export function JournalView({ locale }: { locale: Locale }) {
                     const names = entry.linked_skill_ids
                       .map(skillName)
                       .filter((name): name is string => Boolean(name));
+                    const preview = previewJournalText(entry.text);
+                    const open = expanded.has(entry.id);
                     return (
                       <li
                         key={entry.id}
@@ -465,9 +480,25 @@ export function JournalView({ locale }: { locale: Locale }) {
                             </span>
                           ) : null}
                         </div>
-                        <p className="m-0 [overflow-wrap:anywhere] whitespace-pre-wrap text-ink-black">
-                          {entry.text}
+                        <p
+                          id={`journal-entry-${entry.id}`}
+                          className="m-0 [overflow-wrap:anywhere] whitespace-pre-wrap text-ink-black"
+                        >
+                          {open || !preview.truncated ? entry.text : preview.text}
                         </p>
+                        {preview.truncated ? (
+                          <div>
+                            <button
+                              type="button"
+                              className="cursor-pointer border-none bg-transparent p-0 [font-family:inherit] text-[14px] text-cyan-text hover:text-cyan-text-strong hover:underline"
+                              aria-expanded={open}
+                              aria-controls={`journal-entry-${entry.id}`}
+                              onClick={() => toggleEntry(entry.id)}
+                            >
+                              {open ? j.showLess : j.showMore}
+                            </button>
+                          </div>
+                        ) : null}
                         {names.length ? (
                           <p className="m-0 text-[14px] text-warm-gray">{names.join(' · ')}</p>
                         ) : null}
