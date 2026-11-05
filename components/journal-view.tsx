@@ -92,6 +92,9 @@ export function JournalView({ locale }: { locale: Locale }) {
   // shown list but never hides older entries that still exist.
   const [hasMore, setHasMore] = useState(false);
   const [notice, setNotice] = useState<{ tone: 'alert' | 'status'; text: string } | null>(null);
+  // Entries saved in this view that no read has listed yet: a re-read that
+  // started before their save committed must not drop them from the view.
+  const savedHere = useRef(new Set<string>());
 
   const loadJournal = useCallback(
     async (token: string) => {
@@ -195,6 +198,7 @@ export function JournalView({ locale }: { locale: Locale }) {
         linked_skill_ids: linked,
         consent_version: load.consent.version,
       });
+      savedHere.current.add(entry.id);
       updateEntries((entries) => [entry, ...entries]);
       setText('');
       setDay('');
@@ -207,6 +211,24 @@ export function JournalView({ locale }: { locale: Locale }) {
     }
   }
 
+  // Re-reads the shown window from the api, keeping the entries saved here
+  // that the read does not list yet.
+  async function reloadEntries(token: string) {
+    try {
+      const read = await fetchJournalEntries(token, limit);
+      for (const entry of read) {
+        savedHere.current.delete(entry.id);
+      }
+      updateEntries((entries) => [
+        ...entries.filter((entry) => savedHere.current.has(entry.id)),
+        ...read,
+      ]);
+      setHasMore(read.length >= limit);
+    } catch {
+      // The entry is deleted already: the shown list stays as it is.
+    }
+  }
+
   async function remove(id: string) {
     if (load.status !== 'ready' || !accessToken) {
       return;
@@ -214,15 +236,22 @@ export function JournalView({ locale }: { locale: Locale }) {
     setNotice(null);
     setDeleting(id);
     try {
-      await deleteJournalEntry(accessToken, id);
-      updateEntries((entries) => entries.filter((entry) => entry.id !== id));
-    } catch (error) {
-      if (error instanceof ProblemError && error.problem.status === 404) {
-        // Already gone (another tab): the list catches up.
-        updateEntries((entries) => entries.filter((entry) => entry.id !== id));
-      } else {
-        setNotice({ tone: 'alert', text: j.deleteFailed });
+      let gone = true;
+      try {
+        await deleteJournalEntry(accessToken, id);
+      } catch (error) {
+        // A 404 means already gone (another tab): the list catches up.
+        gone = error instanceof ProblemError && error.problem.status === 404;
       }
+      if (!gone) {
+        setNotice({ tone: 'alert', text: j.deleteFailed });
+        return;
+      }
+      savedHere.current.delete(id);
+      updateEntries((entries) => entries.filter((entry) => entry.id !== id));
+      // Your entries re-read after the delete, so the list shows what the
+      // api holds (an entry from another tab, the next older one).
+      await reloadEntries(accessToken);
     } finally {
       setPendingDelete(null);
       setDeleting(null);
