@@ -51,6 +51,9 @@ export function clearSession(): void {
   window.sessionStorage.removeItem(ACCESS_TOKEN_KEY);
   window.sessionStorage.removeItem(REFRESH_TOKEN_KEY);
   window.sessionStorage.removeItem(USER_KEY);
+  // Every way a session ends, an expired one included: the next person in
+  // this tab must not start from the previous profile.
+  forgetKnownProfile();
 }
 
 // Single-flight guard: gotrue rotates the refresh token with reuse-kill, so
@@ -101,7 +104,6 @@ export async function signOut(): Promise<void> {
     }
   }
   clearSession();
-  forgetKnownProfile();
 }
 
 // Cross-view handoff for the unverified-email flow (static export: pages

@@ -11,6 +11,7 @@ import {
   profileReadMessage,
   updateProfile,
 } from '../lib/api/profile';
+import { clearSession } from '../lib/auth/session';
 import { profileSchema, updateProfileRequestSchema } from '../lib/schemas/profile';
 
 describe('profile schema', () => {
@@ -204,6 +205,22 @@ describe('fetchProfile', () => {
     await fetchProfile(accessToken);
     expect(lastKnownProfile()?.full_name).toBe('Juan Pérez');
     forgetKnownProfile();
+    expect(lastKnownProfile()).toBeNull();
+  });
+
+  it('forgets the profile when the session ends, an expired one included', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ profile }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    );
+    await fetchProfile(accessToken);
+    expect(lastKnownProfile()).not.toBeNull();
+    clearSession();
     expect(lastKnownProfile()).toBeNull();
   });
 
