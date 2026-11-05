@@ -209,6 +209,13 @@ describe('fetchProfile', () => {
   });
 
   it('forgets the profile when the session ends, an expired one included', async () => {
+    const profile = {
+      id: '11111111-1111-4111-8111-111111111111',
+      email: 'juan@example.com',
+      full_name: 'Juan Pérez',
+      created_at: '2026-10-27T00:00:00.000Z',
+      updated_at: '2026-10-27T00:00:00.000Z',
+    };
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue(
