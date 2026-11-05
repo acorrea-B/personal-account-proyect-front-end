@@ -27,6 +27,12 @@ export const skillSuggestionDecisionRequestSchema = z.object({
   revision_id: z.uuid(),
 });
 
+export const bulkSkillSuggestionDecisionRequestSchema = z.object({
+  decision: skillDecisionSchema,
+  revision_id: z.uuid(),
+  skill_keys: z.array(z.string().min(1)).min(1).max(100),
+});
+
 export const skillSuggestionDecisionSchema = z.object({
   skill_key: z.string().min(1),
   decision: skillDecisionSchema,

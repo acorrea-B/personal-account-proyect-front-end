@@ -7,12 +7,14 @@ vi.mock('@/lib/api/suggestions', () => ({
   fetchSuggestionsSummary: vi.fn(),
   fetchSkillSuggestions: vi.fn(),
   decideSkillSuggestion: vi.fn(),
+  decideSkillSuggestions: vi.fn(),
 }));
 
 import { SkillSuggestionsCard, suggestionsPage } from '../components/skill-suggestions-card';
 import { ProblemError } from '../lib/api/client';
 import {
   decideSkillSuggestion,
+  decideSkillSuggestions,
   fetchSkillSuggestions,
   fetchSuggestionsSummary,
 } from '@/lib/api/suggestions';
@@ -72,6 +74,7 @@ beforeEach(() => {
   vi.mocked(fetchSuggestionsSummary).mockReset();
   vi.mocked(fetchSkillSuggestions).mockReset();
   vi.mocked(decideSkillSuggestion).mockReset();
+  vi.mocked(decideSkillSuggestions).mockReset();
   onAccepted.mockReset();
   container = document.createElement('div');
   document.body.appendChild(container);
@@ -172,52 +175,41 @@ describe('SkillSuggestionsCard', () => {
     expect(document.body.textContent).toContain(tr(t.pending, { count: '1' }));
   });
 
-  it('adds every suggestion one decision after another', async () => {
+  it('adds every suggestion in one request', async () => {
     vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(2));
     vi.mocked(fetchSkillSuggestions).mockResolvedValue({
       revision_id: REVISION,
       suggestions: [rust, sql],
     });
-    vi.mocked(decideSkillSuggestion).mockResolvedValue({
-      skill_key: 'rust',
-      decision: 'accepted',
-      revision_id: REVISION,
-      decided_at: '2026-10-31T10:00:00Z',
-    });
+    vi.mocked(decideSkillSuggestions).mockResolvedValue([]);
     await render('en');
     const t = labels('en').suggestions;
     await click(tr(t.addAll, { count: '2' }));
-    expect(vi.mocked(decideSkillSuggestion).mock.calls).toEqual([
-      ['token', 'rust', 'accepted', REVISION],
-      ['token', 'sql', 'accepted', REVISION],
+    expect(vi.mocked(decideSkillSuggestions).mock.calls).toEqual([
+      ['token', ['rust', 'sql'], 'accepted', REVISION],
     ]);
+    expect(decideSkillSuggestion).not.toHaveBeenCalled();
     expect(onAccepted).toHaveBeenCalledTimes(2);
     expect(document.body.textContent).toContain(tr(t.addAllDone, { count: '2' }));
     expect(document.body.textContent).toContain(t.allReviewed);
   });
 
-  it('stops at the 100-skill limit and keeps the rest pending', async () => {
+  it('keeps every suggestion pending when the set passes the 100-skill limit', async () => {
     vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(2));
     vi.mocked(fetchSkillSuggestions).mockResolvedValue({
       revision_id: REVISION,
       suggestions: [rust, sql],
     });
-    vi.mocked(decideSkillSuggestion)
-      .mockResolvedValueOnce({
-        skill_key: 'rust',
-        decision: 'accepted',
-        revision_id: REVISION,
-        decided_at: '2026-10-31T10:00:00Z',
-      })
-      .mockRejectedValueOnce(new ProblemError({ status: 422, title: 'profile-invalid-field' }));
+    vi.mocked(decideSkillSuggestions).mockRejectedValueOnce(
+      new ProblemError({ status: 422, title: 'profile-invalid-field' }),
+    );
     await render('en');
     const t = labels('en').suggestions;
     await click(tr(t.addAll, { count: '2' }));
-    expect(decideSkillSuggestion).toHaveBeenCalledTimes(2);
-    expect(document.body.textContent).toContain(tr(t.addAllLimit, { count: '1' }));
-    // SQL was not added: it stays pending with its own buttons.
-    expect(document.body.textContent).toContain(tr(t.pending, { count: '1' }));
-    expect(document.body.textContent).toContain('SQL');
+    expect(onAccepted).not.toHaveBeenCalled();
+    expect(document.body.textContent).toContain(t.addAllLimit);
+    expect(document.body.textContent).toContain('Built payment services in Rust');
+    expect(document.body.textContent).toContain(tr(t.pending, { count: '2' }));
   });
 
   it('dismisses a suggestion without touching the profile', async () => {
