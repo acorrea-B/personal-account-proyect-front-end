@@ -24,10 +24,12 @@ export const harnessRevisionsEnvelopeSchema = z.object({
 const fraction = z.number().min(0).max(1);
 const count = z.number().int().min(0);
 
-// profile-metrics/1.0.0: the run's numbers. The rates are null when the run
-// had nothing to measure (not measurable is not zero).
+// profile-metrics/1.0.0 and 2.0.0: the run's numbers. The rates are null
+// when the run had nothing to measure (not measurable is not zero). In 2.0.0
+// a level judged by the model has no numeric score (harness decision D16):
+// `weighted_score` is null and `source` names what decided the label.
 export const profileMetricsSchema = z.object({
-  schema: z.literal('profile-metrics/1.0.0'),
+  schema: z.enum(['profile-metrics/1.0.0', 'profile-metrics/2.0.0']),
   completeness_score: fraction,
   claim_supported_rate: fraction.nullable(),
   over_claimed_rate: fraction.nullable(),
@@ -47,7 +49,11 @@ export const profileMetricsSchema = z.object({
     impact_metric: fraction,
     keyword_coverage: fraction,
   }),
-  level: z.object({ label: z.string(), weighted_score: fraction }),
+  level: z.object({
+    label: z.string(),
+    weighted_score: fraction.nullable(),
+    source: z.string().optional(),
+  }),
   model: z.object({ calls: count, retries: count, total_tokens: count }),
 });
 

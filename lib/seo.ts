@@ -1,7 +1,6 @@
-// The canonical site host: today the static export bucket; when a custom
-// domain lands, this constant moves once and every metadata, robot and
-// sitemap URL follows it.
-export const siteUrl = 'https://personal-account-proyect-static-v2.s3.fr-par.scw.cloud';
+// The canonical site host: the custom domain. This constant moves once and
+// every metadata, robot and sitemap URL follows it.
+export const siteUrl = 'https://profile.acorrea-b.com';
 
 export const siteName = 'Professional Profile';
 

@@ -147,6 +147,27 @@ describe('harnessOutputs', () => {
     expect(outputs.levelJudgment).toBeNull();
   });
 
+  it('reads metrics 2.0.0, where a judged level has no score', () => {
+    // Harness D16: the level comes from the model's judgment, without a
+    // numeric score; the metrics must still be read, with the older runs.
+    const judged = {
+      ...metrics(0.9),
+      schema: 'profile-metrics/2.0.0',
+      level: { label: 'senior', weighted_score: null, source: 'level-assessment/0.1.1' },
+    };
+    const outputs = harnessOutputs([
+      revision(2, '2026-11-02T23:25:00Z', 'profile_metrics', judged),
+      revision(1, '2026-11-02T23:20:00Z', 'profile_metrics', metrics(0.8)),
+    ]);
+    expect(outputs.metrics).toHaveLength(2);
+    const latest = outputs.metrics[outputs.metrics.length - 1].metrics;
+    expect(latest.level).toEqual({
+      label: 'senior',
+      weighted_score: null,
+      source: 'level-assessment/0.1.1',
+    });
+  });
+
   it('answers empty before the first run', () => {
     expect(harnessOutputs([])).toEqual({
       runAt: null,
