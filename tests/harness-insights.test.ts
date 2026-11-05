@@ -107,6 +107,45 @@ describe('HarnessInsights', () => {
     expect(document.body.textContent).toContain(tr(a.levelScore, { score: '38%' }));
   });
 
+  it('shows the judged level with each dimension state and its CV quote, no score', async () => {
+    vi.mocked(fetchHarnessOutputs).mockResolvedValue({
+      ...ready,
+      levelJudgment: {
+        label: 'senior',
+        dimensions: {
+          leadership: {
+            state: 'evidenced',
+            facts: ['Technical lead of a two-developer backend team', 'Mentored two engineers'],
+            dropped_facts: [],
+            rationale: 'r',
+          },
+          impact: {
+            state: 'unknown',
+            facts: [],
+            dropped_facts: ['Invented'],
+            rationale: 'No result stated',
+          },
+        },
+        rationale: 'Leadership is evidenced',
+        support: 'not_assessed',
+      },
+    });
+    await render('en');
+    const a = labels('en').ai;
+    const text = document.body.textContent ?? '';
+    expect(text).toContain(a.levelLabel_senior);
+    expect(text).toContain(a.levelState_evidenced);
+    expect(text).toContain('Technical lead of a two-developer backend team');
+    expect(text).toContain(tr(a.levelEvidenceSummary, { count: '1', total: '2' }));
+    // The quotes are behind one disclosure, so the panel stays compact.
+    const details = document.querySelector('details');
+    expect(details?.open).toBe(false);
+    expect(details?.textContent).toContain('Mentored two engineers');
+    expect(text).toContain(a.levelState_unknown);
+    expect(text).toContain(tr(a.levelDropped, { count: '1' }));
+    expect(document.querySelectorAll('[role="meter"]')).toHaveLength(0);
+  });
+
   it('names the roles the profile fits, the main one marked', async () => {
     vi.mocked(fetchHarnessOutputs).mockResolvedValue(ready);
     await render('en');
