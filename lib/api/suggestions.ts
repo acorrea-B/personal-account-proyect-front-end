@@ -7,6 +7,7 @@ import {
   catalogConsentSchema,
   profileSkillsEnvelopeSchema,
   skillCatalogEnvelopeSchema,
+  bulkSkillSuggestionDecisionRequestSchema,
   skillSuggestionDecisionRequestSchema,
   skillSuggestionDecisionSchema,
   skillSuggestionDecisionsEnvelopeSchema,
@@ -103,6 +104,29 @@ export async function decideSkillSuggestion(
     skillSuggestionDecisionSchema,
     { method: 'POST', body },
   );
+}
+
+// POST /v1/profile/skill-suggestions/decisions: one decision on several
+// suggestions of a revision, in one transaction. All or nothing: a refusal
+// writes no decision.
+export async function decideSkillSuggestions(
+  accessToken: string,
+  skillKeys: string[],
+  decision: SkillDecision,
+  revisionId: string,
+): Promise<SkillSuggestionDecision[]> {
+  const body = bulkSkillSuggestionDecisionRequestSchema.parse({
+    decision,
+    revision_id: revisionId,
+    skill_keys: skillKeys,
+  });
+  const envelope = await request(
+    '/v1/profile/skill-suggestions/decisions',
+    accessToken,
+    skillSuggestionDecisionsEnvelopeSchema,
+    { method: 'POST', body },
+  );
+  return envelope.decisions;
 }
 
 // GET /v1/profile/skill-suggestions/decisions: the latest decision per key.

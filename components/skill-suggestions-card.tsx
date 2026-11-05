@@ -17,11 +17,13 @@ import {
 import { ProblemError } from '@/lib/api/client';
 import {
   decideSkillSuggestion,
+  decideSkillSuggestions,
   fetchSkillSuggestions,
   fetchSuggestionsSummary,
 } from '@/lib/api/suggestions';
 import { announceSuggestionsChanged } from '@/lib/suggestions-signal';
 import { type Locale, labels, tr } from '@/lib/i18n';
+import { maxProfileSkills } from '@/lib/schemas/profile';
 import type { SkillDecision, SkillSuggestion, SuggestionsSummary } from '@/lib/schemas/suggestions';
 
 type CardState =
@@ -73,7 +75,7 @@ export function SkillSuggestionsCard({
   const [shown, setShown] = useState(suggestionsPage);
   const [notice, setNotice] = useState<{ tone: 'alert' | 'status'; text: string } | null>(null);
   // "Add all" progress: how many it added of how many it set out to add.
-  const [bulk, setBulk] = useState<{ done: number; total: number } | null>(null);
+  const [bulk, setBulk] = useState<number | null>(null);
 
   const readError = useCallback(
     (error: unknown) =>
@@ -152,38 +154,41 @@ export function SkillSuggestionsCard({
     }
   }
 
-  // Adds every pending suggestion, one decision after another (the API
-  // decides one skill per request). It stops, keeping what it added, at the
-  // profile's 100-skill limit, on a busy service or on any failure; the
-  // rest stay pending. A changed revision reloads the list.
+  // Adds every pending suggestion in one request, all or nothing: a refusal
+  // keeps them all pending. A changed revision reloads the list.
   async function acceptAll() {
     if (state.kind !== 'ready' || !state.revisionId || !state.suggestions.length) {
       return;
     }
     const revisionId = state.revisionId;
     const queue = [...state.suggestions];
-    const added: SkillSuggestion[] = [];
+    let added: SkillSuggestion[] = [];
     setDeciding('*');
     onBusyChange?.(true);
     setNotice(null);
-    setBulk({ done: 0, total: queue.length });
+    setBulk(queue.length);
     let stop: { tone: 'alert' | 'status'; text: string } | null = null;
-    for (const suggestion of queue) {
+    if (queue.length > maxProfileSkills) {
+      stop = { tone: 'alert', text: t.addAllLimit };
+    } else {
       try {
-        await decideSkillSuggestion(accessToken, suggestion.skill_key, 'accepted', revisionId);
-        added.push(suggestion);
-        setBulk({ done: added.length, total: queue.length });
+        await decideSkillSuggestions(
+          accessToken,
+          queue.map((suggestion) => suggestion.skill_key),
+          'accepted',
+          revisionId,
+        );
+        added = queue;
       } catch (error) {
         const status = error instanceof ProblemError ? error.problem.status : 0;
         stop =
           status === 422
-            ? { tone: 'alert', text: tr(t.addAllLimit, { count: String(added.length) }) }
+            ? { tone: 'alert', text: t.addAllLimit }
             : status === 404
               ? { tone: 'status', text: t.changed }
               : status === 429 || status === 503
-                ? { tone: 'alert', text: tr(t.addAllBusy, { count: String(added.length) }) }
-                : { tone: 'alert', text: tr(t.addAllFailed, { count: String(added.length) }) };
-        break;
+                ? { tone: 'alert', text: t.addAllBusy }
+                : { tone: 'alert', text: t.addAllFailed };
       }
     }
     const addedKeys = new Set(added.map((item) => item.skill_key));
@@ -250,10 +255,7 @@ export function SkillSuggestionsCard({
                     onClick={() => void acceptAll()}
                   >
                     {bulk
-                      ? tr(t.addAllProgress, {
-                          done: String(bulk.done),
-                          total: String(bulk.total),
-                        })
+                      ? tr(t.addAllProgress, { total: String(bulk) })
                       : tr(t.addAll, { count: String(state.suggestions.length) })}
                   </button>
                 ) : null}
