@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 // The install manifest: the brand icons ride the same exported files as the
-// favicon set, on the canonical bucket host until a custom domain lands.
+// favicon set, on the canonical site host.
 export const dynamic = 'force-static';
 
 export default function manifest(): MetadataRoute.Manifest {
