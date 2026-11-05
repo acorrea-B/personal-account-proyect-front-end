@@ -197,7 +197,10 @@ jobs:
               || echo "::warning::scaleway_object_bucket_website_configuration.web could not be imported; apply will create it"
           fi
 
-          terraform state list -no-color
+          # With no state file `state list` exits 1, which is the first deploy's
+          # normal case (nothing imported, apply creates everything), not a
+          # failure.
+          terraform state list -no-color || echo "The state is empty; apply creates every resource."
 
       - name: Plan infrastructure and website deployment
         working-directory: infra/scaleway-static-site
@@ -213,7 +216,10 @@ jobs:
         run: |
           set -euo pipefail
           URL="$(terraform output -raw website_endpoint)"
-          [[ "$URL" == http* ]] || URL="https://${URL}"
+          # Plain http: the bucket is named after the domain, and the wildcard
+          # certificate of the website endpoint covers one label, so a dotted
+          # bucket name fails TLS verification (curl exit 60) on a sound site.
+          URL="http://${URL#*://}"
 
           # A deploy is only sound when the public endpoint answers, not
           # when Terraform reports success.

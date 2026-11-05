@@ -172,6 +172,54 @@ describe('SkillSuggestionsCard', () => {
     expect(document.body.textContent).toContain(tr(t.pending, { count: '1' }));
   });
 
+  it('adds every suggestion one decision after another', async () => {
+    vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(2));
+    vi.mocked(fetchSkillSuggestions).mockResolvedValue({
+      revision_id: REVISION,
+      suggestions: [rust, sql],
+    });
+    vi.mocked(decideSkillSuggestion).mockResolvedValue({
+      skill_key: 'rust',
+      decision: 'accepted',
+      revision_id: REVISION,
+      decided_at: '2026-10-31T10:00:00Z',
+    });
+    await render('en');
+    const t = labels('en').suggestions;
+    await click(tr(t.addAll, { count: '2' }));
+    expect(vi.mocked(decideSkillSuggestion).mock.calls).toEqual([
+      ['token', 'rust', 'accepted', REVISION],
+      ['token', 'sql', 'accepted', REVISION],
+    ]);
+    expect(onAccepted).toHaveBeenCalledTimes(2);
+    expect(document.body.textContent).toContain(tr(t.addAllDone, { count: '2' }));
+    expect(document.body.textContent).toContain(t.allReviewed);
+  });
+
+  it('stops at the 100-skill limit and keeps the rest pending', async () => {
+    vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(2));
+    vi.mocked(fetchSkillSuggestions).mockResolvedValue({
+      revision_id: REVISION,
+      suggestions: [rust, sql],
+    });
+    vi.mocked(decideSkillSuggestion)
+      .mockResolvedValueOnce({
+        skill_key: 'rust',
+        decision: 'accepted',
+        revision_id: REVISION,
+        decided_at: '2026-10-31T10:00:00Z',
+      })
+      .mockRejectedValueOnce(new ProblemError({ status: 422, title: 'profile-invalid-field' }));
+    await render('en');
+    const t = labels('en').suggestions;
+    await click(tr(t.addAll, { count: '2' }));
+    expect(decideSkillSuggestion).toHaveBeenCalledTimes(2);
+    expect(document.body.textContent).toContain(tr(t.addAllLimit, { count: '1' }));
+    // SQL was not added: it stays pending with its own buttons.
+    expect(document.body.textContent).toContain(tr(t.pending, { count: '1' }));
+    expect(document.body.textContent).toContain('SQL');
+  });
+
   it('dismisses a suggestion without touching the profile', async () => {
     vi.mocked(fetchSuggestionsSummary).mockResolvedValue(summary(1));
     vi.mocked(fetchSkillSuggestions).mockResolvedValue({
