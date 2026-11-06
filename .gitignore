@@ -45,3 +45,4 @@ terraform.tfstate*
 .terraform/
 *.tfvars
 !infra/scaleway-static-site/terraform.tfvars.example
+.env.local

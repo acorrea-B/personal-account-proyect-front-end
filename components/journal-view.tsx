@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { type SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
+import posthog from 'posthog-js';
 
 import { AccountMenu } from '@/components/account-menu';
 import { AppShell } from '@/components/app-shell';
@@ -186,6 +187,12 @@ export function JournalView({ locale }: { locale: Locale }) {
     setNotice(null);
     try {
       await confirmJournalConsent(accessToken, load.consent.version);
+      if (
+        process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+        process.env.NEXT_PUBLIC_POSTHOG_HOST
+      ) {
+        posthog.capture('journal_consent_confirmed');
+      }
       setLoad((current) =>
         current.status === 'ready' ? { ...current, consented: true } : current,
       );
@@ -211,6 +218,16 @@ export function JournalView({ locale }: { locale: Locale }) {
         linked_skill_ids: linked,
         consent_version: load.consent.version,
       });
+      if (
+        process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+        process.env.NEXT_PUBLIC_POSTHOG_HOST
+      ) {
+        posthog.capture('journal_entry_created', {
+          linked_skill_count: linked.length,
+          user_confirmed_as_evidence: asEvidence,
+          has_occurred_at: Boolean(day),
+        });
+      }
       savedHere.current.add(entry.id);
       updateEntries((entries) => [entry, ...entries]);
       setText('');
@@ -259,6 +276,12 @@ export function JournalView({ locale }: { locale: Locale }) {
       if (!gone) {
         setNotice({ tone: 'alert', text: j.deleteFailed });
         return;
+      }
+      if (
+        process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+        process.env.NEXT_PUBLIC_POSTHOG_HOST
+      ) {
+        posthog.capture('journal_entry_deleted');
       }
       savedHere.current.delete(id);
       updateEntries((entries) => entries.filter((entry) => entry.id !== id));

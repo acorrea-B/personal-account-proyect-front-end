@@ -1,6 +1,7 @@
 'use client';
 
 import { type SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
+import posthog from 'posthog-js';
 
 import { AiRoadmapPreview } from '@/components/ai-roadmap-preview';
 import { Skeleton } from '@/components/skeleton';
@@ -120,6 +121,16 @@ export function EvolutionCard({ accessToken, locale }: { accessToken: string; lo
     setNotice(null);
     try {
       const mode = await declareEvolutionMode(accessToken, declaration);
+      if (
+        process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+        process.env.NEXT_PUBLIC_POSTHOG_HOST
+      ) {
+        posthog.capture('evolution_mode_declared', {
+          mode: mode.mode,
+          horizon_months: mode.horizon_months,
+          has_rationale: Boolean(mode.rationale),
+        });
+      }
       setState((current) => (current.kind === 'ready' ? { ...current, mode } : current));
       setEditing(false);
       setPath(null);

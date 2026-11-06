@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import posthog from 'posthog-js';
 
 import { ProblemError } from '@/lib/api/client';
 import { getVersionDetail, saveCvText } from '@/lib/api/cv';
@@ -111,6 +112,12 @@ export function CvVersionDetail({
       setNote(null);
       try {
         const saved = await saveCvText(accessToken, ready.content, currentUpdatedAt);
+        if (
+          process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+          process.env.NEXT_PUBLIC_POSTHOG_HOST
+        ) {
+          posthog.capture('cv_version_restored', { origin: ready.origin });
+        }
         setRestoredSaved(true);
         setSaving(false);
         onRestored(saved);

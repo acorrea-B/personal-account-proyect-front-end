@@ -3,11 +3,13 @@
 import type { SyntheticEvent } from 'react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import posthog from 'posthog-js';
 
 import { ProblemError, login } from '@/lib/api/client';
 import { loginRequestSchema } from '@/lib/schemas/auth';
-import { savePendingVerificationEmail, saveSession } from '@/lib/auth/session';
+import { loadSession, savePendingVerificationEmail, saveSession } from '@/lib/auth/session';
 import { type Locale, labels, tr } from '@/lib/i18n';
+import { posthogLog } from '@/lib/posthog-logger';
 import {
   AuthCard,
   AuthForm,
@@ -67,8 +69,27 @@ export function LoginView({ locale }: { locale: Locale }) {
 
     setIsSubmitting(true);
     try {
+      const previousSession = loadSession();
       const tokenPair = await login(parsed.data);
-      saveSession(tokenPair);
+      const session = saveSession(tokenPair);
+
+      // A direct account switch must not retain the prior user's PostHog identity.
+      if (
+        process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+        process.env.NEXT_PUBLIC_POSTHOG_HOST
+      ) {
+        if (previousSession && previousSession.user.id !== session.user.id) {
+          posthog.reset();
+        }
+        posthog.identify(session.user.id, {
+          email: session.user.email,
+          verified: session.user.verified,
+          created_at: session.user.created_at,
+        });
+        posthog.capture('user_logged_in');
+        posthogLog.info('user_login_succeeded', { locale });
+      }
+
       router.push(`${base}/app/`);
     } catch (error) {
       if (error instanceof ProblemError) {
