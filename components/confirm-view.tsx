@@ -3,6 +3,7 @@
 import type { SyntheticEvent } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import posthog from 'posthog-js';
 
 import { ProblemError, resendVerification } from '@/lib/api/client';
 import { resendVerificationRequestSchema } from '@/lib/schemas/auth';
@@ -104,6 +105,12 @@ export function ConfirmView({ locale }: { locale: Locale }) {
     setIsSubmitting(true);
     try {
       const response = await resendVerification(parsed.data);
+      if (
+        process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+        process.env.NEXT_PUBLIC_POSTHOG_HOST
+      ) {
+        posthog.capture('verification_email_resent');
+      }
       setSuccessMessage(response.message);
       const availableAt = Date.now() + THREE_MINUTES_MS;
       window.sessionStorage.setItem(RESEND_AVAILABLE_AT_KEY, String(availableAt));

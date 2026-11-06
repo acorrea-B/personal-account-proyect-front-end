@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import posthog from 'posthog-js';
 
 import { Skeleton } from '@/components/skeleton';
 import { AuthKicker, cx, ghostButton, inlineAlert, outlineButton } from '@/components/ui';
@@ -49,6 +50,12 @@ export function CatalogConsent({ accessToken, locale }: { accessToken: string; l
     setNotice(null);
     try {
       const decision = await decideCatalogConsent(accessToken, state.consent.version, granted);
+      if (
+        process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+        process.env.NEXT_PUBLIC_POSTHOG_HOST
+      ) {
+        posthog.capture('catalog_consent_updated', { granted: decision.granted });
+      }
       setState({
         kind: 'ready',
         consent: { ...state.consent, granted: decision.granted, decided_at: decision.decided_at },

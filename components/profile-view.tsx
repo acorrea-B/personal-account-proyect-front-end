@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import posthog from 'posthog-js';
 
 import { ProblemError } from '@/lib/api/client';
 import { searchCities } from '@/lib/api/geocoding';
@@ -27,6 +28,7 @@ import {
 import { signOut } from '@/lib/auth/session';
 import { updateProfileRequestSchema, type Profile } from '@/lib/schemas/profile';
 import { type Labels, type Locale, labels, tr } from '@/lib/i18n';
+import { posthogLog } from '@/lib/posthog-logger';
 import { useRequireAuth } from '@/lib/auth/useRequireAuth';
 import { AccountMenu } from '@/components/account-menu';
 import { AppShell } from '@/components/app-shell';
@@ -409,6 +411,24 @@ export function ProfileView({ locale }: { locale: Locale }) {
       setSave({ status: 'saving', note: undefined });
       try {
         const saved = await updateProfile(accessToken, parsed.data, profile.updated_at);
+        if (
+          process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+          process.env.NEXT_PUBLIC_POSTHOG_HOST
+        ) {
+          posthog.capture('profile_saved', {
+            flow,
+            skill_count: skillsDraft.length,
+            link_count: cleanLinks.length,
+            has_headline: Boolean(parsed.data.headline),
+            has_bio: Boolean(parsed.data.bio),
+            has_location: Boolean(parsed.data.location),
+          });
+          posthogLog.info('profile_save_succeeded', {
+            flow,
+            skill_count: skillsDraft.length,
+            link_count: cleanLinks.length,
+          });
+        }
         setProfile(saved);
         setShowToast(true);
         setSave({ status: 'saved' });

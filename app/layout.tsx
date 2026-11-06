@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 
+import { PostHogInit } from '@/components/posthog-init';
 import { siteDescription, siteName, siteUrl } from '@/lib/seo';
 
 import './globals.css';
@@ -53,7 +54,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${interTight.variable}`}>
-      <body>{children}</body>
+      <body>
+        <PostHogInit />
+        {children}
+      </body>
     </html>
   );
 }

@@ -3,6 +3,7 @@
 import type { SyntheticEvent } from 'react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import posthog from 'posthog-js';
 
 import { ProblemError, register } from '@/lib/api/client';
 import { MailIcon, ProfileIcon, ShieldIcon, UserIcon } from '@/components/icons';
@@ -67,6 +68,12 @@ export function RegisterView({ locale }: { locale: Locale }) {
     setIsSubmitting(true);
     try {
       await register(parsed.data);
+      if (
+        process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+        process.env.NEXT_PUBLIC_POSTHOG_HOST
+      ) {
+        posthog.capture('account_registered');
+      }
       router.push(`${base}/register/confirm/`);
     } catch (error) {
       if (error instanceof ProblemError) {

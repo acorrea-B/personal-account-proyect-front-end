@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import posthog from 'posthog-js';
 
 import { ProblemError } from '@/lib/api/client';
 import { fetchCvText, saveCvText } from '@/lib/api/cv';
@@ -143,6 +144,15 @@ export function CvEditorView({ locale }: { locale: Locale }) {
     setSave({ status: 'saving', note: undefined });
     try {
       const savedMeta = await saveCvText(accessToken, content, meta?.updated_at);
+      if (
+        process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+        process.env.NEXT_PUBLIC_POSTHOG_HOST
+      ) {
+        posthog.capture('cv_saved', {
+          previous_version_archived: savedMeta.previous_version_archived,
+          is_first_version: meta === null,
+        });
+      }
       setMeta(savedMeta.cv);
       setNote(savedMeta.previous_version_archived ? t.cvEditor.savedNote : null);
       if (savedMeta.previous_version_archived) {
@@ -181,7 +191,7 @@ export function CvEditorView({ locale }: { locale: Locale }) {
       }
       setSave({ status: 'idle' });
     }
-  }, [accessToken, content, meta?.updated_at, save.status, t]);
+  }, [accessToken, content, meta, save.status, t]);
 
   if (!isHydrated || !isAuthorized || load.status === 'loading') {
     return (

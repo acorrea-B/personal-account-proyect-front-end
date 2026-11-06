@@ -1,3 +1,5 @@
+import posthog from 'posthog-js';
+
 import { ProblemError, refresh, revoke } from '../api/client';
 import { userSchema, type TokenPair, tokenPairSchema } from '../schemas/auth';
 import { forgetKnownProfile } from '../api/profile';
@@ -10,6 +12,16 @@ export interface AuthSession {
   accessToken: string;
   refreshToken: string;
   user: TokenPair['user'];
+}
+
+function resetPostHogForSession(session: AuthSession | null): void {
+  if (
+    session &&
+    process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+    process.env.NEXT_PUBLIC_POSTHOG_HOST
+  ) {
+    posthog.reset();
+  }
 }
 
 // Announced whenever a session is stored (sign-in or a refresh), so views
@@ -79,6 +91,7 @@ export async function refreshSession(
       return saveSession(tokenPair);
     } catch (error) {
       if (error instanceof ProblemError && error.problem.status === 401) {
+        resetPostHogForSession(current);
         clearSession();
         return null;
       }
@@ -103,6 +116,8 @@ export async function signOut(): Promise<void> {
       // Always clear locally, even when revoke fails.
     }
   }
+
+  resetPostHogForSession(session);
   clearSession();
 }
 
